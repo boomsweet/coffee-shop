@@ -6,8 +6,8 @@
 
 <title>Hop Tea - เจ้าของร้าน</title>
 
-<!-- ✅ PWA -->
-<link rel="manifest" href="manifest-admin.json">
+<!-- ✅ PWA (แก้ path ให้ตรง GitHub Pages) -->
+<link rel="manifest" href="./manifest-admin.json">
 <meta name="theme-color" content="#000000">
 
 <script src="https://cdn.tailwindcss.com"></script>
@@ -82,7 +82,7 @@ function saveMenu(){
 }
 
 window.addMenu = ()=>{
-  if(!name.value || !price.value) return alert("กรอกข้อมูลให้ครบ");
+  if(!name.value || !price.value) return alert("กรอกข้อมูล");
 
   const m={
     id:Date.now(),
@@ -124,7 +124,6 @@ function loadOrders(){
     const data = snap.val()||{};
     const keys = Object.keys(data);
 
-    // 🔔 แจ้งเตือน
     if(!firstLoad && keys.length>0){
       new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
     }
@@ -157,12 +156,12 @@ window.printBill = (id)=>{
   w.document.write("<h2>Hop Tea</h2><pre>"+text+"</pre><script>window.print()<\/script>");
 }
 
-// 📱 Service Worker
+// ✅🔥 แก้สำคัญ: path service worker (GitHub Pages)
 if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("service-worker.js");
+  navigator.serviceWorker.register("./service-worker.js");
 }
 
-// 📱 ปุ่มติดตั้งแอป
+// 📱 ปุ่มติดตั้ง
 let deferredPrompt;
 window.addEventListener("beforeinstallprompt", (e)=>{
   e.preventDefault();
