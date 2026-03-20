@@ -6,7 +6,6 @@
 <title>Hop Tea</title>
 
 <link rel="manifest" href="manifest.json">
-
 <script src="https://cdn.tailwindcss.com"></script>
 
 <style>
@@ -21,9 +20,29 @@ body { background:#f5f5f5; }
 
 <div id="menu-grid" class="grid grid-cols-2 gap-4 p-4"></div>
 
-<div id="cart-bar" class="cart-bar hidden" onclick="sendOrder()">
+<!-- 🛒 ตะกร้า -->
+<div id="cart-bar" class="cart-bar hidden" onclick="openCart()">
   <span>🛒 <span id="cart-count">0</span></span>
   <span>฿<span id="cart-total">0</span></span>
+</div>
+
+<!-- 📦 Modal ตะกร้า -->
+<div id="cart-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-end">
+  <div class="bg-white w-full p-4 rounded-t-2xl max-h-[80%] overflow-auto">
+    <h2 class="text-xl font-bold mb-2">ตะกร้าของคุณ</h2>
+    <div id="cart-items"></div>
+
+    <div class="mt-4 font-bold">
+      รวม: ฿<span id="modal-total">0</span>
+    </div>
+
+    <button onclick="confirmOrder()" class="bg-green-500 text-white w-full p-2 mt-2 rounded">
+      ยืนยันออเดอร์
+    </button>
+    <button onclick="closeCart()" class="w-full mt-2">
+      ปิด
+    </button>
+  </div>
 </div>
 
 <script type="module">
@@ -89,24 +108,66 @@ function updateCart(){
   document.getElementById("cart-bar").classList.toggle("hidden", count===0);
 }
 
-window.sendOrder = ()=>{
+// ===== เปิดตะกร้า =====
+window.openCart = ()=>{
+  document.getElementById("cart-modal").classList.remove("hidden");
+  renderCart();
+}
+
+window.closeCart = ()=>{
+  document.getElementById("cart-modal").classList.add("hidden");
+}
+
+function renderCart(){
+  const div = document.getElementById("cart-items");
+  div.innerHTML = cart.map(i=>`
+    <div class="flex justify-between mb-2">
+      <div>${i.name} x${i.qty}</div>
+      <div>
+        <button onclick="add(${i.id})">+</button>
+        <button onclick="remove(${i.id})">-</button>
+      </div>
+    </div>
+  `).join("");
+
+  document.getElementById("modal-total").innerText =
+    cart.reduce((s,i)=>s+i.qty*i.price,0);
+}
+
+// ===== ส่งออเดอร์ =====
+window.confirmOrder = ()=>{
   push(ref(db,"orders"),{
     items: cart,
     total: cart.reduce((s,i)=>s+i.qty*i.price,0),
     status:"pending",
     time:new Date().toLocaleString()
   });
-  alert("ส่งออเดอร์แล้ว!");
+  alert("สั่งสำเร็จ!");
   cart=[];
   updateCart();
+  closeCart();
 }
 
-renderMenu();
-
-// 📱 PWA install
+// 📱 PWA
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js");
 }
+
+// 🔥 ปุ่มติดตั้ง
+let deferredPrompt;
+window.addEventListener("beforeinstallprompt", (e)=>{
+  e.preventDefault();
+  deferredPrompt = e;
+
+  const btn = document.createElement("button");
+  btn.innerText="ติดตั้งแอป";
+  btn.className="fixed top-2 right-2 bg-green-500 text-white px-3 py-1 rounded";
+
+  btn.onclick=()=>deferredPrompt.prompt();
+  document.body.appendChild(btn);
+});
+
+renderMenu();
 </script>
 </body>
 </html>
