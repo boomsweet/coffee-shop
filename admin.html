@@ -3,28 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Admin</title>
 
+<title>Hop Tea - เจ้าของร้าน</title>
+
+<!-- ✅ PWA -->
 <link rel="manifest" href="manifest-admin.json">
+<meta name="theme-color" content="#000000">
 
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="p-4">
-<h1 class="text-center text-xl font-bold">Hop Tea - เจ้าของร้าน</h1>
+<body class="p-4 bg-gray-100">
 
-<div id="login-box">
-  <input id="pass" type="password" placeholder="รหัส" class="border p-2">
-  <button onclick="login()" class="bg-black text-white px-3">เข้า</button>
+<h1 class="text-center text-xl font-bold mb-4">Hop Tea - เจ้าของร้าน</h1>
+
+<!-- 🔐 LOGIN -->
+<div id="login-box" class="text-center">
+  <input id="pass" type="password" placeholder="รหัส" class="border p-2 rounded">
+  <button onclick="login()" class="bg-black text-white px-4 py-1 rounded">เข้า</button>
 </div>
 
+<!-- 📊 PANEL -->
 <div id="panel" class="hidden">
 
 <h2 class="mt-4 font-bold">เพิ่มเมนู</h2>
-<input id="name" placeholder="ชื่อ">
-<input id="price" type="number" placeholder="ราคา">
-<input id="img" placeholder="รูป">
-<button onclick="addMenu()" class="bg-green-500 text-white px-2">เพิ่ม</button>
+<div class="flex gap-2 flex-wrap">
+  <input id="name" placeholder="ชื่อ" class="border p-1">
+  <input id="price" type="number" placeholder="ราคา" class="border p-1">
+  <input id="img" placeholder="ลิงก์รูป" class="border p-1">
+  <button onclick="addMenu()" class="bg-green-500 text-white px-2 rounded">เพิ่ม</button>
+</div>
 
 <div id="menu-list" class="mt-4"></div>
 
@@ -46,12 +54,12 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 // ✅ จำ login
-if(localStorage.getItem("admin_login") === "true"){
+if(localStorage.getItem("admin_login")==="true"){
   startApp();
 }
 
 window.login = ()=>{
-  if(document.getElementById("pass").value==="0000"){
+  if(pass.value==="0000"){
     localStorage.setItem("admin_login","true");
     startApp();
   }else alert("รหัสผิด");
@@ -74,6 +82,8 @@ function saveMenu(){
 }
 
 window.addMenu = ()=>{
+  if(!name.value || !price.value) return alert("กรอกข้อมูลให้ครบ");
+
   const m={
     id:Date.now(),
     name:name.value,
@@ -83,6 +93,8 @@ window.addMenu = ()=>{
   menu.push(m);
   saveMenu();
   renderMenu();
+
+  name.value=""; price.value=""; img.value="";
 }
 
 window.del = (id)=>{
@@ -93,9 +105,9 @@ window.del = (id)=>{
 
 function renderMenu(){
   document.getElementById("menu-list").innerHTML = menu.map(m=>`
-    <div class="bg-white p-2 mb-2">
-      ${m.name} ฿${m.price}
-      <button onclick="del(${m.id})">ลบ</button>
+    <div class="bg-white p-2 mb-2 rounded shadow flex justify-between">
+      <div>${m.name} ฿${m.price}</div>
+      <button onclick="del(${m.id})" class="text-red-500">ลบ</button>
     </div>
   `).join("");
 }
@@ -104,7 +116,7 @@ function loadMenu(){
   renderMenu();
 }
 
-// ===== ORDERS (แก้หลัก) =====
+// ===== ORDERS =====
 let firstLoad = true;
 
 function loadOrders(){
@@ -112,8 +124,8 @@ function loadOrders(){
     const data = snap.val()||{};
     const keys = Object.keys(data);
 
-    // 🔔 แจ้งเตือนเฉพาะครั้งถัดไป
-    if(!firstLoad && keys.length > 0){
+    // 🔔 แจ้งเตือน
+    if(!firstLoad && keys.length>0){
       new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
     }
     firstLoad = false;
@@ -126,8 +138,10 @@ function loadOrders(){
         <b>${o.time}</b><br>
         ฿${o.total}<br>
         ${Object.values(o.items).map(i=>i.name+" x"+i.qty).join("<br>")}
-        <button onclick="done('${k}')">เสร็จ</button>
-        <button onclick="printBill('${k}')">🧾 ปริ้น</button>
+        <div class="mt-2 flex gap-2">
+          <button onclick="done('${k}')" class="bg-green-500 text-white px-2 rounded">เสร็จ</button>
+          <button onclick="printBill('${k}')" class="bg-blue-500 text-white px-2 rounded">🧾 ปริ้น</button>
+        </div>
       </div>`;
     }).join("");
   });
@@ -138,15 +152,30 @@ window.done = (id)=>{
 }
 
 window.printBill = (id)=>{
-  const text = document.querySelector(`[onclick="printBill('${id}')"]`).parentElement.innerText;
+  const text = document.querySelector(`[onclick="printBill('${id}')"]`).parentElement.parentElement.innerText;
   const w = window.open("", "", "width=300,height=600");
   w.document.write("<h2>Hop Tea</h2><pre>"+text+"</pre><script>window.print()<\/script>");
 }
 
-// 📱 PWA
+// 📱 Service Worker
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("service-worker.js");
 }
+
+// 📱 ปุ่มติดตั้งแอป
+let deferredPrompt;
+window.addEventListener("beforeinstallprompt", (e)=>{
+  e.preventDefault();
+  deferredPrompt = e;
+
+  const btn = document.createElement("button");
+  btn.innerText="ติดตั้งแอดมิน";
+  btn.className="fixed top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded shadow";
+
+  btn.onclick=()=>deferredPrompt.prompt();
+  document.body.appendChild(btn);
+});
 </script>
+
 </body>
 </html>
