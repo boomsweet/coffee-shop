@@ -2,41 +2,39 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ลูกค้า - กาแฟอารมณ์ดี</title>
-
+<title>ลูกค้า</title>
 <style>
-body { font-family:sans-serif; background:#111; color:#fff; padding:10px;}
-.menu { background:#1e293b; padding:10px; margin:8px 0; border-radius:10px;}
-button { padding:5px 10px; margin:3px;}
-.cart { background:#020617; padding:10px; margin-top:15px;}
+body{background:#111;color:#fff;font-family:sans-serif;padding:10px}
+.menu{background:#222;padding:10px;margin:5px;border-radius:10px}
+button{margin:2px}
 </style>
 </head>
 
 <body>
 
-<h2>👥 ลูกค้า (สั่งน้ำ)</h2>
+<h2>👥 ลูกค้า</h2>
 
-<div id="menuList"></div>
+<div id="menu"></div>
 
-<h3>🧾 รายการที่สั่ง</h3>
+<h3>🧾 รายการ</h3>
 <div id="cart"></div>
-<h2>รวม: <span id="total">0</span> บาท</h2>
+รวม: <span id="total">0</span> บาท
 
+<br><br>
 <input id="name" placeholder="ชื่อ">
 <input id="phone" placeholder="เบอร์">
 
-<button onclick="sendOrder()">สั่งเลย</button>
+<button onclick="order()">สั่งเลย</button>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSy...",
+  apiKey: "AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
   authDomain: "coffee-shop-2042e.firebaseapp.com",
   databaseURL: "https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "coffee-shop-2042e",
+  projectId: "coffee-shop-2042e"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -44,55 +42,57 @@ const db = getDatabase(app);
 
 let cart = {};
 
-onValue(ref(db, "menu"), (snap)=>{
-  const data = snap.val();
-  let html = "";
-  for(let key in data){
-    html += `
+onValue(ref(db,"menu"), snap=>{
+  let data = snap.val()||{};
+  let html="";
+  for(let k in data){
+    html+=`
     <div class="menu">
-      ${data[key].name} (${data[key].price} บาท)
+      ${data[k].name} (${data[k].price})
       <br>
-      <button onclick="add('${key}', ${data[key].price})">+</button>
-      <button onclick="remove('${key}', ${data[key].price})">-</button>
+      <button onclick="add('${k}',${data[k].price})">+</button>
+      <button onclick="removeItem('${k}')">-</button>
     </div>`;
   }
-  document.getElementById("menuList").innerHTML = html;
+  document.getElementById("menu").innerHTML=html;
 });
 
-window.add = (id, price)=>{
-  if(!cart[id]) cart[id] = {qty:0, price};
-  cart[id].qty++;
-  renderCart();
+window.add=(k,p)=>{
+  if(!cart[k]) cart[k]={qty:0,price:p};
+  cart[k].qty++;
+  render();
 }
 
-window.remove = (id)=>{
-  if(cart[id]){
-    cart[id].qty--;
-    if(cart[id].qty<=0) delete cart[id];
+window.removeItem=(k)=>{
+  if(cart[k]){
+    cart[k].qty--;
+    if(cart[k].qty<=0) delete cart[k];
   }
-  renderCart();
+  render();
 }
 
-function renderCart(){
-  let html="", total=0;
-  for(let i in cart){
-    let item = cart[i];
-    html += `${i} x ${item.qty}<br>`;
-    total += item.qty * item.price;
+function render(){
+  let html="",total=0;
+  for(let k in cart){
+    html+=`${k} x ${cart[k].qty}<br>`;
+    total+=cart[k].qty*cart[k].price;
   }
-  document.getElementById("cart").innerHTML = html;
-  document.getElementById("total").innerText = total;
+  cartDiv.innerHTML=html;
+  totalDiv.innerText=total;
 }
 
-window.sendOrder = ()=>{
-  push(ref(db,"orders"), {
-    name: name.value,
-    phone: phone.value,
-    cart: cart,
-    total: total.innerText,
-    time: new Date().toLocaleString()
+const cartDiv=document.getElementById("cart");
+const totalDiv=document.getElementById("total");
+
+window.order=()=>{
+  push(ref(db,"orders"),{
+    name:name.value,
+    phone:phone.value,
+    cart:cart,
+    total:totalDiv.innerText,
+    time:new Date().toLocaleString()
   });
-  alert("สั่งสำเร็จ");
+  alert("สั่งแล้ว");
 }
 </script>
 
