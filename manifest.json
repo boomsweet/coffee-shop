@@ -1,7 +1,7 @@
 {
   "name": "Hop Tea - ลูกค้า",
   "short_name": "HopTea",
-  "start_url": "./customer.html",
+  "start_url": "./index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ff6b00",
