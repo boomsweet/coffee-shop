@@ -2,158 +2,81 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>เจ้าของร้าน</title>
+<title>POS ร้าน</title>
+
 <style>
-body{background:#000;color:#fff;font-family:sans-serif;padding:10px}
-.box{background:#222;padding:10px;margin:5px;border-radius:10px}
+body{background:#111;color:#fff;font-family:sans-serif;padding:10px}
+.card{background:#222;margin:5px;padding:10px;border-radius:10px}
+.new{border-left:5px solid red}
+.cook{border-left:5px solid orange}
+.done{border-left:5px solid green}
+.paid{border-left:5px solid blue}
 button{margin:3px}
-input{margin:3px}
 </style>
 </head>
 
 <body>
 
-<h2>🧑‍🍳 เจ้าของร้าน</h2>
+<h2>🔐 ระบบร้าน</h2>
 
-<div id="loginBox">
-  <input id="passInput" placeholder="ใส่รหัส 0000">
-  <button onclick="login()">เข้าใช้งาน</button>
-</div>
+<input id="pass" type="password" placeholder="รหัส">
+<button onclick="login()">เข้า</button>
 
-<div id="adminBox" style="display:none">
+<div id="admin" style="display:none">
 
-<h3>➕ เพิ่มเมนู</h3>
-<input id="mname" placeholder="ชื่อเมนู">
-<input id="mprice" placeholder="ราคา">
-<button onclick="addMenu()">เพิ่ม</button>
+<h3>📺 ออเดอร์</h3>
+<div id="orders"></div>
 
-<button onclick="loadDefaultMenu()">ใส่เมนูทั้งหมด</button>
-
-<h3>📋 รายการเมนู</h3>
-<div id="menu"></div>
+<h3>📊 ยอดขาย: <span id="sum">0</span></h3>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
-  authDomain: "coffee-shop-2042e.firebaseapp.com",
-  databaseURL: "https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "coffee-shop-2042e"
-};
+const app = initializeApp({
+ apiKey:"AIzaSy...",
+ databaseURL:"https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app"
+});
+const db=getDatabase(app);
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
+window.login=()=>{
+ if(pass.value=="0000") admin.style.display="block";
+}
 
-// 🔒 LOGIN
-window.login = ()=>{
-  const pass = document.getElementById("passInput").value;
-  if(pass === "0000"){
-    loginBox.style.display="none";
-    adminBox.style.display="block";
-  }else{
-    alert("รหัสผิด");
+onValue(ref(db,"orders"),s=>{
+ let data=s.val()||{},html="",sum=0;
+
+ for(let k in data){
+  let o=data[k],list="";
+  for(let i in o.cart){
+   let c=o.cart[i];
+   list+=`${i} x${c.qty} ${c.pearl?"ไข่มุก":""}<br>`;
   }
-};
 
-// ➕ เพิ่มเมนู
-window.addMenu=()=>{
-  push(ref(db,"menu"),{
-    name:mname.value,
-    price:mprice.value
-  });
-};
+  html+=`
+  <div class="card ${o.status}">
+  👤 ${o.name}<br>
+  📞 ${o.phone}<br>
+  🧾 ${list}
+  💰 ${o.total} บาท<br>
 
-// 📋 โหลดเมนู
-onValue(ref(db,"menu"),snap=>{
-  let data=snap.val()||{};
-  let html="";
-  for(let k in data){
-    html+=`
-    <div class="box">
-      ${data[k].name} (${data[k].price})
-      <button onclick="del('${k}')">ลบ</button>
-    </div>`;
-  }
-  menu.innerHTML=html;
+  <button onclick="set('${k}','cook')">ทำ</button>
+  <button onclick="set('${k}','done')">เสร็จ</button>
+  <button onclick="set('${k}','paid')">จ่ายแล้ว</button>
+  </div>`;
+
+  if(o.status=="paid") sum+=parseInt(o.total||0);
+ }
+
+ orders.innerHTML=html;
+ sumEl.innerText=sum;
 });
 
-// ❌ ลบ
-window.del=(k)=>{
-  remove(ref(db,"menu/"+k));
-};
-
-// 🔥 เมนูทั้งหมด (ครบ + ไอคอน)
-window.loadDefaultMenu = ()=>{
-  const menus = [
-
-  {name:"🧋 ชาเขียวนม", price:25},
-  {name:"🧋 ชานมโกโก้", price:20},
-  {name:"🧋 ชาไทย", price:20},
-  {name:"🧋 ชานมไต้หวัน", price:20},
-  {name:"🧋 ชาเนสที", price:20},
-  {name:"🧋 ชามะนาว", price:20},
-  {name:"🧋 ชาดำ", price:20},
-  {name:"🧋 ชาเขียวใส", price:20},
-  {name:"🧋 ชาเขียวมะนาว", price:20},
-  {name:"🧋 ชาเขียวน้ำผึ้งมะนาว", price:20},
-
-  {name:"🌼 ชามะลิ", price:20},
-  {name:"🌼 ชามะลิลิ้นจี่", price:20},
-  {name:"🌼 ชามะลิแอปเปิ้ล", price:20},
-  {name:"🌼 ชามะลิสตรอว์เบอร์รี่", price:20},
-  {name:"🌼 ชามะลิเก๊กฮวย", price:20},
-  {name:"🌼 ชามะลินม", price:20},
-
-  {name:"🍓 ชาเบอร์รี่", price:20},
-  {name:"🍓 ชาเบอร์รี่มะนาว", price:20},
-  {name:"🍓 ชาเบอร์รี่น้ำผึ้ง", price:20},
-  {name:"🍓 ชาเบอร์รี่โกโก้", price:25},
-
-  {name:"🥛 นมสด", price:20},
-  {name:"🥛 นมชมพู", price:20},
-  {name:"🍫 โกโก้", price:25},
-  {name:"🥛 โอวัลติน", price:20},
-  {name:"🥛 นมเผือก", price:20},
-  {name:"🍈 นมแคนตาลูป", price:20},
-  {name:"🍓 นมสตรอว์เบอร์รี่", price:20},
-
-  {name:"☕ เอสเปรสโซ่", price:25},
-  {name:"☕ ลาเต้", price:25},
-  {name:"☕ มอคค่า", price:25},
-  {name:"☕ คาปูชิโน่", price:25},
-
-  {name:"🥤 แดงโซดา", price:20},
-  {name:"🥤 เขียวโซดา", price:20},
-  {name:"🍋 มะนาวโซดา", price:20},
-  {name:"🍯 น้ำผึ้งมะนาวโซดา", price:20},
-  {name:"🍍 เสาวรสโซดา", price:20},
-  {name:"🌊 บลูฮาวายโซดา", price:20},
-  {name:"🍇 องุ่นโซดา", price:20},
-  {name:"🍒 ลิ้นจี่โซดา", price:20},
-  {name:"🍈 แคนตาลูปโซดา", price:20},
-  {name:"🍓 สตรอว์เบอร์รี่โซดา", price:20},
-  {name:"🥭 มะม่วงโซดา", price:20},
-  {name:"🥝 กีวี่โซดา", price:20},
-  {name:"🍏 แอปเปิ้ลโซดา", price:20},
-
-  {name:"🍑 ชาพีช", price:20},
-
-  {name:"⭐ ชานมไต้หวัน บราวน์ชูก้า", price:20},
-  {name:"⭐ ชาเขียว บราวน์ชูก้า", price:20},
-  {name:"⭐ นมสด บราวน์ชูก้า", price:20}
-
-  ];
-
-  menus.forEach(item=>{
-    push(ref(db,"menu"), item);
-  });
-
-  alert("เพิ่มเมนูครบแล้ว 🔥");
-};
+window.set=(k,s)=>{
+ update(ref(db,"orders/"+k),{status:s});
+}
 </script>
 
 </body>
