@@ -1,11 +1,15 @@
 {
-  "name": "Hop Tea - เจ้าของร้าน",
-  "short_name": "HopTeaAdmin",
+  "name": "Hop Tea Admin",
+  "short_name": "Admin",
   "start_url": "admin.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
   "icons": [
-    { "src": "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=128", "sizes": "128x128", "type": "image/png" }
+    {
+      "src": "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=128",
+      "sizes": "128x128",
+      "type": "image/png"
+    }
   ]
 }
