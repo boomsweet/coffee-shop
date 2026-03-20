@@ -8,120 +8,99 @@
 <meta name="theme-color" content="#ff6b00">
 <style>
 body{margin:0;font-family:sans-serif;background:#f5f5f5}
-.header{background:#ff6b00;color:#fff;padding:15px;font-size:20px;text-align:center}
-.tabs{display:flex;background:#fff}
-.tab{flex:1;text-align:center;padding:10px;cursor:pointer}
-.active{border-bottom:3px solid #ff6b00}
+.header{background:#ff6b00;color:#fff;padding:15px;font-size:20px}
 .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px}
-.card{background:#fff;border-radius:15px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.1)}
+.card{background:#fff;border-radius:15px;overflow:hidden}
 .card img{width:100%;height:120px;object-fit:cover}
 .card-body{padding:10px}
-.cart{position:fixed;bottom:0;width:100%;background:#fff;padding:10px;box-shadow:0 -2px 6px rgba(0,0,0,0.2)}
-button{background:#ff6b00;color:#fff;border:none;padding:5px;border-radius:5px;cursor:pointer}
-input{padding:5px;margin:3px;border-radius:5px;border:1px solid #ccc;width:48%}
+button{background:#ff6b00;color:#fff;border:none;padding:5px;border-radius:5px;margin-top:5px}
 </style>
 </head>
 <body>
 
 <div class="header">☕ Hop Tea</div>
-
-<div class="tabs">
-<div class="tab active" onclick="setCat('tea',this)">ชา</div>
-<div class="tab" onclick="setCat('jasmine',this)">ชามะลิ</div>
-<div class="tab" onclick="setCat('berry',this)">ชาเบอร์รี่</div>
-<div class="tab" onclick="setCat('milk',this)">นม</div>
-<div class="tab" onclick="setCat('coffee',this)">กาแฟ</div>
-<div class="tab" onclick="setCat('soda',this)">โซดา</div>
-<div class="tab" onclick="setCat('other',this)">อื่นๆ</div>
-</div>
-
 <div id="menu" class="grid"></div>
 
-<div class="cart">
-<div id="cart"></div>
-รวม: <span id="total">0</span> บาท
-<br>
-<input id="name" placeholder="ชื่อ">
-<input id="phone" placeholder="เบอร์">
-<br>
-<button onclick="order()">สั่งเลย</button>
-</div>
+<script>
+const menuData=[
+  // Hop Tea
+  {name:"ชาเขียวนม", price:25, img:"https://images.unsplash.com/photo-1556679343-c7306c1976bc"},
+  {name:"ชานมโกโก้", price:25, img:"https://images.unsplash.com/photo-1599258740889-b9f738e351d3"},
+  {name:"ชาไทย", price:25, img:"https://images.unsplash.com/photo-1612197529895-3d7a3e4ee4fa"},
+  {name:"ชานมไต้หวัน", price:25, img:"https://images.unsplash.com/photo-1588776814546-93c0a28a1dc1"},
+  {name:"ชาเนสที", price:25, img:"https://images.unsplash.com/photo-1619983087353-437d3f3f39c5"},
+  {name:"ชามะนาว", price:25, img:"https://images.unsplash.com/photo-1585238342023-15f18781c3cf"},
+  {name:"ชาดำ", price:25, img:"https://images.unsplash.com/photo-1575084176093-425a77e2e2d3"},
+  {name:"ชาเขียวใส", price:25, img:"https://images.unsplash.com/photo-1587735799565-3c05f80f6c45"},
+  {name:"ชาเขียวมะนาว", price:25, img:"https://images.unsplash.com/photo-1605773087346-47285c5f6bc9"},
+  {name:"ชาเขียวน้ำผึ้งมะนาว", price:25, img:"https://images.unsplash.com/photo-1619886031271-3b28d2a40829"},
 
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+  // Hop Jasmine Tea
+  {name:"ชามะลิ", price:25, img:"https://images.unsplash.com/photo-1622922633513-98ff1cf802de"},
+  {name:"ชามะลิลิ้นจี่", price:25, img:"https://images.unsplash.com/photo-1619886048901-19d7b9b6b88f"},
+  {name:"ชามะลิแอปเปิ้ล", price:25, img:"https://images.unsplash.com/photo-1619886056423-1f1b3c828e8f"},
+  {name:"ชามะลิสตรอว์เบอร์รี่", price:25, img:"https://images.unsplash.com/photo-1619886064112-5d345c5f0c25"},
+  {name:"ชามะลิเก๊กฮวย", price:25, img:"https://images.unsplash.com/photo-1619886071842-67c2e21f2c88"},
+  {name:"ชามะลินม", price:25, img:"https://images.unsplash.com/photo-1619886079403-2a7e3f3b39fc"},
 
-const app = initializeApp({
-  apiKey:"YOUR_API_KEY",
-  databaseURL:"YOUR_DB_URL"
+  // Hop Berry Tea
+  {name:"ชาเบอร์รี่", price:25, img:"https://images.unsplash.com/photo-1604080304492-7e5d3a9f23b5"},
+  {name:"ชาเบอร์รี่มะนาว", price:25, img:"https://images.unsplash.com/photo-1604080312462-2b5c9f8d71f4"},
+  {name:"ชาเบอร์รี่น้ำผึ้ง", price:25, img:"https://images.unsplash.com/photo-1604080320113-8b5c0d5b62e8"},
+  {name:"ชาเบอร์รี่โกโก้", price:25, img:"https://images.unsplash.com/photo-1604080328022-6c5f1c4a63e0"},
+
+  // Hop Milk
+  {name:"นมสด", price:25, img:"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b"},
+  {name:"นมชมพู", price:25, img:"https://images.unsplash.com/photo-1582719485601-2f6c5e8c123a"},
+  {name:"โกโก้", price:25, img:"https://images.unsplash.com/photo-1605257252872-6b6e2b2e3a12"},
+  {name:"โอวัลติน", price:25, img:"https://images.unsplash.com/photo-1605257261581-1f2e3f4c5d5f"},
+  {name:"นมเผือก", price:25, img:"https://images.unsplash.com/photo-1605257274114-7c2d1f5e2b6a"},
+  {name:"นมแคนตาลูป", price:25, img:"https://images.unsplash.com/photo-1605257281225-5b1e6f7c8c3d"},
+  {name:"สตรอว์เบอร์รี่นมสด", price:25, img:"https://images.unsplash.com/photo-1605257289466-3f1e8c7b9f2d"},
+
+  // Hop Coffee
+  {name:"เอสเปรสโซ่", price:25, img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93"},
+  {name:"ลาเต้", price:25, img:"https://images.unsplash.com/photo-1509042239860-1a2b3c4d5e6f"},
+  {name:"มอคค่า", price:25, img:"https://images.unsplash.com/photo-1509042239860-7b8c9d0e1f2g"},
+  {name:"คาปูชิโน่", price:25, img:"https://images.unsplash.com/photo-1509042239860-3c4d5e6f7g8h"},
+
+  // Hop Soda
+  {name:"แดงโซดา", price:25, img:"https://images.unsplash.com/photo-1619886086543-1a2b3c4d5e6f"},
+  {name:"เขียวโซดา", price:25, img:"https://images.unsplash.com/photo-1619886091234-3c4d5e6f7g8h"},
+  {name:"มะนาวโซดา", price:25, img:"https://images.unsplash.com/photo-1619886098765-5e6f7g8h9i0j"},
+  {name:"น้ำผึ้งมะนาวโซดา", price:25, img:"https://images.unsplash.com/photo-1619886105432-7g8h9i0j1k2l"},
+  {name:"เสาวรสโซดา", price:25, img:"https://images.unsplash.com/photo-1619886112345-9i0j1k2l3m4n"},
+  {name:"บลูฮาวายโซดา", price:25, img:"https://images.unsplash.com/photo-1619886118765-2l3m4n5o6p7q"},
+  {name:"องุ่นโซดา", price:25, img:"https://images.unsplash.com/photo-1619886125432-5o6p7q8r9s0t"},
+  {name:"ลิ้นจี่โซดา", price:25, img:"https://images.unsplash.com/photo-1619886132345-7q8r9s0t1u2v"},
+  {name:"แคนตาลูปโซดา", price:25, img:"https://images.unsplash.com/photo-1619886138765-9s0t1u2v3w4x"},
+  {name:"สตรอว์เบอร์รี่โซดา", price:25, img:"https://images.unsplash.com/photo-1619886145432-1u2v3w4x5y6z"},
+  {name:"มะม่วงโซดา", price:25, img:"https://images.unsplash.com/photo-1619886152345-3w4x5y6z7a8b"},
+  {name:"กีวี่โซดา", price:25, img:"https://images.unsplash.com/photo-1619886158765-5y6z7a8b9c0d"},
+  {name:"แอปเปิ้ลโซดา", price:25, img:"https://images.unsplash.com/photo-1619886165432-7a8b9c0d1e2f"},
+
+  // Hop Peach Tea & Signature
+  {name:"ชาพีช", price:25, img:"https://images.unsplash.com/photo-1619886172345-9c0d1e2f3g4h"},
+  {name:"ชานมไต้หวัน บราวน์ชูก้า", price:25, img:"https://images.unsplash.com/photo-1619886178765-1e2f3g4h5i6j"},
+  {name:"ชาเขียว บราวน์ชูก้า", price:25, img:"https://images.unsplash.com/photo-1619886185432-3g4h5i6j7k8l"},
+  {name:"นมสด บราวน์ชูก้า", price:25, img:"https://images.unsplash.com/photo-1619886192345-5i6j7k8l9m0n"}
+];
+
+const menuEl=document.getElementById("menu");
+menuData.forEach(m=>{
+  menuEl.innerHTML+=`
+  <div class="card">
+    <img src="${m.img}">
+    <div class="card-body">${m.name}<br>${m.price} บาท<br>
+    <button onclick="alert('เพิ่ม ${m.name} ลงตะกร้า')">+</button>
+    </div>
+  </div>`;
 });
-const db=getDatabase(app);
 
-let cart={}, cat="tea";
-
-const menuData={
-"ชาเขียวนม":{price:25,img:"https://images.pexels.com/photos/32499821/pexels-photo-32499821.jpeg",cat:"tea"},
-"ชานมโกโก้":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93",cat:"tea"},
-"ชาไทย":{price:20,img:"https://images.unsplash.com/photo-1543911525-0c0d986f2b92",cat:"tea"},
-"ชานมไต้หวัน":{price:20,img:"https://images.unsplash.com/photo-1590080872111-6d8a1a4c2fa9",cat:"tea"},
-"ชาเนสที":{price:20,img:"https://images.unsplash.com/photo-1584960062371-6f4e2d2d05f5",cat:"tea"},
-"ชามะนาว":{price:20,img:"https://images.unsplash.com/photo-1546069901-ba9599a7e63c",cat:"tea"},
-"ชาดำ":{price:20,img:"https://images.pexels.com/photos/34526494/pexels-photo-34526494.jpeg",cat:"tea"},
-"ชาเขียวใส":{price:20,img:"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",cat:"tea"},
-"ชาเขียวมะนาว":{price:20,img:"https://images.unsplash.com/photo-1605440099399-1e5ef6fa0df1",cat:"tea"},
-"ชาเขียวน้ำผึ้งมะนาว":{price:20,img:"https://images.pexels.com/photos/34526494/pexels-photo-34526494.jpeg",cat:"tea"},
-
-"ชามะลิ":{price:20,img:"https://images.unsplash.com/photo-1588731237928-6c9b593f5ba6",cat:"jasmine"},
-"ชามะลิลิ้นจี่":{price:20,img:"https://images.unsplash.com/photo-1584294213903-44e7d0c2e7c1",cat:"jasmine"},
-"ชามะลิแอปเปิ้ล":{price:20,img:"https://images.unsplash.com/photo-1584294213933-3f3e7a2d30a8",cat:"jasmine"},
-"ชามะลิสตรอว์เบอร์รี่":{price:20,img:"https://images.unsplash.com/photo-1591987174991-9e43a0f6b5f1",cat:"jasmine"},
-"ชามะลิเก๊กฮวย":{price:20,img:"https://images.unsplash.com/photo-1584294213920-49d5f7d50bc1",cat:"jasmine"},
-"ชามะลินม":{price:20,img:"https://images.unsplash.com/photo-1584294213917-8e87c4bdfbbf",cat:"jasmine"},
-
-"ชาเบอร์รี่":{price:20,img:"https://images.unsplash.com/photo-1590080872110-6a9f1a4d2f92",cat:"berry"},
-"ชาเบอร์รี่มะนาว":{price:20,img:"https://images.unsplash.com/photo-1590080872111-6a9f1a4d2f93",cat:"berry"},
-"ชาเบอร์รี่น้ำผึ้ง":{price:20,img:"https://images.unsplash.com/photo-1590080872112-6a9f1a4d2f94",cat:"berry"},
-"ชาเบอร์รี่โกโก้":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93",cat:"berry"},
-
-"นมสด":{price:20,img:"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",cat:"milk"},
-"นมชมพู":{price:20,img:"https://images.unsplash.com/photo-1582719478251-c89cae4dc85b",cat:"milk"},
-"โกโก้":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93",cat:"milk"},
-"โอวัลติน":{price:20,img:"https://images.unsplash.com/photo-1582719478252-c89cae4dc85b",cat:"milk"},
-"นมเผือก":{price:20,img:"https://images.unsplash.com/photo-1582719478253-c89cae4dc85b",cat:"milk"},
-"นมแคนตาลูป":{price:20,img:"https://images.unsplash.com/photo-1582719478254-c89cae4dc85b",cat:"milk"},
-"สตรอว์เบอร์รี่นมสด":{price:20,img:"https://images.unsplash.com/photo-1582719478255-c89cae4dc85b",cat:"milk"},
-
-"เอสเปรสโซ่":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93",cat:"coffee"},
-"ลาเต้":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93",cat:"coffee"},
-"มอคค่า":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93",cat:"coffee"},
-"คาปูชิโน่":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93",cat:"coffee"},
-
-"แดงโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718760-8c3f31c2e0c1",cat:"soda"},
-"เขียวโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718761-8c3f31c2e0c2",cat:"soda"},
-"มะนาวโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718762-8c3f31c2e0c3",cat:"soda"},
-"น้ำผึ้งมะนาวโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718763-8c3f31c2e0c4",cat:"soda"},
-"เสาวรสโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718764-8c3f31c2e0c5",cat:"soda"},
-"บลูฮาวายโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718765-8c3f31c2e0c6",cat:"soda"},
-"องุ่นโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718766-8c3f31c2e0c7",cat:"soda"},
-"ลิ้นจี่โซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718767-8c3f31c2e0c8",cat:"soda"},
-"แคนตาลูปโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718768-8c3f31c2e0c9",cat:"soda"},
-"สตรอว์เบอร์รี่โซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718770-8c3f31c2e0ca",cat:"soda"},
-"มะม่วงโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718771-8c3f31c2e0cb",cat:"soda"},
-"กีวี่โซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718772-8c3f31c2e0cc",cat:"soda"},
-"แอปเปิ้ลโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718773-8c3f31c2e0cd",cat:"soda"},
-
-"ชาพีช":{price:20,img:"https://images.unsplash.com/photo-1571091718774-8c3f31c2e0ce",cat:"other"},
-"ชานมไต้หวัน บราวน์ชูก้า":{price:25,img:"https://images.unsplash.com/photo-1571091718775-8c3f31c2e0cf",cat:"other"},
-"ชาเขียว บราวน์ชูก้า":{price:25,img:"https://images.unsplash.com/photo-1571091718776-8c3f31c2e0d0",cat:"other"},
-"นมสด บราวน์ชูก้า":{price:25,img:"https://images.unsplash.com/photo-1571091718777-8c3f31c2e0d1",cat:"other"}
-};
-
-function setCat(c,e){cat=c;document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));e.classList.add("active");renderMenu();}
-function renderMenu(){let html="";for(let k in menuData){const m=menuData[k];if(m.cat!=cat) continue;html+=`<div class="card"><img src="${m.img}"><div class="card-body">${k}<br>${m.price} บาท<br><button onclick="add('${k}',${m.price})">+</button> จำนวน: ${cart[k]?.qty||0}</div></div>`;}document.getElementById("menu").innerHTML=html;}
-function add(k,p){if(!cart[k]) cart[k]={qty:0,price:p};cart[k].qty++;renderCart();}
-function renderCart(){let html="",total=0;for(let k in cart){const c=cart[k];total+=c.price*c.qty;html+=`${k} x${c.qty}<br>`;}document.getElementById("cart").innerHTML=html;document.getElementById("total").innerText=total;}
-function order(){const name=document.getElementById("name").value;const phone=document.getElementById("phone").value;if(!name||!phone){alert("กรุณาใส่ชื่อและเบอร์");return;}push(ref(db,"orders"),{name,phone,cart,total:document.getElementById("total").innerText,status:"new",time:new Date().toLocaleString()});cart={}; renderCart(); alert("สั่งเรียบร้อย!");}
-renderMenu();
+// Service Worker
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js');
+}
 </script>
 </body>
 </html>
