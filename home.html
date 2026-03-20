@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>กาแฟอารมณ์ดี</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  background:#020617;
+  color:#fff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  height:100vh;
+  flex-direction:column;
+}
+
+h1 {
+  margin-bottom:30px;
+}
+
+button {
+  width:200px;
+  padding:15px;
+  margin:10px;
+  border:none;
+  border-radius:12px;
+  font-size:18px;
+}
+
+.customer {
+  background:#22c55e;
+}
+
+.admin {
+  background:#facc15;
+}
+</style>
+</head>
+
+<body>
+
+<h1>☕ กาแฟอารมณ์ดี</h1>
+
+<button class="customer" onclick="goCustomer()">
+👥 ลูกค้า (สั่งน้ำ)
+</button>
+
+<button class="admin" onclick="goAdmin()">
+🧑‍🍳 เจ้าของร้าน
+</button>
+
+<script>
+function goCustomer(){
+  window.location.href = "index.html";
+}
+
+function goAdmin(){
+  window.location.href = "admin.html";
+}
+</script>
+
+</body>
+</html>
