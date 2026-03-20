@@ -1,18 +1,14 @@
 {
-  "name": "Hop Tea - ลูกค้า",
-  "short_name": "HopTea",
-  "start_url": "./index.html",
+  "name": "HOP Chafe Order App",
+  "short_name": "HOP Chafe",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#ff6b00",
+  "theme_color": "#000000",
+  "description": "Digital POS and Ordering system for HOP Chafe",
   "icons": [
     {
-      "src": "https://images.unsplash.com/photo-1556679343-c7306c1976bc",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://images.unsplash.com/photo-1556679343-c7306c1976bc",
+      "src": "https://cdn-icons-png.flaticon.com/512/3130/3130619.png",
       "sizes": "512x512",
       "type": "image/png"
     }
