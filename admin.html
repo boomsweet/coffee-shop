@@ -4,61 +4,66 @@
 <meta charset="UTF-8">
 <title>ร้าน</title>
 <style>
-body{background:#000;color:#fff;font-family:sans-serif}
-.menu{background:#222;padding:10px;margin:5px}
+body{background:#000;color:#fff;font-family:sans-serif;padding:10px}
+.box{background:#222;padding:10px;margin:5px;border-radius:10px}
 </style>
 </head>
 
 <body>
 
 <script>
-let pass = prompt("0000");
+let pass = prompt("รหัสร้าน");
 if(pass!="0000"){
   alert("เข้าไม่ได้");
   location.href="index.html";
 }
 </script>
 
-<h2>🧑‍🍳 จัดการเมนู</h2>
+<h2>🧑‍🍳 เจ้าของร้าน</h2>
 
-<input id="mname" placeholder="ชื่อเมนู">
+<h3>➕ เพิ่มเมนู</h3>
+<input id="mname" placeholder="ชื่อ">
 <input id="mprice" placeholder="ราคา">
-<button onclick="addMenu()">เพิ่มเมนู</button>
+<button onclick="addMenu()">เพิ่ม</button>
 
+<h3>📋 รายการเมนู</h3>
 <div id="menu"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const app = initializeApp({
-  apiKey: "AIzaSy...",
-  databaseURL: "https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app"
-});
+const firebaseConfig = {
+  apiKey: "AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
+  authDomain: "coffee-shop-2042e.firebaseapp.com",
+  databaseURL: "https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "coffee-shop-2042e"
+};
 
+const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-window.addMenu = ()=>{
-  push(ref(db,"menu"), {
-    name: mname.value,
-    price: mprice.value
+window.addMenu=()=>{
+  push(ref(db,"menu"),{
+    name:mname.value,
+    price:mprice.value
   });
 }
 
-onValue(ref(db,"menu"), (snap)=>{
-  let data = snap.val();
+onValue(ref(db,"menu"),snap=>{
+  let data=snap.val()||{};
   let html="";
   for(let k in data){
     html+=`
-    <div class="menu">
+    <div class="box">
       ${data[k].name} (${data[k].price})
       <button onclick="del('${k}')">ลบ</button>
     </div>`;
   }
-  document.getElementById("menu").innerHTML=html;
+  menu.innerHTML=html;
 });
 
-window.del = (k)=>{
+window.del=(k)=>{
   remove(ref(db,"menu/"+k));
 }
 </script>
