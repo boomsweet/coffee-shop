@@ -1,9 +1,11 @@
 {
   "name": "Hop Tea - ลูกค้า",
   "short_name": "HopTea",
-  "start_url": "./index.html",
+  "start_url": "index.html",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ff6b00",
-  "icons":[{"src":"https://images.unsplash.com/photo-1556679343-c7306c1976bc","sizes":"192x192","type":"image/png"}]
+  "icons": [
+    { "src": "https://images.unsplash.com/photo-1571935445874-6629d16886aa?w=128", "sizes": "128x128", "type": "image/png" }
+  ]
 }
