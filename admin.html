@@ -7,31 +7,30 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ff6b00">
 <style>
-body{margin:0;font-family:sans-serif;background:#111;color:#fff;padding:10px}
+body{background:#111;color:#fff;font-family:sans-serif;padding:10px}
 .header{background:#ff6b00;color:#fff;padding:15px;font-size:20px;text-align:center}
-.card{background:#222;margin:5px;padding:10px;border-radius:10px}
+input, button{padding:5px;margin:3px;border-radius:5px;border:none;outline:none}
+button{background:#ff6b00;color:#fff;cursor:pointer}
+.card{background:#222;margin:5px;padding:10px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.5);}
+.card img{width:100%;height:100px;object-fit:cover;border-radius:10px;}
 .new{border-left:5px solid red}
 .cook{border-left:5px solid orange}
 .done{border-left:5px solid green}
 .paid{border-left:5px solid blue}
-button{margin:3px;padding:5px;border:none;border-radius:5px;background:#ff6b00;color:#fff;cursor:pointer}
-input{padding:5px;margin:3px;border-radius:5px;border:1px solid #ccc}
-img{width:80px;height:80px;object-fit:cover;margin-right:5px;border-radius:5px}
-.flex{display:flex;align-items:center}
 </style>
 </head>
 <body>
 
-<div class="header">📋 ระบบเจ้าของร้าน Hop Tea</div>
+<div class="header">📊 Hop Tea - ระบบเจ้าของร้าน</div>
 
-<h4>🔐 เข้าสู่ระบบ</h4>
-<input type="password" id="pass" placeholder="รหัสเจ้าของร้าน">
+<h3>🔒 เข้าสู่ระบบ</h3>
+<input id="pass" type="password" placeholder="รหัส">
 <button onclick="login()">เข้า</button>
 
 <div id="admin" style="display:none">
-<h3>📺 ออเดอร์ลูกค้า</h3>
+<h3>📺 ออเดอร์</h3>
 <div id="orders"></div>
-<h3>📊 ยอดขายรวม: <span id="sum">0</span> บาท</h3>
+<h3>📈 ยอดขาย: <span id="sum">0</span> บาท</h3>
 </div>
 
 <script type="module">
@@ -44,105 +43,92 @@ const app = initializeApp({
 });
 const db=getDatabase(app);
 
-const ordersDiv=document.getElementById("orders");
-const sumEl=document.getElementById("sum");
-
-// menuData เหมือน customer.html
-let menuData = {
-"ชาเขียวนม":"images/tea_milk_green.png",
-"ชานมโกโก้":"images/tea_cocoa.png",
-"ชาไทย":"images/tea_thai.png",
-"ชานมไต้หวัน":"images/tea_taiwan.png",
-"ชาเนสที":"images/tea_nestea.png",
-"ชามะนาว":"images/tea_lemon.png",
-"ชาดำ":"images/tea_black.png",
-"ชาเขียวใส":"images/tea_green.png",
-"ชาเขียวมะนาว":"images/tea_lemon_green.png",
-"ชาเขียวน้ำผึ้งมะนาว":"images/tea_honey_lemon.png",
-"ชามะลิ":"images/jasmine_tea.png",
-"ชามะลิลิ้นจี่":"images/jasmine_lychee.png",
-"ชามะลิแอปเปิ้ล":"images/jasmine_apple.png",
-"ชามะลิสตรอว์เบอร์รี่":"images/jasmine_strawberry.png",
-"ชามะลิเก๊กฮวย":"images/jasmine_chrysanthemum.png",
-"ชามะลินม":"images/jasmine_milk.png",
-"ชาเบอร์รี่":"images/berry_tea.png",
-"ชาเบอร์รี่มะนาว":"images/berry_lemon.png",
-"ชาเบอร์รี่น้ำผึ้ง":"images/berry_honey.png",
-"ชาเบอร์รี่โกโก้":"images/berry_cocoa.png",
-"นมสด":"images/milk_fresh.png",
-"นมชมพู":"images/milk_pink.png",
-"โกโก้":"images/milk_cocoa.png",
-"โอวัลติน":"images/milk_ovaltine.png",
-"นมเผือก":"images/milk_taro.png",
-"นมแคนตาลูป":"images/milk_cantaloupe.png",
-"สตรอว์เบอร์รี่นมสด":"images/milk_strawberry.png",
-"เอสเปรสโซ่":"images/coffee_espresso.png",
-"ลาเต้":"images/coffee_latte.png",
-"มอคค่า":"images/coffee_mocha.png",
-"คาปูชิโน่":"images/coffee_cappuccino.png",
-"แดงโซดา":"images/soda_red.png",
-"เขียวโซดา":"images/soda_green.png",
-"มะนาวโซดา":"images/soda_lemon.png",
-"น้ำผึ้งมะนาวโซดา":"images/soda_honey_lemon.png",
-"เสาวรสโซดา":"images/soda_passion.png",
-"บลูฮาวายโซดา":"images/soda_bluehawaii.png",
-"องุ่นโซดา":"images/soda_grape.png",
-"ลิ้นจี่โซดา":"images/soda_lychee.png",
-"แคนตาลูปโซดา":"images/soda_cantaloupe.png",
-"สตรอว์เบอร์รี่โซดา":"images/soda_strawberry.png",
-"มะม่วงโซดา":"images/soda_mango.png",
-"กีวี่โซดา":"images/soda_kiwi.png",
-"แอปเปิ้ลโซดา":"images/soda_apple.png",
-"ชาพีช":"images/other_peach.png",
-"ชานมไต้หวัน บราวน์ชูก้า":"images/other_milk_tea_brownsugar.png",
-"ชาเขียว บราวน์ชูก้า":"images/other_green_tea_brownsugar.png",
-"นมสด บราวน์ชูก้า":"images/other_fresh_milk_brownsugar.png"
-};
-
 window.login=()=>{
- if(document.getElementById("pass").value==="0000"){
-   document.getElementById("admin").style.display="block";
- }else{
-   alert("รหัสไม่ถูกต้อง");
- }
+ if(pass.value=="0000") admin.style.display="block";
 }
 
-function renderOrders(data){
- let html="",sum=0;
- for(let k in data){
-   const o=data[k];
-   let list="";
-   for(let item in o.cart){
-     const c=o.cart[item];
-     const img=menuData[item]||"";
-     list+=`<div class="flex"><img src="${img}">${item} x${c.qty}</div>`;
-   }
-   html+=`<div class="card ${o.status}">
-   👤 ${o.name}<br>
-   📞 ${o.phone}<br>
-   🧾 ${list}
-   💰 ${o.total} บาท<br>
-   <button onclick="setStatus('${k}','cook')">ทำ</button>
-   <button onclick="setStatus('${k}','done')">เสร็จ</button>
-   <button onclick="setStatus('${k}','paid')">จ่ายแล้ว</button>
-   </div>`;
-   if(o.status==="paid") sum+=parseInt(o.total||0);
- }
- ordersDiv.innerHTML=html;
- sumEl.innerText=sum;
-}
-
-window.setStatus=(key,status)=>{
- update(ref(db,"orders/"+key),{status:status});
+function getMenuImage(name){
+ const menuImages = {
+"ชาเขียวนม":"https://images.unsplash.com/photo-1556679343-c7306c1976bc",
+"ชานมโกโก้":"https://images.unsplash.com/photo-1600491624410-cd0f97d9c430",
+"ชาไทย":"https://images.unsplash.com/photo-1572557345907-1d21b1daea29",
+"ชานมไต้หวัน":"https://images.unsplash.com/photo-1597293285655-df9b0c46aa63",
+"ชาเนสที":"https://images.unsplash.com/photo-1572557345907-1d21b1daea29",
+"ชามะนาว":"https://images.unsplash.com/photo-1556911073-52527ac43794",
+"ชาดำ":"https://images.unsplash.com/photo-1572557345907-1d21b1daea29",
+"ชาเขียวใส":"https://images.unsplash.com/photo-1556679343-c7306c1976bc",
+"ชาเขียวมะนาว":"https://images.unsplash.com/photo-1556679343-c7306c1976bc",
+"ชาเขียวน้ำผึ้งมะนาว":"https://images.unsplash.com/photo-1556679343-c7306c1976bc",
+"ชามะลิ":"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
+"ชามะลิลิ้นจี่":"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
+"ชามะลิแอปเปิ้ล":"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
+"ชามะลิสตรอว์เบอร์รี่":"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
+"ชามะลิเก๊กฮวย":"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
+"ชามะลินม":"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
+"ชาเบอร์รี่":"https://images.unsplash.com/photo-1590080871213-f43f2637b69b",
+"ชาเบอร์รี่มะนาว":"https://images.unsplash.com/photo-1590080871213-f43f2637b69b",
+"ชาเบอร์รี่น้ำผึ้ง":"https://images.unsplash.com/photo-1590080871213-f43f2637b69b",
+"ชาเบอร์รี่โกโก้":"https://images.unsplash.com/photo-1590080871213-f43f2637b69b",
+"นมสด":"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
+"นมชมพู":"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
+"โกโก้":"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
+"โอวัลติน":"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
+"นมเผือก":"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
+"นมแคนตาลูป":"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
+"สตรอว์เบอร์รี่นมสด":"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
+"เอสเปรสโซ่":"https://images.unsplash.com/photo-1509042239860-f550ce710b93",
+"ลาเต้":"https://images.unsplash.com/photo-1509042239860-f550ce710b93",
+"มอคค่า":"https://images.unsplash.com/photo-1509042239860-f550ce710b93",
+"คาปูชิโน่":"https://images.unsplash.com/photo-1509042239860-f550ce710b93",
+"แดงโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
+"เขียวโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
+"มะนาวโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
+"น้ำผึ้งมะนาวโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
+"เสาวรสโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
+"บลูฮาวายโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
+"องุ่นโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
+"ลิ้นจี่โซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
+"แคนตาลูปโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
+"สตรอว์เบอร์รี่โซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
+"มะม่วงโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
+"กีวี่โซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
+"แอปเปิ้ลโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
+"ชาพีช":"https://images.unsplash.com/photo-1576564726205-0f2b430a2a07",
+"ชานมไต้หวัน บราวน์ชูก้า":"https://images.unsplash.com/photo-1576564726205-0f2b430a2a07",
+"ชาเขียว บราวน์ชูก้า":"https://images.unsplash.com/photo-1576564726205-0f2b430a2a07",
+"นมสด บราวน์ชูก้า":"https://images.unsplash.com/photo-1576564726205-0f2b430a2a07"
+ };
+ return menuImages[name]||"";
 }
 
 onValue(ref(db,"orders"),snapshot=>{
-  const data=snapshot.val()||{};
-  renderOrders(data);
+ const ordersEl = document.getElementById("orders");
+ let data = snapshot.val()||{};
+ let html="",sum=0;
+ for(let k in data){
+   let o=data[k];
+   let list="";
+   for(let i in o.cart){
+     list+=`${i} x${o.cart[i]}<br>`;
+   }
+   html+=`<div class="card ${o.status}">
+   <img src="${getMenuImage(Object.keys(o.cart)[0])}">
+   👤 ${o.name}<br>
+   📞 ${o.phone}<br>
+   🧾 ${list}💰 ${o.total} บาท<br>
+   <button onclick="updateStatus('${k}','cook')">ทำ</button>
+   <button onclick="updateStatus('${k}','done')">เสร็จ</button>
+   <button onclick="updateStatus('${k}','paid')">จ่ายแล้ว</button>
+   </div>`;
+   if(o.status=="paid") sum+=parseInt(o.total||0);
+ }
+ ordersEl.innerHTML=html;
+ document.getElementById("sum").innerText=sum;
 });
 
-// Service Worker
-if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+window.updateStatus=(k,s)=>{
+ update(ref(db,"orders/"+k),{status:s});
+}
 
 </script>
 </body>
