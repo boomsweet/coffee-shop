@@ -4,73 +4,87 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hop Tea - เจ้าของร้าน</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff6b00">
 <style>
 body{background:#111;color:#fff;font-family:sans-serif;padding:10px}
-.card{background:#222;margin:5px;padding:10px;border-radius:10px;box-shadow:0 4px 8px rgba(0,0,0,0.2);}
+h2,h3{margin:5px 0}
+.card{background:#222;margin:5px;padding:10px;border-radius:10px}
 .new{border-left:5px solid red}
 .cook{border-left:5px solid orange}
 .done{border-left:5px solid green}
 .paid{border-left:5px solid blue}
-button{margin:3px;padding:5px;border:none;border-radius:5px;background:#ff6b00;color:#fff;cursor:pointer}
+button{margin:3px;background:#ff6b00;color:#fff;border:none;padding:5px;border-radius:5px;cursor:pointer}
+input{padding:5px;border-radius:5px;border:none;margin:3px}
 </style>
 </head>
 <body>
 
-<h2>🔐 Hop Tea - เจ้าของร้าน</h2>
-
-<input id="pass" type="password" placeholder="รหัสเข้า">
-<button onclick="login()">เข้าใช้งาน</button>
+<h2>🔐 ระบบร้าน Hop Tea</h2>
+<input id="pass" type="password" placeholder="รหัสเข้าระบบ">
+<button onclick="login()">เข้า</button>
 
 <div id="admin" style="display:none">
-<h3>📺 ออเดอร์เรียลไทม์</h3>
-<div id="orders"></div>
-<h3>📊 ยอดขายรวม: <span id="sum">0</span> บาท</h3>
+  <h3>📺 ออเดอร์</h3>
+  <div id="orders"></div>
+  <h3>📊 ยอดขาย: <span id="sum">0</span> บาท</h3>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// ตั้งค่า Firebase
 const app = initializeApp({
-  apiKey:"YOUR_API_KEY",
-  databaseURL:"YOUR_DB_URL"
+ apiKey:"AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
+ databaseURL:"https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app"
 });
-const db = getDatabase(app);
+const db=getDatabase(app);
 
-window.login=()=>{
-  if(pass.value==="0000") admin.style.display="block";
+function login(){
+  if(document.getElementById("pass").value=="0000"){
+    document.getElementById("admin").style.display="block";
+  }else{
+    alert("รหัสผิด");
+  }
 }
 
-// ดึงออเดอร์แบบ real-time
-onValue(ref(db,"orders"),snap=>{
-  const data=snap.val()||{};
+const ordersEl=document.getElementById("orders");
+const sumEl=document.getElementById("sum");
+
+onValue(ref(db,"orders"), snapshot=>{
+  const data = snapshot.val() || {};
   let html="",sum=0;
   for(let k in data){
-    const o=data[k];
-    let list="";
+    let o=data[k],list="";
     for(let i in o.cart){
-      const c=o.cart[i];
-      list+=`${i} x${c.qty}<br>`;
+      let c=o.cart[i];
+      list+=`${i} x${c.qty} ${c.pearl?"ไข่มุก":""}<br>`;
     }
-    html+=`<div class="card ${o.status}">
-      👤 ${o.name}<br>
-      📞 ${o.phone}<br>
-      🧾 ${list}
-      💰 ${o.total} บาท<br>
-      <button onclick="setStatus('${k}','cook')">ทำ</button>
-      <button onclick="setStatus('${k}','done')">เสร็จ</button>
-      <button onclick="setStatus('${k}','paid')">จ่ายแล้ว</button>
-    </div>`;
-    if(o.status==="paid") sum+=parseInt(o.total||0);
+    html+=`
+      <div class="card ${o.status}">
+        👤 ${o.name}<br>
+        📞 ${o.phone}<br>
+        🧾 ${list}
+        💰 ${o.total} บาท<br>
+        <button onclick="setStatus('${k}','cook')">ทำ</button>
+        <button onclick="setStatus('${k}','done')">เสร็จ</button>
+        <button onclick="setStatus('${k}','paid')">จ่ายแล้ว</button>
+      </div>`;
+    if(o.status=="paid") sum+=parseInt(o.total||0);
   }
-  orders.innerHTML=html;
+  ordersEl.innerHTML=html;
   sumEl.innerText=sum;
 });
 
-window.setStatus=(k,s)=>{
-  update(ref(db,"orders/"+k),{status:s});
+function setStatus(id,status){
+  update(ref(db,"orders/"+id),{status:status});
+}
+
+// PWA
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js');
 }
 </script>
+
 </body>
 </html>
