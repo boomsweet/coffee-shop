@@ -4,14 +4,19 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin</title>
+
+<link rel="manifest" href="manifest-admin.json">
+
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
 <body class="p-4">
 <h1 class="text-center text-xl font-bold">Hop Tea - เจ้าของร้าน</h1>
 
-<input id="pass" type="password" placeholder="รหัส" class="border p-2">
-<button onclick="login()" class="bg-black text-white px-3">เข้า</button>
+<div id="login-box">
+  <input id="pass" type="password" placeholder="รหัส" class="border p-2">
+  <button onclick="login()" class="bg-black text-white px-3">เข้า</button>
+</div>
 
 <div id="panel" class="hidden">
 
@@ -40,16 +45,27 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-let menu = JSON.parse(localStorage.getItem("menu")||"[]");
-let lastCount = 0;
+// ✅ จำ login
+if(localStorage.getItem("admin_login") === "true"){
+  startApp();
+}
 
 window.login = ()=>{
   if(document.getElementById("pass").value==="0000"){
-    document.getElementById("panel").classList.remove("hidden");
-    loadMenu();
-    loadOrders();
+    localStorage.setItem("admin_login","true");
+    startApp();
   }else alert("รหัสผิด");
 }
+
+function startApp(){
+  document.getElementById("login-box").style.display="none";
+  document.getElementById("panel").classList.remove("hidden");
+  loadMenu();
+  loadOrders();
+}
+
+// ===== MENU =====
+let menu = JSON.parse(localStorage.getItem("menu")||"[]");
 
 function saveMenu(){
   localStorage.setItem("menu", JSON.stringify(menu));
@@ -88,22 +104,25 @@ function loadMenu(){
   renderMenu();
 }
 
+// ===== ORDERS (แก้หลัก) =====
+let firstLoad = true;
+
 function loadOrders(){
   onValue(ref(db,"orders"), snap=>{
     const data = snap.val()||{};
     const keys = Object.keys(data);
 
-    if(keys.length > lastCount){
+    // 🔔 แจ้งเตือนเฉพาะครั้งถัดไป
+    if(!firstLoad && keys.length > 0){
       new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
-      alert("มีออเดอร์ใหม่!");
     }
-    lastCount = keys.length;
+    firstLoad = false;
 
     document.getElementById("orders").innerHTML =
-    keys.map(k=>{
+    keys.reverse().map(k=>{
       const o=data[k];
       return `
-      <div class="bg-white p-2 mb-2">
+      <div class="bg-white p-2 mb-2 rounded shadow">
         <b>${o.time}</b><br>
         ฿${o.total}<br>
         ${Object.values(o.items).map(i=>i.name+" x"+i.qty).join("<br>")}
@@ -122,6 +141,11 @@ window.printBill = (id)=>{
   const text = document.querySelector(`[onclick="printBill('${id}')"]`).parentElement.innerText;
   const w = window.open("", "", "width=300,height=600");
   w.document.write("<h2>Hop Tea</h2><pre>"+text+"</pre><script>window.print()<\/script>");
+}
+
+// 📱 PWA
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("service-worker.js");
 }
 </script>
 </body>
