@@ -9,8 +9,8 @@
 <style>
 body{margin:0;font-family:sans-serif;background:#f5f5f5}
 .header{background:#ff6b00;color:#fff;padding:15px;font-size:20px;text-align:center}
-.install{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999}
-.tabs{display:flex;background:#fff}
+button{padding:8px;margin:5px;border:none;border-radius:6px;background:#ff6b00;color:#fff;cursor:pointer}
+.tabs{display:flex;background:#fff;margin-top:10px}
 .tab{flex:1;text-align:center;padding:10px;cursor:pointer}
 .active{border-bottom:3px solid #ff6b00}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;padding:10px}
@@ -30,41 +30,40 @@ body{margin:0;font-family:sans-serif;background:#f5f5f5}
 </head>
 <body>
 
-<div id="installBox" class="install">
-<h2>📱 ติดตั้งแอปก่อนใช้งาน</h2>
-<p>เพื่อใช้งานเหมือนแอปจริง</p>
-<button onclick="installApp()">ติดตั้งแอป</button>
+<div id="home">
+<h1 style="text-align:center;">☕ Hop Tea PRO</h1>
+<div style="text-align:center;margin-top:20px">
+<button onclick="showCustomer()">สั่งเครื่องดื่ม</button>
+<button onclick="showAdmin()">เจ้าของร้าน</button>
+</div>
 </div>
 
-<div id="app" style="display:none">
-
-<div class="header">☕ Hop Tea PRO</div>
-
+<div id="customer" style="display:none">
+<div class="header">☕ เมนูเครื่องดื่ม</div>
 <div class="tabs">
 <div class="tab active" onclick="setCat('tea',this)">ชา</div>
 <div class="tab" onclick="setCat('coffee',this)">กาแฟ</div>
 <div class="tab" onclick="setCat('milk',this)">นม</div>
 <div class="tab" onclick="setCat('soda',this)">โซดา</div>
 </div>
-
 <div id="menu" class="grid"></div>
-
 <div class="cart">
 <div id="cart"></div>
 รวม: <span id="total">0</span> บาท
 <h4>💳 ชำระเงิน</h4>
 <img id="qr" width="180"><br>
-<button onclick="genQR()">สร้าง QR</button><br>
 <input id="name" placeholder="ชื่อ">
 <input id="phone" placeholder="เบอร์">
 <button onclick="order()">สั่งเลย</button>
+<button onclick="backHome()">กลับ</button>
+</div>
 </div>
 
-<div class="admin">
-<h3>หลังบ้าน (เจ้าของร้าน)</h3>
+<div id="admin" style="display:none">
+<h3>📺 ออเดอร์</h3>
 <div id="orders"></div>
-</div>
-
+<h3>📊 ยอดขาย: <span id="sum">0</span></h3>
+<button onclick="backHome()">กลับ</button>
 </div>
 
 <script type="module">
@@ -77,186 +76,49 @@ const app = initializeApp({
 });
 const db=getDatabase(app);
 
-let cart={},menuData={},cat="tea";
-
-// --- เมนูทั้งหมดพร้อมราคาจริงและรูปตัวอย่างสวย ---
-menuData={
+// --- เมนู PRO ---
+const menuData={
  "1":{name:"ชาเขียวนม",price:25,img:"https://source.unsplash.com/300x200/?milk-green-tea"},
  "2":{name:"ชานมโกโก้",price:25,img:"https://source.unsplash.com/300x200/?cocoa-tea"},
  "3":{name:"ชาไทย",price:20,img:"https://source.unsplash.com/300x200/?thai-tea"},
  "4":{name:"ชานมไต้หวัน",price:20,img:"https://source.unsplash.com/300x200/?taiwan-milk-tea"},
- "5":{name:"ชาเนสที",price:20,img:"https://source.unsplash.com/300x200/?nestea"},
+ "5":{name:"ชานมเนสที",price:20,img:"https://source.unsplash.com/300x200/?nestea"},
  "6":{name:"ชามะนาว",price:20,img:"https://source.unsplash.com/300x200/?lemon-tea"},
  "7":{name:"ชาดำ",price:20,img:"https://source.unsplash.com/300x200/?black-tea"},
  "8":{name:"ชาเขียวใส",price:20,img:"https://source.unsplash.com/300x200/?green-tea"},
  "9":{name:"ชาเขียวมะนาว",price:20,img:"https://source.unsplash.com/300x200/?lemon-green-tea"},
  "10":{name:"ชาเขียวน้ำผึ้งมะนาว",price:20,img:"https://source.unsplash.com/300x200/?honey-lemon-green-tea"},
- "11":{name:"ชามะลิ",price:20,img:"https://source.unsplash.com/300x200/?jasmine-tea"},
- "12":{name:"ชามะลิลิ้นจี่",price:20,img:"https://source.unsplash.com/300x200/?lychee-jasmine-tea"},
- "13":{name:"ชามะลิแอปเปิ้ล",price:20,img:"https://source.unsplash.com/300x200/?apple-jasmine-tea"},
- "14":{name:"ชามะลิสตรอว์เบอร์รี่",price:20,img:"https://source.unsplash.com/300x200/?strawberry-jasmine-tea"},
- "15":{name:"ชามะลิเก๊กฮวย",price:20,img:"https://source.unsplash.com/300x200/?honey-jasmine-tea"},
- "16":{name:"ชามะลินม",price:20,img:"https://source.unsplash.com/300x200/?milk-jasmine-tea"},
- "17":{name:"ชาเบอร์รี่",price:20,img:"https://source.unsplash.com/300x200/?berry-tea"},
- "18":{name:"ชาเบอร์รี่มะนาว",price:20,img:"https://source.unsplash.com/300x200/?lemon-berry-tea"},
- "19":{name:"ชาเบอร์รี่น้ำผึ้ง",price:20,img:"https://source.unsplash.com/300x200/?honey-berry-tea"},
- "20":{name:"ชาเบอร์รี่โกโก้",price:25,img:"https://source.unsplash.com/300x200/?cocoa-berry-tea"},
- "21":{name:"นมสด",price:20,img:"https://source.unsplash.com/300x200/?milk"},
- "22":{name:"นมชมพู",price:20,img:"https://source.unsplash.com/300x200/?pink-milk"},
- "23":{name:"โกโก้",price:25,img:"https://source.unsplash.com/300x200/?cocoa"},
- "24":{name:"โอวัลติน",price:20,img:"https://source.unsplash.com/300x200/?ovaltine"},
- "25":{name:"นมเผือก",price:20,img:"https://source.unsplash.com/300x200/?taro-milk"},
- "26":{name:"นมแคนตาลูป",price:20,img:"https://source.unsplash.com/300x200/?cantaloupe-milk"},
- "27":{name:"สตรอว์เบอร์รี่นมสด",price:20,img:"https://source.unsplash.com/300x200/?strawberry-milk"},
  "28":{name:"เอสเปรสโซ่",price:25,img:"https://source.unsplash.com/300x200/?espresso"},
  "29":{name:"ลาเต้",price:25,img:"https://source.unsplash.com/300x200/?latte"},
  "30":{name:"มอคค่า",price:25,img:"https://source.unsplash.com/300x200/?mocha"},
  "31":{name:"คาปูชิโน่",price:25,img:"https://source.unsplash.com/300x200/?cappuccino"},
+ "21":{name:"นมสด",price:20,img:"https://source.unsplash.com/300x200/?milk"},
+ "22":{name:"นมชมพู",price:20,img:"https://source.unsplash.com/300x200/?pink-milk"},
+ "23":{name:"โกโก้",price:25,img:"https://source.unsplash.com/300x200/?cocoa"},
+ "24":{name:"โอวัลติน",price:20,img:"https://source.unsplash.com/300x200/?ovaltine"},
  "32":{name:"แดงโซดา",price:20,img:"https://source.unsplash.com/300x200/?red-soda"},
- "33":{name:"เขียวโซดา",price:20,img:"https://source.unsplash.com/300x200/?green-soda"},
- "34":{name:"มะนาวโซดา",price:20,img:"https://source.unsplash.com/300x200/?lemon-soda"},
- "35":{name:"น้ำผึ้งมะนาวโซดา",price:20,img:"https://source.unsplash.com/300x200/?honey-lemon-soda"},
- "36":{name:"เสาวรสโซดา",price:20,img:"https://source.unsplash.com/300x200/?passion-soda"},
- "37":{name:"บลูฮาวายโซดา",price:20,img:"https://source.unsplash.com/300x200/?bluehawaii-soda"},
- "38":{name:"องุ่นโซดา",price:20,img:"https://source.unsplash.com/300x200/?grape-soda"},
- "39":{name:"ลิ้นจี่โซดา",price:20,img:"https://source.unsplash.com/300x200/?lychee-soda"},
- "40":{name:"แคนตาลูปโซดา",price:20,img:"https://source.unsplash.com/300x200/?cantaloupe-soda"},
- "41":{name:"สตรอว์เบอร์รี่โซดา",price:20,img:"https://source.unsplash.com/300x200/?strawberry-soda"},
- "42":{name:"มะม่วงโซดา",price:20,img:"https://source.unsplash.com/300x200/?mango-soda"},
- "43":{name:"กีวี่โซดา",price:20,img:"https://source.unsplash.com/300x200/?kiwi-soda"},
- "44":{name:"แอปเปิ้ลโซดา",price:20,img:"https://source.unsplash.com/300x200/?apple-soda"},
- "45":{name:"Hop Peach Tea",price:20,img:"https://source.unsplash.com/300x200/?peach-tea"},
- "46":{name:"ชานมไต้หวัน บราวน์ชูก้า",price:20,img:"https://source.unsplash.com/300x200/?milk-tea-brown-sugar"},
- "47":{name:"ชาเขียว บราวน์ชูก้า",price:20,img:"https://source.unsplash.com/300x200/?green-tea-brown-sugar"},
- "48":{name:"นมสด บราวน์ชูก้า",price:20,img:"https://source.unsplash.com/300x200/?milk-brown-sugar"}
+ "33":{name:"เขียวโซดา",price:20,img:"https://source.unsplash.com/300x200/?green-soda"}
 };
 
-function getCat(n){
- if(n.includes("ชา")||n.includes("Tea")) return "tea";
- if(n.includes("เอสเปรสโซ่")||n.includes("ลาเต้")||n.includes("มอคค่า")||n.includes("คาปูชิโน่")) return "coffee";
- if(n.includes("นม")||n.includes("Milk")) return "milk";
- if(n.includes("โซดา")||n.includes("Soda")) return "soda";
- return "tea";
-}
+let cart={},cat="tea";
 
-window.setCat=(c,e)=>{
- cat=c;
- document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));
- e.classList.add("active");
- renderMenu();
-}
-
-function renderMenu(){
- let html="";
- for(let k in menuData){
-  let m=menuData[k];
-  if(getCat(m.name)!=cat) continue;
-  html+=`
-  <div class="card">
-  <img src="${m.img}">
-  <div class="card-body">
-    ${m.name}<br>${m.price} บาท<br>
-    <select onchange="sweet('${k}',this.value)">
-      <option>ปกติ</option><option>หวานน้อย</option><option>ไม่หวาน</option>
-    </select>
-    <br>
-    <label><input type="checkbox" onchange="pearl('${k}',this.checked)"> ไข่มุก +5</label>
-    <br>
-    <button onclick="add('${k}',${m.price})">+</button>
-    <button onclick="removeItem('${k}')">-</button>
-    จำนวน: ${cart[k]?.qty||0}
-  </div></div>`;
- }
- menu.innerHTML=html;
-}
-
-window.sweet=(k,v)=>{ if(!cart[k]) cart[k]={qty:0,price:0}; cart[k].sweet=v; }
-window.pearl=(k,v)=>{ if(!cart[k]) cart[k]={qty:0,price:0}; cart[k].pearl=v; }
-
-window.add=(k,p)=>{
- if(!cart[k]) cart[k]={qty:0,price:p};
- cart[k].qty++;
- renderCart();
-}
-
-window.removeItem=(k)=>{
- if(cart[k]){
-  cart[k].qty--;
-  if(cart[k].qty<=0) delete cart[k];
- }
- renderCart();
-}
-
+function setCat(c,e){cat=c;document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active")); e.classList.add("active"); renderMenu();}
+function renderMenu(){let html="";for(let k in menuData){let m=menuData[k];if((m.name.includes("ชา")||m.name.includes("Tea"))&&cat!="tea")continue;if((m.name.includes("เอสเปรสโซ่")||m.name.includes("ลาเต้")||m.name.includes("มอคค่า")||m.name.includes("คาปูชิโน่"))&&cat!="coffee")continue;if((m.name.includes("นม")||m.name.includes("Milk"))&&cat!="milk")continue;if((m.name.includes("โซดา")||m.name.includes("Soda"))&&cat!="soda")continue;html+=`<div class="card"><img src="${m.img}"><div class="card-body">${m.name}<br>${m.price} บาท<br><button onclick="add('${k}',${m.price})">+</button> <button onclick="removeItem('${k}')">-</button> จำนวน: ${cart[k]?.qty||0}</div></div>`;}menu.innerHTML=html;}
+function add(k,p){if(!cart[k])cart[k]={qty:0,price:p}; cart[k].qty++; renderCart();}
+function removeItem(k){if(cart[k]){cart[k].qty--; if(cart[k].qty<=0)delete cart[k];} renderCart();}
 const cartDiv=document.getElementById("cart");
 const totalDiv=document.getElementById("total");
+function renderCart(){let t=0,html="";for(let k in cart){const c=cart[k];t+=c.price*c.qty;html+=`${menuData[k].name} x${c.qty}<br>`;}cartDiv.innerHTML=html; totalDiv.innerText=t;}
+function order(){push(ref(db,"orders"),{name:name.value,phone:phone.value,cart:cart,total:totalDiv.innerText,status:"new",time:new Date().toLocaleString()});alert("สั่งสำเร็จ"); cart={}; renderCart();}
 
-function renderCart(){
- let t=0,html="";
- for(let k in cart){
-  const c=cart[k];
-  let price=c.price+(c.pearl?5:0);
-  t+=price*c.qty;
-  html+=`${menuData[k].name} x${c.qty}<br>`;
- }
- cartDiv.innerHTML=html;
- totalDiv.innerText=t;
-}
-
-window.genQR=()=>{
- let phone="0812345678";
- document.getElementById("qr").src=`https://promptpay.io/${phone}/${totalDiv.innerText}`;
-}
-
-window.order=()=>{
- push(ref(db,"orders"),{
-  name:document.getElementById("name").value,
-  phone:document.getElementById("phone").value,
-  cart:cart,
-  total:totalDiv.innerText,
-  status:"new",
-  time:new Date().toLocaleString()
- });
- alert("สั่งสำเร็จ");
- cart={}; renderCart();
-}
-
-// หลังบ้าน
 const ordersDiv=document.getElementById("orders");
-onValue(ref(db,"orders"),snapshot=>{
- let data=snapshot.val()||{};
- let html="";
- for(let k in data){
-  const o=data[k];
-  html+=`
-  <div class="admin-card">
-    <h4>${o.name} (${o.phone})</h4>
-    <p>${Object.keys(o.cart).map(i=>menuData[i].name+' x'+o.cart[i].qty).join(", ")}</p>
-    <p><small>${o.time} | สถานะ: ${o.status}</small></p>
-    <div>
-      <button class="done-btn" onclick="markDone('${k}')">เสร็จแล้ว</button>
-      <button class="delete-btn" onclick="deleteOrder('${k}')">ลบ</button>
-    </div>
-  </div>`;
- }
- ordersDiv.innerHTML=html;
-});
+onValue(ref(db,"orders"),s=>{let data=s.val()||{},html="",sum=0; for(let k in data){const o=data[k];let list=""; for(let i in o.cart){let c=o.cart[i]; list+=`${menuData[i].name} x${c.qty}<br>`;} if(o.status==="paid")sum+=parseInt(o.total||0); html+=`<div class="admin-card"><h4>${o.name} (${o.phone})</h4><p>${list}</p><p><small>${o.time} | สถานะ: ${o.status}</small></p><div><button class="done-btn" onclick="markDone('${k}')">เสร็จแล้ว</button> <button class="delete-btn" onclick="deleteOrder('${k}')">ลบ</button></div></div>`;} ordersDiv.innerHTML=html; document.getElementById("sum").innerText=sum;});
+function markDone(k){update(ref(db,"orders/"+k),{status:"เสร็จแล้ว"});}
+function deleteOrder(k){remove(ref(db,"orders/"+k));}
 
-window.markDone=(k)=>{ update(ref(db,"orders/"+k),{status:"เสร็จแล้ว"}); }
-window.deleteOrder=(k)=>{ remove(ref(db,"orders/"+k)); }
-
-// PWA
-let deferredPrompt;
-window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
-window.installApp=async ()=>{
- if(deferredPrompt){ deferredPrompt.prompt(); const { outcome }=await deferredPrompt.userChoice; if(outcome==='accepted'){installBox.style.display="none";app.style.display="block";}}
- else{alert("กรุณากด เพิ่มไปหน้าจอหลัก จากเมนูมือถือ");}
-}
-if(window.matchMedia('(display-mode: standalone)').matches){ installBox.style.display="none"; app.style.display="block"; }
+function showCustomer(){home.style.display="none"; customer.style.display="block"; renderMenu();}
+function showAdmin(){let p=prompt("รหัสเจ้าของร้าน:"); if(p==="0000"){home.style.display="none"; admin.style.display="block";} else alert("รหัสไม่ถูกต้อง");}
+function backHome(){customer.style.display="none"; admin.style.display="none"; home.style.display="block";}
 </script>
-
-<script>
-if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }
-</script>
-
 </body>
 </html>
