@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>กาแฟอารมณ์ดี</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  background:#111;
+  color:#fff;
+  padding:20px;
+}
+.card {
+  background:#1e293b;
+  padding:15px;
+  margin:10px 0;
+  border-radius:12px;
+}
+button {
+  width:100%;
+  padding:15px;
+  border:none;
+  border-radius:10px;
+  background:#22c55e;
+  color:#000;
+  font-size:18px;
+}
+input, select {
+  width:100%;
+  padding:10px;
+  margin:5px 0;
+  border-radius:8px;
+  border:none;
+}
+</style>
+</head>
+
+<body>
+
+<h1>☕ กาแฟอารมณ์ดี</h1>
+
+<div class="card">
+  <input id="name" placeholder="ชื่อ">
+  <input id="phone" placeholder="เบอร์โทร">
+</div>
+
+<div class="card">
+  <select id="menu">
+    <option value="20">ชาเขียว (20)</option>
+    <option value="20">ชาไทย (20)</option>
+    <option value="25">กาแฟ (25)</option>
+    <option value="25">โกโก้ (25)</option>
+  </select>
+</div>
+
+<div class="card">
+  <select id="sweet">
+    <option>ไม่หวาน</option>
+    <option>หวานน้อย</option>
+    <option>หวานปกติ</option>
+    <option>หวานพิเศษ</option>
+  </select>
+</div>
+
+<div class="card">
+  <label><input type="checkbox" id="boba"> เพิ่มไข่มุก +5</label>
+</div>
+
+<div class="card">
+  ราคา: <span id="total">0</span> บาท
+</div>
+
+<button onclick="order()">สั่งเลย</button>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
+  authDomain: "coffee-shop-2042e.firebaseapp.com",
+  databaseURL: "https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "coffee-shop-2042e",
+  storageBucket: "coffee-shop-2042e.firebasestorage.app",
+  messagingSenderId: "835937086040",
+  appId: "1:835937086040:web:b943444f862210d8adb82d"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const menu = document.getElementById("menu");
+const boba = document.getElementById("boba");
+const total = document.getElementById("total");
+
+function calc() {
+  let price = parseInt(menu.value);
+  if (boba.checked) price += 5;
+  total.innerText = price;
+}
+menu.onchange = calc;
+boba.onchange = calc;
+
+window.order = function() {
+  const data = {
+    name: document.getElementById("name").value,
+    phone: document.getElementById("phone").value,
+    menu: menu.options[menu.selectedIndex].text,
+    sweet: document.getElementById("sweet").value,
+    boba: boba.checked ? "ใส่ไข่มุก" : "ไม่ใส่",
+    total: total.innerText,
+    time: new Date().toLocaleString()
+  };
+
+  push(ref(db, "orders"), data);
+  alert("สั่งสำเร็จ!");
+}
+</script>
+
+</body>
+</html>
