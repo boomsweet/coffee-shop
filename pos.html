@@ -2,7 +2,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>POS PRO Complete</title>
+<title>POS PRO Complete Fixed</title>
 <style>
 body { font-family: Arial, sans-serif; margin: 0; background: #f1f5f9; }
 .header { background: #0f172a; color: white; padding: 16px; text-align: center; font-size: 20px; }
@@ -44,9 +44,9 @@ const menuItems = [
   {name:'เฟรนช์ฟราย', price:45, img:'https://source.unsplash.com/400x300/?fries'}
 ];let selectedItem = null; let qty = 1; let orders = [];
 
-function renderMenu() { const container = document.getElementById('menu-container'); container.innerHTML = ''; menuItems.forEach((item,index)=>{ const div = document.createElement('div'); div.className = 'card'; div.innerHTML = <img src='${item.img}' class='menu-img' onclick='selectItem(${index})'> <h3>${item.name}</h3> <p>ราคา ${item.price} บาท</p> <div class='qty'> <button onclick='changeQty(-1)'>-</button> <input type='number' id='qty' value='1'> <button onclick='changeQty(1)'>+</button> </div>; container.appendChild(div); }); }
+function renderMenu() { const container = document.getElementById('menu-container'); container.innerHTML = ''; menuItems.forEach((item,index)=>{ const div = document.createElement('div'); div.className = 'card'; div.innerHTML = <img src='${item.img}' class='menu-img' onclick='selectItem(${index}, event)'> <h3>${item.name}</h3> <p>ราคา ${item.price} บาท</p> <div class='qty'> <button onclick='changeQty(-1)'>-</button> <input type='number' id='qty' value='1'> <button onclick='changeQty(1)'>+</button> </div>; container.appendChild(div); }); }
 
-function selectItem(index){ selectedItem = menuItems[index]; document.querySelectorAll('.menu-img').forEach(img=>img.classList.remove('selected')); document.querySelectorAll('.menu-img')[index].classList.add('selected'); document.getElementById('qty').value = 1; qty=1; }
+function selectItem(index, event){ selectedItem = menuItems[index]; document.querySelectorAll('.menu-img').forEach(img=>img.classList.remove('selected')); event.target.classList.add('selected'); document.getElementById('qty').value = 1; qty = 1; }
 
 function changeQty(num){ qty += num; if(qty<1) qty=1; document.getElementById('qty').value = qty; }
 
