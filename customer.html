@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hop Tea - ลูกค้า</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff6b00">
+<style>
+body{margin:0;font-family:sans-serif;background:#f5f5f5}
+.header{background:#ff6b00;color:#fff;padding:15px;font-size:20px;text-align:center}
+.tabs{display:flex;background:#fff}
+.tab{flex:1;text-align:center;padding:10px;cursor:pointer}
+.active{border-bottom:3px solid #ff6b00}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px}
+.card{background:#fff;border-radius:15px;overflow:hidden;box-shadow:0 4px 6px rgba(0,0,0,0.1)}
+.card img{width:100%;height:120px;object-fit:cover}
+.card-body{padding:10px}
+.cart{position:fixed;bottom:0;width:100%;background:#fff;padding:10px;box-shadow:0 -2px 6px rgba(0,0,0,0.2)}
+button{background:#ff6b00;color:#fff;border:none;padding:5px;border-radius:5px;cursor:pointer}
+input{padding:5px;margin:3px;border-radius:5px;border:1px solid #ccc;width:48%}
+</style>
+</head>
+<body>
+
+<div class="header">☕ Hop Tea</div>
+
+<div class="tabs">
+<div class="tab active" onclick="setCat('tea',this)">ชา</div>
+<div class="tab" onclick="setCat('jasmine',this)">ชามะลิ</div>
+<div class="tab" onclick="setCat('berry',this)">ชาเบอร์รี่</div>
+<div class="tab" onclick="setCat('milk',this)">นม</div>
+<div class="tab" onclick="setCat('coffee',this)">กาแฟ</div>
+<div class="tab" onclick="setCat('soda',this)">โซดา</div>
+<div class="tab" onclick="setCat('other',this)">อื่นๆ</div>
+</div>
+
+<div id="menu" class="grid"></div>
+
+<div class="cart">
+<div id="cart"></div>
+รวม: <span id="total">0</span> บาท
+<br>
+<input id="name" placeholder="ชื่อ">
+<input id="phone" placeholder="เบอร์">
+<br>
+<button onclick="order()">สั่งเลย</button>
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const app = initializeApp({
+  apiKey:"YOUR_API_KEY",
+  databaseURL:"YOUR_DB_URL"
+});
+const db=getDatabase(app);
+
+let cart={}, cat="tea";
+
+const menuData={
+"ชาเขียวนม":{price:25,img:"https://images.pexels.com/photos/32499821/pexels-photo-32499821.jpeg",cat:"tea"},
+"ชานมโกโก้":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93",cat:"tea"},
+"ชาไทย":{price:20,img:"https://images.unsplash.com/photo-1543911525-0c0d986f2b92",cat:"tea"},
+"ชานมไต้หวัน":{price:20,img:"https://images.unsplash.com/photo-1590080872111-6d8a1a4c2fa9",cat:"tea"},
+"ชาเนสที":{price:20,img:"https://images.unsplash.com/photo-1584960062371-6f4e2d2d05f5",cat:"tea"},
+"ชามะนาว":{price:20,img:"https://images.unsplash.com/photo-1546069901-ba9599a7e63c",cat:"tea"},
+"ชาดำ":{price:20,img:"https://images.pexels.com/photos/34526494/pexels-photo-34526494.jpeg",cat:"tea"},
+"ชาเขียวใส":{price:20,img:"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",cat:"tea"},
+"ชาเขียวมะนาว":{price:20,img:"https://images.unsplash.com/photo-1605440099399-1e5ef6fa0df1",cat:"tea"},
+"ชาเขียวน้ำผึ้งมะนาว":{price:20,img:"https://images.pexels.com/photos/34526494/pexels-photo-34526494.jpeg",cat:"tea"},
+
+"ชามะลิ":{price:20,img:"https://images.unsplash.com/photo-1588731237928-6c9b593f5ba6",cat:"jasmine"},
+"ชามะลิลิ้นจี่":{price:20,img:"https://images.unsplash.com/photo-1584294213903-44e7d0c2e7c1",cat:"jasmine"},
+"ชามะลิแอปเปิ้ล":{price:20,img:"https://images.unsplash.com/photo-1584294213933-3f3e7a2d30a8",cat:"jasmine"},
+"ชามะลิสตรอว์เบอร์รี่":{price:20,img:"https://images.unsplash.com/photo-1591987174991-9e43a0f6b5f1",cat:"jasmine"},
+"ชามะลิเก๊กฮวย":{price:20,img:"https://images.unsplash.com/photo-1584294213920-49d5f7d50bc1",cat:"jasmine"},
+"ชามะลินม":{price:20,img:"https://images.unsplash.com/photo-1584294213917-8e87c4bdfbbf",cat:"jasmine"},
+
+"ชาเบอร์รี่":{price:20,img:"https://images.unsplash.com/photo-1590080872110-6a9f1a4d2f92",cat:"berry"},
+"ชาเบอร์รี่มะนาว":{price:20,img:"https://images.unsplash.com/photo-1590080872111-6a9f1a4d2f93",cat:"berry"},
+"ชาเบอร์รี่น้ำผึ้ง":{price:20,img:"https://images.unsplash.com/photo-1590080872112-6a9f1a4d2f94",cat:"berry"},
+"ชาเบอร์รี่โกโก้":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93",cat:"berry"},
+
+"นมสด":{price:20,img:"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",cat:"milk"},
+"นมชมพู":{price:20,img:"https://images.unsplash.com/photo-1582719478251-c89cae4dc85b",cat:"milk"},
+"โกโก้":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93",cat:"milk"},
+"โอวัลติน":{price:20,img:"https://images.unsplash.com/photo-1582719478252-c89cae4dc85b",cat:"milk"},
+"นมเผือก":{price:20,img:"https://images.unsplash.com/photo-1582719478253-c89cae4dc85b",cat:"milk"},
+"นมแคนตาลูป":{price:20,img:"https://images.unsplash.com/photo-1582719478254-c89cae4dc85b",cat:"milk"},
+"สตรอว์เบอร์รี่นมสด":{price:20,img:"https://images.unsplash.com/photo-1582719478255-c89cae4dc85b",cat:"milk"},
+
+"เอสเปรสโซ่":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93",cat:"coffee"},
+"ลาเต้":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93",cat:"coffee"},
+"มอคค่า":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93",cat:"coffee"},
+"คาปูชิโน่":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93",cat:"coffee"},
+
+"แดงโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718760-8c3f31c2e0c1",cat:"soda"},
+"เขียวโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718761-8c3f31c2e0c2",cat:"soda"},
+"มะนาวโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718762-8c3f31c2e0c3",cat:"soda"},
+"น้ำผึ้งมะนาวโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718763-8c3f31c2e0c4",cat:"soda"},
+"เสาวรสโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718764-8c3f31c2e0c5",cat:"soda"},
+"บลูฮาวายโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718765-8c3f31c2e0c6",cat:"soda"},
+"องุ่นโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718766-8c3f31c2e0c7",cat:"soda"},
+"ลิ้นจี่โซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718767-8c3f31c2e0c8",cat:"soda"},
+"แคนตาลูปโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718768-8c3f31c2e0c9",cat:"soda"},
+"สตรอว์เบอร์รี่โซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718770-8c3f31c2e0ca",cat:"soda"},
+"มะม่วงโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718771-8c3f31c2e0cb",cat:"soda"},
+"กีวี่โซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718772-8c3f31c2e0cc",cat:"soda"},
+"แอปเปิ้ลโซดา":{price:20,img:"https://images.unsplash.com/photo-1571091718773-8c3f31c2e0cd",cat:"soda"},
+
+"ชาพีช":{price:20,img:"https://images.unsplash.com/photo-1571091718774-8c3f31c2e0ce",cat:"other"},
+"ชานมไต้หวัน บราวน์ชูก้า":{price:25,img:"https://images.unsplash.com/photo-1571091718775-8c3f31c2e0cf",cat:"other"},
+"ชาเขียว บราวน์ชูก้า":{price:25,img:"https://images.unsplash.com/photo-1571091718776-8c3f31c2e0d0",cat:"other"},
+"นมสด บราวน์ชูก้า":{price:25,img:"https://images.unsplash.com/photo-1571091718777-8c3f31c2e0d1",cat:"other"}
+};
+
+function setCat(c,e){cat=c;document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));e.classList.add("active");renderMenu();}
+function renderMenu(){let html="";for(let k in menuData){const m=menuData[k];if(m.cat!=cat) continue;html+=`<div class="card"><img src="${m.img}"><div class="card-body">${k}<br>${m.price} บาท<br><button onclick="add('${k}',${m.price})">+</button> จำนวน: ${cart[k]?.qty||0}</div></div>`;}document.getElementById("menu").innerHTML=html;}
+function add(k,p){if(!cart[k]) cart[k]={qty:0,price:p};cart[k].qty++;renderCart();}
+function renderCart(){let html="",total=0;for(let k in cart){const c=cart[k];total+=c.price*c.qty;html+=`${k} x${c.qty}<br>`;}document.getElementById("cart").innerHTML=html;document.getElementById("total").innerText=total;}
+function order(){const name=document.getElementById("name").value;const phone=document.getElementById("phone").value;if(!name||!phone){alert("กรุณาใส่ชื่อและเบอร์");return;}push(ref(db,"orders"),{name,phone,cart,total:document.getElementById("total").innerText,status:"new",time:new Date().toLocaleString()});cart={}; renderCart(); alert("สั่งเรียบร้อย!");}
+renderMenu();
+</script>
+</body>
+</html>
