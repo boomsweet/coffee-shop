@@ -2,7 +2,7 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>ร้าน</title>
+<title>เจ้าของร้าน</title>
 <style>
 body{background:#000;color:#fff;font-family:sans-serif;padding:10px}
 .box{background:#222;padding:10px;margin:5px;border-radius:10px}
@@ -11,23 +11,24 @@ body{background:#000;color:#fff;font-family:sans-serif;padding:10px}
 
 <body>
 
-<script>
-let pass = prompt("รหัสร้าน");
-if(pass!="0000"){
-  alert("เข้าไม่ได้");
-  location.href="index.html";
-}
-</script>
-
 <h2>🧑‍🍳 เจ้าของร้าน</h2>
 
+<div id="login">
+  <input id="pass" placeholder="ใส่รหัส 0000">
+  <button onclick="login()">เข้าใช้งาน</button>
+</div>
+
+<div id="admin" style="display:none">
+
 <h3>➕ เพิ่มเมนู</h3>
-<input id="mname" placeholder="ชื่อ">
+<input id="mname" placeholder="ชื่อเมนู">
 <input id="mprice" placeholder="ราคา">
 <button onclick="addMenu()">เพิ่ม</button>
 
 <h3>📋 รายการเมนู</h3>
 <div id="menu"></div>
+
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -43,6 +44,17 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// 🔒 LOGIN
+window.login = ()=>{
+  if(document.getElementById("pass").value === "0000"){
+    document.getElementById("login").style.display="none";
+    document.getElementById("admin").style.display="block";
+  }else{
+    alert("รหัสผิด");
+  }
+}
+
+// ➕ เพิ่มเมนู
 window.addMenu=()=>{
   push(ref(db,"menu"),{
     name:mname.value,
@@ -50,6 +62,7 @@ window.addMenu=()=>{
   });
 }
 
+// 📋 โหลดเมนู
 onValue(ref(db,"menu"),snap=>{
   let data=snap.val()||{};
   let html="";
@@ -60,9 +73,10 @@ onValue(ref(db,"menu"),snap=>{
       <button onclick="del('${k}')">ลบ</button>
     </div>`;
   }
-  menu.innerHTML=html;
+  document.getElementById("menu").innerHTML=html;
 });
 
+// ❌ ลบเมนู
 window.del=(k)=>{
   remove(ref(db,"menu/"+k));
 }
