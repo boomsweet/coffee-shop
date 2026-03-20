@@ -2,36 +2,71 @@
 <html lang="th">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HOP Chafe - Entry</title>
-    <link rel="manifest" href="manifest.json">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HOP Chafe - Control Center</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap');
-        body { font-family: 'Kanit', sans-serif; background: #fafafa; }
+        body { font-family: 'Kanit', sans-serif; background-color: #f8f9fa; }
     </style>
 </head>
-<body class="h-screen flex flex-col items-center justify-center p-8">
-    <div class="bg-black text-white w-24 h-24 rounded-[30px] flex items-center justify-center mb-6 shadow-2xl animate-bounce">
-        <i class="fas fa-coffee text-4xl"></i>
-    </div>
-    <h1 class="text-4xl font-bold mb-2">HOP Chafe</h1>
-    <p class="text-gray-400 uppercase tracking-[0.2em] text-[10px] mb-12 font-bold">Be Fresh And Cool</p>
-    
-    <div class="grid grid-cols-1 gap-5 w-full max-w-xs">
-        <a href="home.html" class="bg-black text-white py-5 rounded-[22px] font-bold text-xl shadow-xl hover:scale-105 active:scale-95 transition flex items-center justify-center gap-3">
-            <i class="fas fa-utensils"></i> สำหรับลูกค้า
+<body class="min-h-screen p-6 flex flex-col items-center">
+    <header class="w-full max-w-md text-center mb-10 mt-8">
+        <div class="inline-block bg-black text-white p-4 rounded-[2rem] shadow-2xl mb-4">
+            <i class="fas fa-mug-hot text-4xl"></i>
+        </div>
+        <h1 class="text-3xl font-bold text-gray-800">HOP CHAFE</h1>
+        <p class="text-gray-400 text-sm tracking-widest uppercase mt-1">Management System</p>
+    </header>
+
+    <div class="w-full max-w-md space-y-4">
+        <!-- ลิงก์ไปหน้าลูกค้า -->
+        <a href="home.html" class="flex items-center p-6 bg-white rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-md transition active:scale-95 group">
+            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-xl mr-4">
+                <i class="fas fa-shopping-cart"></i>
+            </div>
+            <div class="flex-grow">
+                <h3 class="font-bold text-gray-800">หน้าสั่งอาหาร (ลูกค้า)</h3>
+                <p class="text-xs text-gray-400 font-medium">Customer Ordering Page</p>
+            </div>
+            <i class="fas fa-chevron-right text-gray-300 group-hover:text-black transition"></i>
         </a>
-        <a href="pos.html" class="bg-yellow-400 text-black py-5 rounded-[22px] font-bold text-xl shadow-xl hover:scale-105 active:scale-95 transition flex items-center justify-center gap-3 border-2 border-black">
-            <i class="fas fa-store"></i> สำหรับเจ้าของร้าน
+
+        <!-- ลิงก์ไปหน้า POS -->
+        <a href="pos.html" class="flex items-center p-6 bg-white rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-md transition active:scale-95 group">
+            <div class="w-12 h-12 bg-yellow-100 text-yellow-600 rounded-2xl flex items-center justify-center text-xl mr-4">
+                <i class="fas fa-cash-register"></i>
+            </div>
+            <div class="flex-grow">
+                <h3 class="font-bold text-gray-800">ระบบจัดการร้าน (POS)</h3>
+                <p class="text-xs text-gray-400 font-medium">Order & Menu Management</p>
+            </div>
+            <i class="fas fa-chevron-right text-gray-300 group-hover:text-black transition"></i>
+        </a>
+
+        <!-- ลิงก์ไปหน้า Admin -->
+        <a href="admin.html" class="flex items-center p-6 bg-white rounded-[2rem] shadow-sm border border-gray-100 hover:shadow-md transition active:scale-95 group">
+            <div class="w-12 h-12 bg-green-100 text-green-600 rounded-2xl flex items-center justify-center text-xl mr-4">
+                <i class="fas fa-chart-pie"></i>
+            </div>
+            <div class="flex-grow">
+                <h3 class="font-bold text-gray-800">สรุปยอดขาย (Admin)</h3>
+                <p class="text-xs text-gray-400 font-medium">Daily Sales Report</p>
+            </div>
+            <i class="fas fa-chevron-right text-gray-300 group-hover:text-black transition"></i>
         </a>
     </div>
 
+    <footer class="mt-auto pt-10 pb-6 text-center">
+        <p class="text-[10px] text-gray-300 font-bold uppercase tracking-widest">Powered by HOP Chafe Digital</p>
+    </footer>
+
     <script>
+        // จดจำการตั้งค่า Service Worker สำหรับการใช้งานแบบ Offline (PWA)
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('sw.js');
+                navigator.serviceWorker.register('sw.js').catch(err => console.log('SW failed', err));
             });
         }
     </script>
