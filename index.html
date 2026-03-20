@@ -16,7 +16,7 @@ button{margin:2px}
 
 <div id="menu"></div>
 
-<h3>🧾 รายการ</h3>
+<h3>🧾 รายการที่สั่ง</h3>
 <div id="cart"></div>
 รวม: <span id="total">0</span> บาท
 
@@ -54,7 +54,7 @@ onValue(ref(db,"menu"), snap=>{
       <button onclick="removeItem('${k}')">-</button>
     </div>`;
   }
-  document.getElementById("menu").innerHTML=html;
+  menu.innerHTML=html;
 });
 
 window.add=(k,p)=>{
@@ -92,7 +92,7 @@ window.order=()=>{
     total:totalDiv.innerText,
     time:new Date().toLocaleString()
   });
-  alert("สั่งแล้ว");
+  alert("สั่งสำเร็จ");
 }
 </script>
 
