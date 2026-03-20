@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hop Tea - ลูกค้า</title>
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff6b00">
+<style>
+body{margin:0;font-family:sans-serif;background:#f5f5f5}
+.header{background:#ff6b00;color:#fff;padding:15px;font-size:20px;text-align:center}
+.tabs{display:flex;background:#fff}
+.tab{flex:1;text-align:center;padding:10px;cursor:pointer}
+.active{border-bottom:3px solid #ff6b00}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px}
+.card{background:#fff;border-radius:15px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.2);}
+.card img{width:100%;height:120px;object-fit:cover}
+.card-body{padding:10px}
+.cart{position:fixed;bottom:0;width:100%;background:#fff;padding:10px;box-shadow:0 -2px 6px rgba(0,0,0,0.2);}
+button{background:#ff6b00;color:#fff;border:none;padding:5px;border-radius:5px;cursor:pointer;margin:2px}
+input{padding:5px;margin:2px;border-radius:5px;border:1px solid #ccc;width:calc(50% - 8px);}
+.install{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;}
+</style>
+</head>
+<body>
+
+<!-- ติดตั้งแอป -->
+<div id="installBox" class="install">
+<h2>📱 ติดตั้งแอปก่อนใช้งาน</h2>
+<p>เพื่อใช้งานเหมือนแอปจริง</p>
+<button onclick="installApp()">ติดตั้งแอป</button>
+</div>
+
+<div id="app" style="display:none">
+
+<div class="header">☕ Hop Tea</div>
+
+<div class="tabs">
+<div class="tab active" onclick="setCat('tea',this)">ชา</div>
+<div class="tab" onclick="setCat('coffee',this)">กาแฟ</div>
+<div class="tab" onclick="setCat('milk',this)">นม</div>
+<div class="tab" onclick="setCat('soda',this)">โซดา</div>
+</div>
+
+<div id="menu" class="grid"></div>
+
+<div class="cart">
+<div id="cart"></div>
+รวม: <span id="total">0</span> บาท
+<h4>💳 ชำระเงิน</h4>
+<img id="qr" width="180"><br>
+<button onclick="genQR()">สร้าง QR</button><br>
+<input id="name" placeholder="ชื่อ">
+<input id="phone" placeholder="เบอร์">
+<button onclick="order()">สั่งเลย</button>
+</div>
+
+</div>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const app = initializeApp({
+ apiKey:"AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
+ databaseURL:"https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app"
+});
+const db = getDatabase(app);
+
+let cart = {};
+let cat = "tea";
+
+// เมนูทั้งหมด + รูปจริง
+const menuData = {
+  "ชาเขียวนม":{price:25,img:"https://images.unsplash.com/photo-1556679343-c7306c1976bc"},
+  "ชานมโกโก้":{price:25,img:"https://images.unsplash.com/photo-1600491624410-cd0f97d9c430"},
+  "ชาไทย":{price:25,img:"https://images.unsplash.com/photo-1572557345907-1d21b1daea29"},
+  "ชานมไต้หวัน":{price:25,img:"https://images.unsplash.com/photo-1597293285655-df9b0c46aa63"},
+  "ชามะนาว":{price:25,img:"https://images.unsplash.com/photo-1556911073-52527ac43794"},
+  "นมสด":{price:25,img:"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b"},
+  "โกโก้":{price:25,img:"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b"},
+  "เอสเปรสโซ่":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93"},
+  "ลาเต้":{price:25,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93"},
+  "แดงโซดา":{price:25,img:"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f"}
+};
+
+function setCat(c,e){cat=c;document.querySelectorAll(".tab").forEach(t=>t.classList.remove("active"));e.classList.add("active");renderMenu();}
+function renderMenu(){let html="";for(let k in menuData){let m=menuData[k];if((cat=="tea"&&k.includes("ชา"))||(cat=="coffee"&&k.includes("กาแฟ")||k.includes("เอสเปรส"))||(cat=="milk"&&(k.includes("นม")||k.includes("โกโก้")||k.includes("โอวัลติน"))||(cat=="soda"&&k.includes("โซดา"))){html+=`<div class="card"><img src="${m.img}"><div class="card-body">${k}<br>${m.price} บาท<br><button onclick="add('${k}',${m.price})">+</button>จำนวน: ${cart[k]?.qty||0}</div></div>`}}menu.innerHTML=html;}
+window.add=(k,p)=>{if(!cart[k])cart[k]={qty:0,price:p};cart[k].qty++;renderCart();renderMenu();}
+function renderCart(){let html="",t=0;for(let k in cart){html+=`${k} x${cart[k].qty}<br>`;t+=cart[k].qty*cart[k].price;}cartDiv.innerHTML=html;total.innerText=t;}
+window.genQR=()=>{let phone="0812345678";qr.src=`https://promptpay.io/${phone}/${total.innerText}`;}
+window.order=()=>{push(ref(db,"orders"),{name:name.value,phone:phone.value,cart:cart,total:total.innerText,status:"new",time:new Date().toLocaleString()});alert("สั่งสำเร็จ");cart={};renderCart();renderMenu();}
+</script>
+
+<script>
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e=>{e.preventDefault();deferredPrompt=e;});
+window.installApp=async()=>{if(deferredPrompt){deferredPrompt.prompt();const {outcome}=await deferredPrompt.userChoice;if(outcome==='accepted'){installBox.style.display="none";app.style.display="block";}}else{alert("กรุณากดเพิ่มไปหน้าจอหลัก");}};
+if(window.matchMedia('(display-mode: standalone)').matches){installBox.style.display="none";app.style.display="block";}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}
+</script>
+
+</body>
+</html>
