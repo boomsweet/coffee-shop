@@ -2,97 +2,64 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ร้านกาแฟอารมณ์ดี</title>
-
+<title>ร้าน</title>
 <style>
-body {
-  font-family: sans-serif;
-  background:#020617;
-  color:#fff;
-  padding:10px;
-}
-
-h1 {
-  text-align:center;
-}
-
-.order {
-  padding:12px;
-  margin:10px 0;
-  border-radius:12px;
-}
-
-.new { background:#7f1d1d; }     /* แดง */
-.doing { background:#78350f; }   /* เหลือง */
-.done { background:#14532d; }    /* เขียว */
-
-button {
-  margin-top:8px;
-  padding:8px;
-  border:none;
-  border-radius:8px;
-  margin-right:5px;
-}
+body{background:#000;color:#fff;font-family:sans-serif}
+.menu{background:#222;padding:10px;margin:5px}
 </style>
 </head>
 
 <body>
 
-<h1>☕ ออเดอร์ลูกค้า</h1>
-<div id="orders"></div>
+<script>
+let pass = prompt("ใส่รหัส");
+if(pass!="0000"){
+  alert("เข้าไม่ได้");
+  location.href="index.html";
+}
+</script>
 
-<audio id="sound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+<h2>🧑‍🍳 จัดการเมนู</h2>
+
+<input id="mname" placeholder="ชื่อเมนู">
+<input id="mprice" placeholder="ราคา">
+<button onclick="addMenu()">เพิ่มเมนู</button>
+
+<div id="menu"></div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onChildAdded, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push, onValue, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const firebaseConfig = {
-  apiKey: "AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
-  authDomain: "coffee-shop-2042e.firebaseapp.com",
-  databaseURL: "https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "coffee-shop-2042e",
-  storageBucket: "coffee-shop-2042e.firebasestorage.app",
-  messagingSenderId: "835937086040",
-  appId: "1:835937086040:web:b943444f862210d8adb82d"
-};
-
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-const ordersDiv = document.getElementById("orders");
-const sound = document.getElementById("sound");
-
-onChildAdded(ref(db, "orders"), (snapshot) => {
-  const data = snapshot.val();
-  const key = snapshot.key;
-
-  sound.play();
-
-  const div = document.createElement("div");
-  div.className = "order new";
-
-  div.innerHTML = `
-    <b>👤 ${data.name}</b> (${data.phone})<br>
-    🧋 ${data.menu}<br>
-    🍯 ${data.sweet}<br>
-    ➕ ${data.boba}<br>
-    💰 ${data.total} บาท<br>
-    <button onclick="setStatus('${key}', 'doing', this)">กำลังทำ</button>
-    <button onclick="setStatus('${key}', 'done', this)">เสร็จแล้ว</button>
-  `;
-
-  ordersDiv.prepend(div);
+const app = initializeApp({
+  apiKey: "AIzaSy...",
+  databaseURL: "https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app"
 });
 
-window.setStatus = function(key, status, btn){
-  const orderRef = ref(db, "orders/" + key);
-  update(orderRef, { status: status });
+const db = getDatabase(app);
 
-  const div = btn.parentElement;
-  div.classList.remove("new","doing","done");
-  div.classList.add(status);
+window.addMenu = ()=>{
+  push(ref(db,"menu"), {
+    name: mname.value,
+    price: mprice.value
+  });
+}
+
+onValue(ref(db,"menu"), (snap)=>{
+  let data = snap.val();
+  let html="";
+  for(let k in data){
+    html+=`
+    <div class="menu">
+      ${data[k].name} (${data[k].price})
+      <button onclick="del('${k}')">ลบ</button>
+    </div>`;
+  }
+  document.getElementById("menu").innerHTML=html;
+});
+
+window.del = (k)=>{
+  remove(ref(db,"menu/"+k));
 }
 </script>
 
