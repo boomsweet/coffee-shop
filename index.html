@@ -3,208 +3,175 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>HOP Chafe - Digital Menu</title>
-    <link rel="manifest" href="manifest.json">
+    <title>HOP Chafe - Order System</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap');
         body { font-family: 'Kanit', sans-serif; -webkit-tap-highlight-color: transparent; }
-        .menu-card { transition: all 0.2s ease; }
-        .menu-card:active { scale: 0.95; }
-        .category-tab.active { background: #000; color: #fff; }
+        .active-tab { border-bottom: 3px solid #facc15; color: #000; }
         .hide-scroll::-webkit-scrollbar { display: none; }
+        .menu-card { transition: transform 0.1s; cursor: pointer; }
+        .menu-card:active { transform: scale(0.95); }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-900">
+<body class="bg-slate-50 text-slate-900">
 
-    <!-- 1. หน้าเลือกโหมดหลัก -->
-    <div id="view-home" class="view min-h-screen flex flex-col items-center justify-center p-6 text-center">
-        <div class="mb-10">
-            <div class="bg-black text-white w-20 h-20 rounded-[25px] flex items-center justify-center mx-auto mb-4 shadow-2xl">
+    <!-- 1. หน้าหลัก (Home/Landing) -->
+    <div id="view-home" class="view min-h-screen flex flex-col items-center justify-center p-6 bg-white">
+        <div class="mb-12 text-center">
+            <div class="bg-black text-white w-20 h-20 rounded-[25px] flex items-center justify-center mx-auto mb-4 shadow-xl">
                 <i class="fas fa-mug-hot text-3xl"></i>
             </div>
-            <h1 class="text-3xl font-bold italic">HOP <span class="text-yellow-500">CHAFE</span></h1>
-            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] mt-1">Good morning starts with hop</p>
+            <h1 class="text-3xl font-bold tracking-tighter">HOP <span class="text-yellow-500">CHAFE</span></h1>
+            <p class="text-[10px] text-gray-400 font-bold uppercase tracking-[0.3em] mt-1 italic">Good morning starts with hop</p>
         </div>
-        <div class="grid grid-cols-1 gap-6 w-full max-w-xs">
-            <button onclick="switchView('customer')" class="bg-white p-6 rounded-[35px] shadow-lg border border-gray-100 flex flex-col items-center active:scale-95 transition-all">
-                <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-xl mb-3">
+
+        <div class="space-y-4 w-full max-w-xs">
+            <button onclick="switchView('customer')" class="w-full bg-slate-50 p-6 rounded-[30px] border border-slate-100 shadow-sm flex flex-col items-center group active:bg-slate-100">
+                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center text-xl mb-3">
                     <i class="fas fa-shopping-basket"></i>
                 </div>
                 <span class="font-bold text-lg">สำหรับลูกค้า</span>
-                <span class="text-[10px] text-gray-400">สั่งเครื่องดื่มฟรีไข่มุก</span>
+                <span class="text-[10px] text-slate-400">สั่งเครื่องดื่มฟรีไข่มุก</span>
             </button>
-            <button onclick="showLogin()" class="bg-yellow-400 p-6 rounded-[35px] shadow-lg border border-yellow-500 flex flex-col items-center active:scale-95 transition-all text-black">
+
+            <button onclick="openLogin()" class="w-full bg-yellow-400 p-6 rounded-[30px] shadow-lg flex flex-col items-center active:scale-95 transition-all">
                 <div class="w-12 h-12 bg-black text-white rounded-2xl flex items-center justify-center text-xl mb-3">
                     <i class="fas fa-user-shield"></i>
                 </div>
                 <span class="font-bold text-lg">สำหรับเจ้าของร้าน</span>
-                <span class="text-[10px] text-black/50">จัดการออเดอร์ (ต้องใช้รหัส)</span>
+                <span class="text-[10px] text-black/50 font-bold">จัดการออเดอร์ (ใช้รหัสผ่าน)</span>
             </button>
         </div>
     </div>
 
-    <!-- 2. หน้าลูกค้า (Customer) -->
-    <div id="view-customer" class="view min-h-screen hidden flex flex-col">
-        <header class="p-5 flex justify-between items-center bg-white sticky top-0 z-30 shadow-sm">
-            <button onclick="switchView('home')" class="text-gray-400"><i class="fas fa-chevron-left text-xl"></i></button>
+    <!-- 2. หน้าสำหรับลูกค้า (Customer View) -->
+    <div id="view-customer" class="view hidden min-h-screen flex flex-col">
+        <header class="bg-white p-4 flex justify-between items-center sticky top-0 z-50 shadow-sm">
+            <button onclick="switchView('home')" class="p-2"><i class="fas fa-chevron-left"></i></button>
             <h2 class="font-bold italic text-xl">HOP CHAFE</h2>
-            <div class="bg-black text-white px-3 py-1 rounded-full text-[10px] font-bold italic">20.- ทุกเมนู</div>
+            <div class="bg-black text-white px-3 py-1 rounded-full text-[10px] font-bold">20.- FREE PEARL</div>
         </header>
-        
-        <!-- หมวดหมู่เมนู -->
-        <div class="flex overflow-x-auto gap-2 p-4 bg-white hide-scroll sticky top-[72px] z-20">
-            <button onclick="setCategory('All')" class="category-btn px-5 py-2 rounded-full border text-sm font-bold whitespace-nowrap active-cat bg-black text-white">ทั้งหมด</button>
-            <button onclick="setCategory('Hop Tea')" class="category-btn px-5 py-2 rounded-full border text-sm font-bold whitespace-nowrap bg-white text-gray-400">ชา</button>
-            <button onclick="setCategory('Hop Milk')" class="category-btn px-5 py-2 rounded-full border text-sm font-bold whitespace-nowrap bg-white text-gray-400">นม</button>
-            <button onclick="setCategory('Hop Coffee')" class="category-btn px-5 py-2 rounded-full border text-sm font-bold whitespace-nowrap bg-white text-gray-400">กาแฟ</button>
-            <button onclick="setCategory('Hop Soda')" class="category-btn px-5 py-2 rounded-full border text-sm font-bold whitespace-nowrap bg-white text-gray-400">โซดา</button>
+
+        <!-- หมวดหมู่ -->
+        <div class="flex overflow-x-auto gap-4 p-4 bg-white sticky top-[64px] z-40 hide-scroll border-b border-slate-100">
+            <button onclick="filterMenu('All')" class="cat-btn active-tab font-bold text-sm whitespace-nowrap pb-2 px-2">ทั้งหมด</button>
+            <button onclick="filterMenu('Hop Tea')" class="cat-btn text-slate-400 font-bold text-sm whitespace-nowrap pb-2 px-2">ชา (Tea)</button>
+            <button onclick="filterMenu('Hop Milk')" class="cat-btn text-slate-400 font-bold text-sm whitespace-nowrap pb-2 px-2">นม (Milk)</button>
+            <button onclick="filterMenu('Hop Coffee')" class="cat-btn text-slate-400 font-bold text-sm whitespace-nowrap pb-2 px-2">กาแฟ (Coffee)</button>
+            <button onclick="filterMenu('Hop Soda')" class="cat-btn text-slate-400 font-bold text-sm whitespace-nowrap pb-2 px-2">โซดา (Soda)</button>
         </div>
 
-        <main class="p-4 flex-grow pb-32">
-            <div id="customer-grid" class="grid grid-cols-2 gap-3">
-                <!-- เมนูจะโหลดจาก Script -->
+        <main class="p-4 grid grid-cols-2 gap-3 flex-grow pb-32">
+            <div id="menu-container" class="contents">
+                <!-- เมนูจะโหลดตรงนี้ -->
             </div>
         </main>
 
-        <!-- ตะกร้าลอย -->
-        <div id="cart-bar" class="fixed bottom-6 left-6 right-6 bg-black text-white p-5 rounded-[25px] shadow-2xl flex justify-between items-center hidden z-40" onclick="showCart()">
+        <!-- ตะกร้าสินค้า -->
+        <div id="cart-bar" class="fixed bottom-6 left-6 right-6 bg-black text-white p-5 rounded-[25px] shadow-2xl flex justify-between items-center hidden z-50 animate-bounce-short" onclick="showCartModal()">
             <div class="flex items-center gap-3">
                 <div id="cart-count" class="bg-yellow-400 text-black w-7 h-7 rounded-lg flex items-center justify-center font-bold text-sm">0</div>
-                <span class="font-bold">รายการที่เลือก</span>
+                <span class="font-bold">ดูรายการสั่งซื้อ</span>
             </div>
             <span id="cart-total" class="text-xl font-bold text-yellow-400">฿0</span>
         </div>
     </div>
 
-    <!-- 3. หน้าเจ้าของร้าน (Owner) -->
-    <div id="view-owner" class="view min-h-screen hidden flex flex-col bg-gray-100">
-        <nav class="bg-black text-white p-5 flex justify-between items-center sticky top-0 z-30">
-            <button onclick="switchView('home')"><i class="fas fa-power-off"></i></button>
-            <div class="flex gap-6 font-bold text-xs uppercase tracking-widest">
-                <button id="tab-orders" onclick="setOwnerTab('orders')" class="text-yellow-400 border-b-2 border-yellow-400">Orders</button>
-                <button id="tab-menu" onclick="setOwnerTab('menu')" class="text-gray-500">Menu Setup</button>
-            </div>
-            <div class="w-4"></div>
+    <!-- 3. หน้าสำหรับเจ้าของร้าน (Owner View) -->
+    <div id="view-owner" class="view hidden min-h-screen bg-slate-100">
+        <nav class="bg-black text-white p-5 flex justify-between items-center sticky top-0 z-50">
+            <button onclick="switchView('home')"><i class="fas fa-power-off text-red-400"></i></button>
+            <h2 class="font-bold italic">OWNER DASHBOARD</h2>
+            <div class="w-8 text-yellow-400"><i class="fas fa-bell"></i></div>
         </nav>
-        <main id="owner-orders-view" class="p-4 space-y-4 overflow-y-auto flex-grow">
-            <!-- ออเดอร์ลูกค้า -->
-        </main>
-        <main id="owner-menu-view" class="p-4 hidden overflow-y-auto flex-grow">
-            <div id="owner-menu-list" class="space-y-2"></div>
-        </main>
+        
+        <div class="p-4 space-y-4" id="order-list">
+            <!-- รายการออเดอร์ -->
+        </div>
     </div>
 
-    <!-- Modal ระบบ Login รหัส 0000 -->
-    <div id="login-modal" class="fixed inset-0 bg-black/90 z-[100] hidden flex items-center justify-center p-6 backdrop-blur-md">
-        <div class="bg-white w-full max-w-xs rounded-[40px] p-10 text-center">
-            <h3 class="text-xl font-bold mb-6">รหัสผ่านเจ้าของร้าน</h3>
-            <input type="password" id="pass-input" maxlength="4" placeholder="••••" class="w-full text-center text-4xl tracking-[0.5em] bg-gray-50 p-4 rounded-2xl border-none outline-none mb-6">
-            <div class="grid grid-cols-2 gap-4">
-                <button onclick="closeModal('login-modal')" class="text-gray-400 font-bold">ยกเลิก</button>
-                <button onclick="checkPass()" class="bg-black text-white py-4 rounded-2xl font-bold">ยืนยัน</button>
+    <!-- Modals -->
+    <!-- ล็อกอิน -->
+    <div id="login-modal" class="fixed inset-0 bg-black/80 z-[100] hidden flex items-center justify-center p-6 backdrop-blur-md">
+        <div class="bg-white w-full max-w-xs rounded-[40px] p-10 text-center shadow-2xl">
+            <div class="bg-slate-100 w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                <i class="fas fa-lock text-2xl text-slate-400"></i>
+            </div>
+            <h3 class="text-xl font-bold mb-6">รหัสผ่านเจ้าของ</h3>
+            <input type="password" id="pin-input" maxlength="4" placeholder="••••" class="w-full text-center text-4xl tracking-[0.5em] bg-slate-50 p-4 rounded-2xl border-none outline-none mb-6 focus:ring-2 ring-yellow-400">
+            <div class="flex gap-4">
+                <button onclick="closeModal('login-modal')" class="flex-1 font-bold text-slate-400">ยกเลิก</button>
+                <button onclick="verifyPin()" class="flex-1 bg-black text-white py-4 rounded-2xl font-bold shadow-lg">ยืนยัน</button>
             </div>
         </div>
     </div>
 
-    <!-- Modal สรุปออเดอร์ -->
+    <!-- ตะกร้าสินค้า -->
     <div id="cart-modal" class="fixed inset-0 bg-black/60 z-[90] hidden flex items-end">
-        <div class="bg-white w-full rounded-t-[50px] p-8 max-h-[85vh] flex flex-col shadow-2xl">
-            <div class="w-12 h-1 bg-gray-200 rounded-full mx-auto mb-6"></div>
-            <h3 class="text-2xl font-bold mb-6 italic">สรุปออเดอร์ของคุณ</h3>
-            <div id="cart-items-list" class="flex-grow overflow-y-auto space-y-4 mb-6"></div>
+        <div class="bg-white w-full rounded-t-[40px] p-8 max-h-[80vh] overflow-y-auto shadow-2xl">
+            <div class="w-12 h-1 bg-slate-200 rounded-full mx-auto mb-6"></div>
+            <h3 class="text-2xl font-bold mb-6 italic">รายการของคุณ</h3>
+            <div id="cart-items" class="space-y-4 mb-8">
+                <!-- รายการในตะกร้า -->
+            </div>
             <div class="border-t pt-6">
                 <div class="flex justify-between items-center mb-6">
-                    <span class="text-gray-400 font-bold text-sm">รวมเงินทั้งหมด</span>
+                    <span class="text-slate-400 font-bold uppercase text-xs">รวมค่าบริการทั้งสิ้น</span>
                     <span id="modal-total" class="text-4xl font-bold tracking-tighter">฿0</span>
                 </div>
-                <button onclick="placeOrder()" class="w-full bg-black text-white py-5 rounded-[25px] font-bold text-xl shadow-2xl">สั่งเครื่องดื่มเลย</button>
-                <button onclick="closeModal('cart-modal')" class="w-full mt-4 text-gray-400 text-sm font-bold">กลับไปเลือกเพิ่ม</button>
+                <button onclick="confirmOrder()" class="w-full bg-black text-white py-5 rounded-[25px] font-bold text-lg shadow-xl active:scale-95 transition">ส่งออเดอร์ไปที่ร้าน</button>
+                <button onclick="closeModal('cart-modal')" class="w-full mt-4 text-slate-400 font-bold text-sm">เลือกเพิ่ม</button>
             </div>
         </div>
     </div>
 
     <script>
-        // ข้อมูลเมนูตรงตามรูปปก (HOP Chafe 20.-)
-        const initialMenu = [
-            // Hop Tea
-            { id: 101, name: 'ชาเขียว', price: 20, cat: 'Hop Tea', img: 'https://images.unsplash.com/photo-1571935445874-6629d16886aa?w=300' },
-            { id: 102, name: 'ชานมโกโก้', price: 25, cat: 'Hop Tea', img: 'https://images.unsplash.com/photo-1541167760496-162955ed8a9f?w=300' },
-            { id: 103, name: 'ชาไทย', price: 20, cat: 'Hop Tea', img: 'https://images.unsplash.com/photo-1594631252845-29fc4586d51c?w=300' },
-            { id: 104, name: 'ชานมไต้หวัน', price: 20, cat: 'Hop Tea', img: 'https://images.unsplash.com/photo-1525193612562-0ec53b0e5d7c?w=300' },
-            { id: 105, name: 'ชามะนาว', price: 20, cat: 'Hop Tea', img: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300' },
-            // Hop Milk
-            { id: 201, name: 'นมสด', price: 20, cat: 'Hop Milk', img: 'https://images.unsplash.com/photo-1550583724-1d55d04adcb1?w=300' },
-            { id: 202, name: 'นมชมพู', price: 20, cat: 'Hop Milk', img: 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=300' },
-            { id: 203, name: 'โกโก้', price: 25, cat: 'Hop Milk', img: 'https://images.unsplash.com/photo-1544787210-2213d84ad96b?w=300' },
-            { id: 204, name: 'โอวัลติน', price: 20, cat: 'Hop Milk', img: 'https://images.unsplash.com/photo-1541167760496-162955ed8a9f?w=300' },
-            // Hop Coffee
-            { id: 301, name: 'เอสเพรสโซ่', price: 25, cat: 'Hop Coffee', img: 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300' },
-            { id: 302, name: 'ลาเต้', price: 25, cat: 'Hop Coffee', img: 'https://images.unsplash.com/photo-1509042239860-f550ce710b93?w=300' },
-            // Hop Soda
-            { id: 401, name: 'แดงโซดา', price: 20, cat: 'Hop Soda', img: 'https://images.unsplash.com/photo-1527661591475-527312dd65f5?w=300' },
-            { id: 402, name: 'เขียวโซดา', price: 20, cat: 'Hop Soda', img: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?w=300' },
-            { id: 403, name: 'บลูฮาวาย', price: 20, cat: 'Hop Soda', img: 'https://images.unsplash.com/photo-1536935338218-d4133eba883b?w=300' }
+        // ข้อมูลเมนูจริงตามรูปภาพ (ตัวอย่างบางส่วน)
+        const menuData = [
+            { id: 1, name: 'ชาเขียว (Milk green tea)', price: 20, cat: 'Hop Tea', img: 'https://images.unsplash.com/photo-1571935445874-6629d16886aa?w=400' },
+            { id: 2, name: 'โกโก้ (Cocoa tea)', price: 25, cat: 'Hop Tea', img: 'https://images.unsplash.com/photo-1541167760496-162955ed8a9f?w=400' },
+            { id: 3, name: 'ชาไทย (Thai tea)', price: 20, cat: 'Hop Tea', img: 'https://images.unsplash.com/photo-1594631252845-29fc4586d51c?w=400' },
+            { id: 4, name: 'ชานมไต้หวัน', price: 20, cat: 'Hop Tea', img: 'https://images.unsplash.com/photo-1525193612562-0ec53b0e5d7c?w=400' },
+            { id: 5, name: 'นมชมพู (Pink milk)', price: 20, cat: 'Hop Milk', img: 'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=400' },
+            { id: 6, name: 'เอสเพรสโซ่ (Espresso)', price: 25, cat: 'Hop Coffee', img: 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=400' },
+            { id: 7, name: 'แดงโซดา', price: 20, cat: 'Hop Soda', img: 'https://images.unsplash.com/photo-1527661591475-527312dd65f5?w=400' },
+            { id: 8, name: 'บลูฮาวาย', price: 20, cat: 'Hop Soda', img: 'https://images.unsplash.com/photo-1536935338218-d4133eba883b?w=400' }
         ];
 
-        let menu = JSON.parse(localStorage.getItem('hop_menu')) || initialMenu;
-        let orders = JSON.parse(localStorage.getItem('hop_orders')) || [];
         let cart = [];
-        let currentCat = 'All';
+        let orders = JSON.parse(localStorage.getItem('hop_orders_v2')) || [];
 
-        // --- ระบบสลับหน้า ---
         function switchView(viewId) {
             document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
             document.getElementById('view-' + viewId).classList.remove('hidden');
-            render();
+            if(viewId === 'customer') renderMenu('All');
+            if(viewId === 'owner') renderOrders();
         }
 
-        // --- ระบบ Login ---
-        function showLogin() { document.getElementById('login-modal').classList.remove('hidden'); }
-        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
-        function checkPass() {
-            if(document.getElementById('pass-input').value === '0000') {
-                document.getElementById('pass-input').value = '';
-                closeModal('login-modal');
-                switchView('owner');
-            } else {
-                alert('รหัสผ่านไม่ถูกต้อง!');
-                document.getElementById('pass-input').value = '';
-            }
-        }
-
-        // --- ระบบลูกค้า ---
-        function setCategory(cat) {
-            currentCat = cat;
-            document.querySelectorAll('.category-btn').forEach(btn => {
-                btn.classList.remove('bg-black', 'text-white');
-                btn.classList.add('bg-white', 'text-gray-400');
+        function filterMenu(cat) {
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.classList.remove('active-tab');
+                btn.classList.add('text-slate-400');
                 if(btn.innerText.includes(cat) || (cat==='All' && btn.innerText==='ทั้งหมด')) {
-                    btn.classList.add('bg-black', 'text-white');
-                    btn.classList.remove('bg-white', 'text-gray-400');
+                    btn.classList.add('active-tab');
+                    btn.classList.remove('text-slate-400');
                 }
             });
-            render();
+            renderMenu(cat);
         }
 
-        function addToCart(id) {
-            const m = menu.find(item => item.id === id);
-            const inCart = cart.find(item => item.id === id);
-            if(inCart) inCart.qty++; else cart.push({...m, qty: 1});
-            renderCartBar();
-        }
-
-        function render() {
-            const grid = document.getElementById('customer-grid');
-            const filtered = currentCat === 'All' ? menu : menu.filter(m => m.cat === currentCat);
-            grid.innerHTML = filtered.map(m => `
-                <div class="bg-white p-3 rounded-[35px] shadow-sm border border-gray-100 menu-card" onclick="addToCart(${m.id})">
-                    <img src="${m.img}" class="w-full aspect-square object-cover rounded-[28px] mb-3 shadow-sm">
-                    <div class="px-2">
-                        <h3 class="font-bold text-sm text-gray-800 truncate">${m.name}</h3>
-                        <div class="flex justify-between items-center mt-1">
-                            <span class="text-yellow-600 font-bold">฿${m.price}</span>
+        function renderMenu(category) {
+            const container = document.getElementById('menu-container');
+            const items = category === 'All' ? menuData : menuData.filter(m => m.cat === category);
+            container.innerHTML = items.map(m => `
+                <div class="bg-white p-3 rounded-[35px] shadow-sm border border-slate-100 menu-card" onclick="addToCart(${m.id})">
+                    <img src="${m.img}" class="w-full aspect-square object-cover rounded-[28px] mb-3">
+                    <div class="px-1">
+                        <h3 class="font-bold text-xs truncate leading-tight">${m.name}</h3>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-yellow-600 font-bold text-sm">฿${m.price}</span>
                             <div class="bg-black text-white w-7 h-7 rounded-xl flex items-center justify-center text-[10px]">
                                 <i class="fas fa-plus"></i>
                             </div>
@@ -212,100 +179,118 @@
                     </div>
                 </div>
             `).join('');
-
-            // ฝั่งเจ้าของ
-            renderOwner();
         }
 
-        function renderCartBar() {
+        function addToCart(id) {
+            const item = menuData.find(m => m.id === id);
+            const inCart = cart.find(c => c.id === id);
+            if(inCart) inCart.qty++; else cart.push({...item, qty: 1});
+            updateCartBar();
+        }
+
+        function updateCartBar() {
             const qty = cart.reduce((s, i) => s + i.qty, 0);
             const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
-            document.getElementById('cart-bar').classList.toggle('hidden', qty === 0);
+            const bar = document.getElementById('cart-bar');
+            bar.classList.toggle('hidden', qty === 0);
             document.getElementById('cart-count').innerText = qty;
             document.getElementById('cart-total').innerText = `฿${total}`;
         }
 
-        function showCart() {
+        function showCartModal() {
+            const list = document.getElementById('cart-items');
             const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
             document.getElementById('modal-total').innerText = `฿${total}`;
-            document.getElementById('cart-items-list').innerHTML = cart.map(i => `
-                <div class="flex items-center gap-4 bg-gray-50 p-4 rounded-3xl">
+            list.innerHTML = cart.map(i => `
+                <div class="flex items-center gap-4 bg-slate-50 p-4 rounded-3xl">
                     <img src="${i.img}" class="w-12 h-12 rounded-xl object-cover">
                     <div class="flex-grow font-bold text-sm">${i.name}</div>
                     <div class="flex items-center gap-3">
-                        <button onclick="updateQty(${i.id}, -1)" class="w-8 h-8 bg-white rounded-lg shadow-sm">-</button>
-                        <span class="font-bold text-sm w-4 text-center">${i.qty}</span>
-                        <button onclick="updateQty(${i.id}, 1)" class="w-8 h-8 bg-white rounded-lg shadow-sm">+</button>
+                        <button onclick="changeQty(${i.id}, -1)" class="w-8 h-8 bg-white rounded-xl shadow-sm border border-slate-100">-</button>
+                        <span class="font-bold text-sm">${i.qty}</span>
+                        <button onclick="changeQty(${i.id}, 1)" class="w-8 h-8 bg-white rounded-xl shadow-sm border border-slate-100">+</button>
                     </div>
                 </div>
             `).join('');
             document.getElementById('cart-modal').classList.remove('hidden');
         }
 
-        window.updateQty = (id, delta) => {
+        function changeQty(id, delta) {
             const i = cart.find(c => c.id === id);
             if(i) {
                 i.qty += delta;
                 if(i.qty <= 0) cart = cart.filter(c => c.id !== id);
-                showCart();
-                renderCartBar();
+                showCartModal();
+                updateCartBar();
+                if(cart.length === 0) closeModal('cart-modal');
             }
-        };
+        }
 
-        window.placeOrder = () => {
+        function confirmOrder() {
             const total = cart.reduce((s, i) => s + (i.price * i.qty), 0);
             const newOrder = {
                 id: Math.floor(1000 + Math.random() * 9000),
                 items: [...cart],
                 total: total,
                 status: 'pending',
-                time: new Date().toLocaleTimeString()
+                time: new Date().toLocaleTimeString('th-TH')
             };
             orders.push(newOrder);
-            localStorage.setItem('hop_orders', JSON.stringify(orders));
+            localStorage.setItem('hop_orders_v2', JSON.stringify(orders));
             cart = [];
-            renderCartBar();
+            updateCartBar();
             closeModal('cart-modal');
-            alert('ส่งออเดอร์ไปยังร้านค้าแล้ว!');
-        };
-
-        // --- ระบบเจ้าของร้าน ---
-        function setOwnerTab(tab) {
-            document.getElementById('owner-orders-view').classList.toggle('hidden', tab !== 'orders');
-            document.getElementById('owner-menu-view').classList.toggle('hidden', tab !== 'menu');
-            document.getElementById('tab-orders').className = tab === 'orders' ? 'text-yellow-400 border-b-2 border-yellow-400' : 'text-gray-500';
-            document.getElementById('tab-menu').className = tab === 'menu' ? 'text-yellow-400 border-b-2 border-yellow-400' : 'text-gray-500';
+            alert('ออเดอร์ส่งถึงร้านแล้ว! กรุณารอรับเครื่องดื่ม');
         }
 
-        function renderOwner() {
-            const orderView = document.getElementById('owner-orders-view');
-            orderView.innerHTML = orders.slice().reverse().map(o => `
-                <div class="bg-white p-6 rounded-[35px] shadow-sm border-l-8 ${o.status==='pending' ? 'border-yellow-400' : 'border-green-500'}">
-                    <div class="flex justify-between items-start mb-4">
-                        <span class="font-bold text-gray-400 text-[10px] uppercase">Order #${o.id}</span>
-                        <span class="text-[10px] font-bold ${o.status==='pending'?'text-yellow-600':'text-green-600'} italic">${o.time}</span>
+        // ระบบเจ้าของร้าน
+        function openLogin() { document.getElementById('login-modal').classList.remove('hidden'); }
+        function closeModal(id) { document.getElementById(id).classList.add('hidden'); }
+        
+        function verifyPin() {
+            const pin = document.getElementById('pin-input').value;
+            if(pin === '0000') {
+                document.getElementById('pin-input').value = '';
+                closeModal('login-modal');
+                switchView('owner');
+            } else {
+                alert('รหัสผ่านไม่ถูกต้อง');
+                document.getElementById('pin-input').value = '';
+            }
+        }
+
+        function renderOrders() {
+            const list = document.getElementById('order-list');
+            if(orders.length === 0) {
+                list.innerHTML = '<div class="text-center py-20 text-slate-300 font-bold">ไม่มีออเดอร์ใหม่</div>';
+                return;
+            }
+            list.innerHTML = orders.slice().reverse().map(o => `
+                <div class="bg-white p-6 rounded-[35px] shadow-sm border-l-8 ${o.status==='pending' ? 'border-yellow-400' : 'border-green-400'}">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-[10px] font-bold text-slate-300 uppercase">ORDER #${o.id}</span>
+                        <span class="text-[10px] font-bold text-slate-400 italic">${o.time}</span>
                     </div>
-                    <div class="space-y-1 mb-6">
-                        ${o.items.map(i => `<div class="font-bold text-gray-800">${i.name} <span class="text-gray-300 ml-1 italic">x${i.qty}</span></div>`).join('')}
+                    <div class="space-y-1 mb-5">
+                        ${o.items.map(i => `<div class="font-bold text-slate-800">${i.name} <span class="text-slate-300">x${i.qty}</span></div>`).join('')}
                     </div>
-                    <div class="flex justify-between items-center border-t pt-4">
-                        <span class="text-2xl font-bold tracking-tighter">฿${o.total}</span>
-                        ${o.status === 'pending' ? `<button onclick="done(${o.id})" class="bg-black text-white px-6 py-2 rounded-2xl text-[10px] font-bold shadow-lg">ยืนยันทำเสร็จ</button>` : `<i class="fas fa-check-circle text-green-500 text-2xl"></i>`}
+                    <div class="flex justify-between items-center pt-4 border-t border-slate-50">
+                        <div class="text-2xl font-bold tracking-tighter">฿${o.total}</div>
+                        ${o.status === 'pending' ? `<button onclick="markDone(${o.id})" class="bg-black text-white px-6 py-2 rounded-2xl text-[10px] font-bold">ทำเสร็จแล้ว</button>` : `<i class="fas fa-check-circle text-green-500 text-xl"></i>`}
                     </div>
                 </div>
             `).join('');
-            if(orders.length === 0) orderView.innerHTML = '<div class="text-center py-20 text-gray-400 font-bold">ไม่มีออเดอร์ในขณะนี้</div>';
         }
 
-        window.done = (id) => {
+        function markDone(id) {
             const o = orders.find(x => x.id === id);
             if(o) o.status = 'completed';
-            localStorage.setItem('hop_orders', JSON.stringify(orders));
-            renderOwner();
-        };
+            localStorage.setItem('hop_orders_v2', JSON.stringify(orders));
+            renderOrders();
+        }
 
-        // เริ่มต้นแอป
-        render();
+        // เริ่มต้น
+        switchView('home');
     </script>
 </body>
 </html>
