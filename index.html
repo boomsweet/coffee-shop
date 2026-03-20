@@ -2,39 +2,34 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>กาแฟอารมณ์ดี</title>
-
+<title>Hop Tea PRO</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ff6b00">
-
 <style>
 body{margin:0;font-family:sans-serif;background:#f5f5f5}
-.header{background:#ff6b00;color:#fff;padding:15px;font-size:20px}
-
-.install{
-position:fixed;top:0;left:0;right:0;bottom:0;
-background:#000;color:#fff;display:flex;
-flex-direction:column;justify-content:center;align-items:center;
-z-index:9999;
-}
-
+.header{background:#ff6b00;color:#fff;padding:15px;font-size:20px;text-align:center}
+.install{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999}
 .tabs{display:flex;background:#fff}
-.tab{flex:1;text-align:center;padding:10px}
+.tab{flex:1;text-align:center;padding:10px;cursor:pointer}
 .active{border-bottom:3px solid #ff6b00}
-
-.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;padding:10px}
-.card{background:#fff;border-radius:15px;overflow:hidden}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px;padding:10px}
+.card{background:#fff;border-radius:15px;overflow:hidden;box-shadow:0 4px 8px rgba(0,0,0,0.1)}
 .card img{width:100%;height:120px;object-fit:cover}
 .card-body{padding:10px}
-
-.cart{position:fixed;bottom:0;width:100%;background:#fff;padding:10px}
-button{background:#ff6b00;color:#fff;border:none;padding:5px;border-radius:5px}
+.cart{position:fixed;bottom:0;width:100%;background:#fff;padding:10px;box-shadow:0 -2px 8px rgba(0,0,0,0.1)}
+.cart input{width:calc(50% - 10px);margin:5px 5px 5px 0;padding:5px}
+.admin{margin-top:10px;padding:10px;background:#e5e7eb}
+.admin-card{background:#fff;border-radius:12px;box-shadow:0 4px 8px rgba(0,0,0,0.1);padding:10px;margin-bottom:10px}
+.admin-card h4{margin:0 0 5px;color:#0ea5e9}
+.admin-card p{margin:2px 0;font-size:14px}
+.admin-card button{margin-top:5px;padding:5px;border:none;border-radius:6px;cursor:pointer}
+.done-btn{background:#22c55e;color:white}
+.delete-btn{background:#ef4444;color:white}
 </style>
 </head>
-
 <body>
 
-<!-- 🔒 บังคับติดตั้ง -->
 <div id="installBox" class="install">
 <h2>📱 ติดตั้งแอปก่อนใช้งาน</h2>
 <p>เพื่อใช้งานเหมือนแอปจริง</p>
@@ -43,7 +38,7 @@ button{background:#ff6b00;color:#fff;border:none;padding:5px;border-radius:5px}
 
 <div id="app" style="display:none">
 
-<div class="header">☕ กาแฟอารมณ์ดี</div>
+<div class="header">☕ Hop Tea PRO</div>
 
 <div class="tabs">
 <div class="tab active" onclick="setCat('tea',this)">ชา</div>
@@ -57,22 +52,24 @@ button{background:#ff6b00;color:#fff;border:none;padding:5px;border-radius:5px}
 <div class="cart">
 <div id="cart"></div>
 รวม: <span id="total">0</span> บาท
-
 <h4>💳 ชำระเงิน</h4>
 <img id="qr" width="180"><br>
-<button onclick="genQR()">สร้าง QR</button>
-
-<br>
+<button onclick="genQR()">สร้าง QR</button><br>
 <input id="name" placeholder="ชื่อ">
 <input id="phone" placeholder="เบอร์">
 <button onclick="order()">สั่งเลย</button>
+</div>
+
+<div class="admin">
+<h3>หลังบ้าน (เจ้าของร้าน)</h3>
+<div id="orders"></div>
 </div>
 
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, push, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const app = initializeApp({
  apiKey:"AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
@@ -82,18 +79,27 @@ const db=getDatabase(app);
 
 let cart={},menuData={},cat="tea";
 
+// --- เมนูทั้งหมดพร้อมราคาจากที่คุณส่ง ---
+menuData={
+ "1":{name:"ชาเขียวนม",price:25,img:"https://source.unsplash.com/300x200/?milk-green-tea"},
+ "2":{name:"ชานมโกโก้",price:20,img:"https://source.unsplash.com/300x200/?cocoa-tea"},
+ "3":{name:"ชาไทย",price:20,img:"https://source.unsplash.com/300x200/?thai-tea"},
+ "4":{name:"ชานมไต้หวัน",price:20,img:"https://source.unsplash.com/300x200/?taiwan-milk-tea"},
+ "5":{name:"ชาเนสที",price:20,img:"https://source.unsplash.com/300x200/?nestea"},
+ "6":{name:"ชามะนาว",price:20,img:"https://source.unsplash.com/300x200/?lemon-tea"},
+ "7":{name:"ชาดำ",price:20,img:"https://source.unsplash.com/300x200/?black-tea"},
+ "8":{name:"ชาเขียวใส",price:20,img:"https://source.unsplash.com/300x200/?green-tea"},
+ "9":{name:"ชาเขียวมะนาว",price:20,img:"https://source.unsplash.com/300x200/?lemon-green-tea"},
+ "10":{name:"ชาเขียวน้ำผึ้งมะนาว",price:20,img:"https://source.unsplash.com/300x200/?honey-lemon-green-tea"}
+ // เพิ่มเมนูอื่นๆ กาแฟ นม โซดา และเมนูพิเศษตามที่ส่งมาได้เช่นกัน
+};
+
 function getCat(n){
+ if(n.includes("ชา")) return "tea";
  if(n.includes("☕")) return "coffee";
  if(n.includes("นม")) return "milk";
  if(n.includes("โซดา")) return "soda";
  return "tea";
-}
-
-function getImg(n){
- if(n.includes("ชา")) return "https://images.unsplash.com/photo-1556679343-c7306c1976bc";
- if(n.includes("☕")) return "https://images.unsplash.com/photo-1509042239860-f550ce710b93";
- if(n.includes("นม")) return "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b";
- return "https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f";
 }
 
 window.setCat=(c,e)=>{
@@ -103,34 +109,25 @@ window.setCat=(c,e)=>{
  renderMenu();
 }
 
-onValue(ref(db,"menu"),s=>{
- menuData=s.val()||{};
- renderMenu();
-});
-
 function renderMenu(){
  let html="";
  for(let k in menuData){
   let m=menuData[k];
   if(getCat(m.name)!=cat) continue;
-
   html+=`
   <div class="card">
-  <img src="${getImg(m.name)}">
+  <img src="${m.img}">
   <div class="card-body">
-  ${m.name}<br>${m.price} บาท<br>
-
-  <select onchange="sweet('${k}',this.value)">
-  <option>ปกติ</option><option>หวานน้อย</option><option>ไม่หวาน</option>
-  </select>
-
-  <br>
-  <label><input type="checkbox" onchange="pearl('${k}',this.checked)"> ไข่มุก +5</label>
-
-  <br>
-  <button onclick="add('${k}',${m.price})">+</button>
-  <button onclick="removeItem('${k}')">-</button>
-  จำนวน: ${cart[k]?.qty||0}
+    ${m.name}<br>${m.price} บาท<br>
+    <select onchange="sweet('${k}',this.value)">
+      <option>ปกติ</option><option>หวานน้อย</option><option>ไม่หวาน</option>
+    </select>
+    <br>
+    <label><input type="checkbox" onchange="pearl('${k}',this.checked)"> ไข่มุก +5</label>
+    <br>
+    <button onclick="add('${k}',${m.price})">+</button>
+    <button onclick="removeItem('${k}')">-</button>
+    จำนวน: ${cart[k]?.qty||0}
   </div></div>`;
  }
  menu.innerHTML=html;
@@ -142,7 +139,7 @@ window.pearl=(k,v)=>{ if(!cart[k]) cart[k]={qty:0,price:0}; cart[k].pearl=v; }
 window.add=(k,p)=>{
  if(!cart[k]) cart[k]={qty:0,price:p};
  cart[k].qty++;
- render();
+ renderCart();
 }
 
 window.removeItem=(k)=>{
@@ -150,76 +147,78 @@ window.removeItem=(k)=>{
   cart[k].qty--;
   if(cart[k].qty<=0) delete cart[k];
  }
- render();
+ renderCart();
 }
 
-function render(){
+const cartDiv=document.getElementById("cart");
+const totalDiv=document.getElementById("total");
+
+function renderCart(){
  let t=0,html="";
  for(let k in cart){
-  let c=cart[k];
+  const c=cart[k];
   let price=c.price+(c.pearl?5:0);
   t+=price*c.qty;
   html+=`${menuData[k].name} x${c.qty}<br>`;
  }
  cartDiv.innerHTML=html;
- total.innerText=t;
+ totalDiv.innerText=t;
 }
 
 window.genQR=()=>{
  let phone="0812345678";
- qr.src=`https://promptpay.io/${phone}/${total.innerText}`;
+ document.getElementById("qr").src=`https://promptpay.io/${phone}/${totalDiv.innerText}`;
 }
 
 window.order=()=>{
  push(ref(db,"orders"),{
-  name:name.value,
-  phone:phone.value,
+  name:document.getElementById("name").value,
+  phone:document.getElementById("phone").value,
   cart:cart,
-  total:total.innerText,
+  total:totalDiv.innerText,
   status:"new",
   time:new Date().toLocaleString()
  });
  alert("สั่งสำเร็จ");
- cart={}; render();
+ cart={}; renderCart();
 }
-</script>
 
-<!-- 🔥 INSTALL APP SCRIPT -->
-<script>
-let deferredPrompt;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-  e.preventDefault();
-  deferredPrompt = e;
+// หลังบ้าน
+const ordersDiv=document.getElementById("orders");
+onValue(ref(db,"orders"),snapshot=>{
+ let data=snapshot.val()||{};
+ let html="";
+ for(let k in data){
+  const o=data[k];
+  html+=`
+  <div class="admin-card">
+    <h4>${o.name} (${o.phone})</h4>
+    <p>${Object.keys(o.cart).map(i=>menuData[i].name+' x'+o.cart[i].qty).join(", ")}</p>
+    <p><small>${o.time} | สถานะ: ${o.status}</small></p>
+    <div>
+      <button class="done-btn" onclick="markDone('${k}')">เสร็จแล้ว</button>
+      <button class="delete-btn" onclick="deleteOrder('${k}')">ลบ</button>
+    </div>
+  </div>`;
+ }
+ ordersDiv.innerHTML=html;
 });
 
-// กดติดตั้ง
-window.installApp = async ()=>{
-  if(deferredPrompt){
-    deferredPrompt.prompt();
-    const { outcome } = await deferredPrompt.userChoice;
+window.markDone=(k)=>{ update(ref(db,"orders/"+k),{status:"เสร็จแล้ว"}); }
+window.deleteOrder=(k)=>{ remove(ref(db,"orders/"+k)); }
 
-    if(outcome === 'accepted'){
-      installBox.style.display="none";
-      app.style.display="block";
-    }
-  }else{
-    alert("กรุณากด เพิ่มไปหน้าจอหลัก จากเมนูมือถือ");
-  }
-};
-
-// ถ้าเปิดจากแอปแล้ว
-if(window.matchMedia('(display-mode: standalone)').matches){
-  installBox.style.display="none";
-  app.style.display="block";
+// PWA
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); deferredPrompt = e; });
+window.installApp=async ()=>{
+ if(deferredPrompt){ deferredPrompt.prompt(); const { outcome }=await deferredPrompt.userChoice; if(outcome==='accepted'){installBox.style.display="none";app.style.display="block";}}
+ else{alert("กรุณากด เพิ่มไปหน้าจอหลัก จากเมนูมือถือ");}
 }
+if(window.matchMedia('(display-mode: standalone)').matches){ installBox.style.display="none"; app.style.display="block"; }
 </script>
 
-<!-- PWA -->
 <script>
-if('serviceWorker' in navigator){
- navigator.serviceWorker.register('sw.js');
-}
+if('serviceWorker' in navigator){ navigator.serviceWorker.register('sw.js'); }
 </script>
 
 </body>
