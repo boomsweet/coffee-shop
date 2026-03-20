@@ -3,119 +3,96 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>กาแฟอารมณ์ดี</title>
+<title>ลูกค้า - กาแฟอารมณ์ดี</title>
 
 <style>
-body {
-  font-family: sans-serif;
-  background:#111;
-  color:#fff;
-  padding:20px;
-}
-.card {
-  background:#1e293b;
-  padding:15px;
-  margin:10px 0;
-  border-radius:12px;
-}
-button {
-  width:100%;
-  padding:15px;
-  border:none;
-  border-radius:10px;
-  background:#22c55e;
-  color:#000;
-  font-size:18px;
-}
-input, select {
-  width:100%;
-  padding:10px;
-  margin:5px 0;
-  border-radius:8px;
-  border:none;
-}
+body { font-family:sans-serif; background:#111; color:#fff; padding:10px;}
+.menu { background:#1e293b; padding:10px; margin:8px 0; border-radius:10px;}
+button { padding:5px 10px; margin:3px;}
+.cart { background:#020617; padding:10px; margin-top:15px;}
 </style>
 </head>
 
 <body>
 
-<h1>☕ กาแฟอารมณ์ดี</h1>
+<h2>👥 ลูกค้า (สั่งน้ำ)</h2>
 
-<div class="card">
-  <input id="name" placeholder="ชื่อ">
-  <input id="phone" placeholder="เบอร์โทร">
-</div>
+<div id="menuList"></div>
 
-<div class="card">
-  <select id="menu">
-    <option value="20">ชาเขียว (20)</option>
-    <option value="20">ชาไทย (20)</option>
-    <option value="25">กาแฟ (25)</option>
-    <option value="25">โกโก้ (25)</option>
-  </select>
-</div>
+<h3>🧾 รายการที่สั่ง</h3>
+<div id="cart"></div>
+<h2>รวม: <span id="total">0</span> บาท</h2>
 
-<div class="card">
-  <select id="sweet">
-    <option>ไม่หวาน</option>
-    <option>หวานน้อย</option>
-    <option>หวานปกติ</option>
-    <option>หวานพิเศษ</option>
-  </select>
-</div>
+<input id="name" placeholder="ชื่อ">
+<input id="phone" placeholder="เบอร์">
 
-<div class="card">
-  <label><input type="checkbox" id="boba"> เพิ่มไข่มุก +5</label>
-</div>
-
-<div class="card">
-  ราคา: <span id="total">0</span> บาท
-</div>
-
-<button onclick="order()">สั่งเลย</button>
+<button onclick="sendOrder()">สั่งเลย</button>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
+  apiKey: "AIzaSy...",
   authDomain: "coffee-shop-2042e.firebaseapp.com",
   databaseURL: "https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "coffee-shop-2042e",
-  storageBucket: "coffee-shop-2042e.firebasestorage.app",
-  messagingSenderId: "835937086040",
-  appId: "1:835937086040:web:b943444f862210d8adb82d"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-const menu = document.getElementById("menu");
-const boba = document.getElementById("boba");
-const total = document.getElementById("total");
+let cart = {};
 
-function calc() {
-  let price = parseInt(menu.value);
-  if (boba.checked) price += 5;
-  total.innerText = price;
+onValue(ref(db, "menu"), (snap)=>{
+  const data = snap.val();
+  let html = "";
+  for(let key in data){
+    html += `
+    <div class="menu">
+      ${data[key].name} (${data[key].price} บาท)
+      <br>
+      <button onclick="add('${key}', ${data[key].price})">+</button>
+      <button onclick="remove('${key}', ${data[key].price})">-</button>
+    </div>`;
+  }
+  document.getElementById("menuList").innerHTML = html;
+});
+
+window.add = (id, price)=>{
+  if(!cart[id]) cart[id] = {qty:0, price};
+  cart[id].qty++;
+  renderCart();
 }
-menu.onchange = calc;
-boba.onchange = calc;
 
-window.order = function() {
-  const data = {
-    name: document.getElementById("name").value,
-    phone: document.getElementById("phone").value,
-    menu: menu.options[menu.selectedIndex].text,
-    sweet: document.getElementById("sweet").value,
-    boba: boba.checked ? "ใส่ไข่มุก" : "ไม่ใส่",
+window.remove = (id)=>{
+  if(cart[id]){
+    cart[id].qty--;
+    if(cart[id].qty<=0) delete cart[id];
+  }
+  renderCart();
+}
+
+function renderCart(){
+  let html="", total=0;
+  for(let i in cart){
+    let item = cart[i];
+    html += `${i} x ${item.qty}<br>`;
+    total += item.qty * item.price;
+  }
+  document.getElementById("cart").innerHTML = html;
+  document.getElementById("total").innerText = total;
+}
+
+window.sendOrder = ()=>{
+  push(ref(db,"orders"), {
+    name: name.value,
+    phone: phone.value,
+    cart: cart,
     total: total.innerText,
     time: new Date().toLocaleString()
-  };
-
-  push(ref(db, "orders"), data);
-  alert("สั่งสำเร็จ!");
+  });
+  alert("สั่งสำเร็จ");
 }
 </script>
 
