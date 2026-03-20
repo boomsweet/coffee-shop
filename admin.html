@@ -3,31 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>หน้าร้าน - กาแฟอารมณ์ดี</title>
+<title>ร้านกาแฟอารมณ์ดี</title>
 
 <style>
 body {
   font-family: sans-serif;
   background:#020617;
   color:#fff;
-  padding:15px;
+  padding:10px;
 }
-h1 {text-align:center;}
+
+h1 {
+  text-align:center;
+}
+
 .order {
-  background:#1e293b;
   padding:12px;
   margin:10px 0;
   border-radius:12px;
 }
-.done {
-  background:#14532d;
-}
+
+.new { background:#7f1d1d; }     /* แดง */
+.doing { background:#78350f; }   /* เหลือง */
+.done { background:#14532d; }    /* เขียว */
+
 button {
-  margin-top:10px;
-  padding:10px;
+  margin-top:8px;
+  padding:8px;
   border:none;
   border-radius:8px;
-  background:#22c55e;
+  margin-right:5px;
 }
 </style>
 </head>
@@ -59,37 +64,35 @@ const db = getDatabase(app);
 const ordersDiv = document.getElementById("orders");
 const sound = document.getElementById("sound");
 
-// 🔥 รับออเดอร์ใหม่
 onChildAdded(ref(db, "orders"), (snapshot) => {
   const data = snapshot.val();
   const key = snapshot.key;
 
-  sound.play(); // 🔔 แจ้งเตือน
+  sound.play();
 
   const div = document.createElement("div");
-  div.className = "order";
+  div.className = "order new";
 
   div.innerHTML = `
-    <b>👤 ${data.name}</b><br>
-    📞 ${data.phone}<br>
+    <b>👤 ${data.name}</b> (${data.phone})<br>
     🧋 ${data.menu}<br>
     🍯 ${data.sweet}<br>
     ➕ ${data.boba}<br>
     💰 ${data.total} บาท<br>
-    🕒 ${data.time}<br>
-    <button onclick="done('${key}', this)">เสร็จแล้ว</button>
+    <button onclick="setStatus('${key}', 'doing', this)">กำลังทำ</button>
+    <button onclick="setStatus('${key}', 'done', this)">เสร็จแล้ว</button>
   `;
 
   ordersDiv.prepend(div);
 });
 
-// ✅ กดเสร็จ
-window.done = function(key, btn){
+window.setStatus = function(key, status, btn){
   const orderRef = ref(db, "orders/" + key);
-  update(orderRef, { status: "done" });
+  update(orderRef, { status: status });
 
-  btn.parentElement.classList.add("done");
-  btn.remove();
+  const div = btn.parentElement;
+  div.classList.remove("new","doing","done");
+  div.classList.add(status);
 }
 </script>
 
