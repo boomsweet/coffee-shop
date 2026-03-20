@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>หน้าร้าน - กาแฟอารมณ์ดี</title>
+
+<style>
+body {
+  font-family: sans-serif;
+  background:#020617;
+  color:#fff;
+  padding:15px;
+}
+h1 {text-align:center;}
+.order {
+  background:#1e293b;
+  padding:12px;
+  margin:10px 0;
+  border-radius:12px;
+}
+.done {
+  background:#14532d;
+}
+button {
+  margin-top:10px;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  background:#22c55e;
+}
+</style>
+</head>
+
+<body>
+
+<h1>☕ ออเดอร์ลูกค้า</h1>
+<div id="orders"></div>
+
+<audio id="sound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getDatabase, ref, onChildAdded, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
+  authDomain: "coffee-shop-2042e.firebaseapp.com",
+  databaseURL: "https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "coffee-shop-2042e",
+  storageBucket: "coffee-shop-2042e.firebasestorage.app",
+  messagingSenderId: "835937086040",
+  appId: "1:835937086040:web:b943444f862210d8adb82d"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+const ordersDiv = document.getElementById("orders");
+const sound = document.getElementById("sound");
+
+// 🔥 รับออเดอร์ใหม่
+onChildAdded(ref(db, "orders"), (snapshot) => {
+  const data = snapshot.val();
+  const key = snapshot.key;
+
+  sound.play(); // 🔔 แจ้งเตือน
+
+  const div = document.createElement("div");
+  div.className = "order";
+
+  div.innerHTML = `
+    <b>👤 ${data.name}</b><br>
+    📞 ${data.phone}<br>
+    🧋 ${data.menu}<br>
+    🍯 ${data.sweet}<br>
+    ➕ ${data.boba}<br>
+    💰 ${data.total} บาท<br>
+    🕒 ${data.time}<br>
+    <button onclick="done('${key}', this)">เสร็จแล้ว</button>
+  `;
+
+  ordersDiv.prepend(div);
+});
+
+// ✅ กดเสร็จ
+window.done = function(key, btn){
+  const orderRef = ref(db, "orders/" + key);
+  update(orderRef, { status: "done" });
+
+  btn.parentElement.classList.add("done");
+  btn.remove();
+}
+</script>
+
+</body>
+</html>
