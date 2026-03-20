@@ -6,6 +6,7 @@
 <style>
 body{background:#000;color:#fff;font-family:sans-serif;padding:10px}
 .box{background:#222;padding:10px;margin:5px;border-radius:10px}
+button{margin:3px}
 </style>
 </head>
 
@@ -24,6 +25,8 @@ body{background:#000;color:#fff;font-family:sans-serif;padding:10px}
 <input id="mname" placeholder="ชื่อเมนู">
 <input id="mprice" placeholder="ราคา">
 <button onclick="addMenu()">เพิ่ม</button>
+
+<button onclick="loadDefaultMenu()">ใส่เมนูทั้งหมด</button>
 
 <h3>📋 รายการเมนู</h3>
 <div id="menu"></div>
@@ -46,9 +49,9 @@ const db = getDatabase(app);
 
 // 🔒 LOGIN
 window.login = ()=>{
-  if(document.getElementById("pass").value === "0000"){
-    document.getElementById("login").style.display="none";
-    document.getElementById("admin").style.display="block";
+  if(pass.value === "0000"){
+    login.style.display="none";
+    admin.style.display="block";
   }else{
     alert("รหัสผิด");
   }
@@ -73,12 +76,81 @@ onValue(ref(db,"menu"),snap=>{
       <button onclick="del('${k}')">ลบ</button>
     </div>`;
   }
-  document.getElementById("menu").innerHTML=html;
+  menu.innerHTML=html;
 });
 
 // ❌ ลบเมนู
 window.del=(k)=>{
   remove(ref(db,"menu/"+k));
+}
+
+// 🔥 ใส่เมนูทั้งหมด
+window.loadDefaultMenu = ()=>{
+  const menus = [
+
+  {name:"ชาเขียวนม", price:25},
+  {name:"ชานมโกโก้", price:20},
+  {name:"ชาไทย", price:20},
+  {name:"ชานมไต้หวัน", price:20},
+  {name:"ชาเนสที", price:20},
+  {name:"ชามะนาว", price:20},
+  {name:"ชาดำ", price:20},
+  {name:"ชาเขียวใส", price:20},
+  {name:"ชาเขียวมะนาว", price:20},
+  {name:"ชาเขียวน้ำผึ้งมะนาว", price:20},
+
+  {name:"ชามะลิ", price:20},
+  {name:"ชามะลิลิ้นจี่", price:20},
+  {name:"ชามะลิแอปเปิ้ล", price:20},
+  {name:"ชามะลิสตรอว์เบอร์รี่", price:20},
+  {name:"ชามะลิเก๊กฮวย", price:20},
+  {name:"ชามะลินม", price:20},
+
+  {name:"ชาเบอร์รี่", price:20},
+  {name:"ชาเบอร์รี่มะนาว", price:20},
+  {name:"ชาเบอร์รี่น้ำผึ้ง", price:20},
+  {name:"ชาเบอร์รี่โกโก้", price:25},
+
+  {name:"นมสด", price:20},
+  {name:"นมชมพู", price:20},
+  {name:"โกโก้", price:25},
+  {name:"โอวัลติน", price:20},
+  {name:"นมเผือก", price:20},
+  {name:"นมแคนตาลูป", price:20},
+  {name:"สตรอว์เบอร์รี่นมสด", price:20},
+
+  {name:"เอสเปรสโซ่", price:25},
+  {name:"ลาเต้", price:25},
+  {name:"มอคค่า", price:25},
+  {name:"คาปูชิโน่", price:25},
+
+  {name:"แดงโซดา", price:20},
+  {name:"เขียวโซดา", price:20},
+  {name:"มะนาวโซดา", price:20},
+  {name:"น้ำผึ้งมะนาวโซดา", price:20},
+  {name:"เสาวรสโซดา", price:20},
+  {name:"บลูฮาวายโซดา", price:20},
+  {name:"องุ่นโซดา", price:20},
+  {name:"ลิ้นจี่โซดา", price:20},
+  {name:"แคนตาลูปโซดา", price:20},
+  {name:"สตรอว์เบอร์รี่โซดา", price:20},
+  {name:"มะม่วงโซดา", price:20},
+  {name:"กีวี่โซดา", price:20},
+  {name:"แอปเปิ้ลโซดา", price:20},
+
+  {name:"ชาพีช", price:20},
+
+  {name:"ชานมไต้หวัน บราวน์ชูก้า", price:20},
+  {name:"ชาเขียว บราวน์ชูก้า", price:20},
+  {name:"นมสด บราวน์ชูก้า", price:20}
+
+  ];
+
+  menus.forEach(item=>{
+    push(ref(db,"menu"), item);
+  });
+
+  alert("เพิ่มเมนูเรียบร้อย 🔥");
 }
 </script>
 
