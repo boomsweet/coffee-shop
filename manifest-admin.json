@@ -1,7 +1,8 @@
 {
   "name": "Hop Tea Admin",
   "short_name": "Admin",
-  "start_url": "admin.html",
+  "start_url": "/coffee-shop/admin.html",
+  "scope": "/coffee-shop/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#000000",
