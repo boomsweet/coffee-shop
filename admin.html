@@ -2,82 +2,55 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<title>POS ร้าน</title>
-
+<title>Hop Tea - เจ้าของร้าน</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#ff6b00">
 <style>
-body{background:#111;color:#fff;font-family:sans-serif;padding:10px}
-.card{background:#222;margin:5px;padding:10px;border-radius:10px}
-.new{border-left:5px solid red}
-.cook{border-left:5px solid orange}
-.done{border-left:5px solid green}
-.paid{border-left:5px solid blue}
-button{margin:3px}
+body{margin:10px;font-family:sans-serif;background:#111;color:#fff}
+.admin-card{background:#222;margin:5px;padding:10px;border-radius:10px}
+button{margin:3px;padding:5px;border:none;border-radius:6px;cursor:pointer}
+.done-btn{background:#22c55e;color:white}
+.delete-btn{background:#ef4444;color:white}
 </style>
 </head>
-
 <body>
-
-<h2>🔐 ระบบร้าน</h2>
-
-<input id="pass" type="password" placeholder="รหัส">
-<button onclick="login()">เข้า</button>
-
-<div id="admin" style="display:none">
-
-<h3>📺 ออเดอร์</h3>
+<h2>☕ Hop Tea - เจ้าของร้าน</h2>
 <div id="orders"></div>
-
-<h3>📊 ยอดขาย: <span id="sum">0</span></h3>
-
-</div>
+<h3>ยอดขาย: <span id="sum">0</span></h3>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, update, remove } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const app = initializeApp({
- apiKey:"AIzaSy...",
- databaseURL:"https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app"
+ apiKey:"YOUR_API_KEY",
+ databaseURL:"YOUR_DB_URL"
 });
 const db=getDatabase(app);
 
-window.login=()=>{
- if(pass.value=="0000") admin.style.display="block";
-}
-
-onValue(ref(db,"orders"),s=>{
- let data=s.val()||{},html="",sum=0;
-
- for(let k in data){
-  let o=data[k],list="";
-  for(let i in o.cart){
-   let c=o.cart[i];
-   list+=`${i} x${c.qty} ${c.pearl?"ไข่มุก":""}<br>`;
+onValue(ref(db,"orders"), snap => {
+  const data = snap.val()||{};
+  let html="", sum=0;
+  for(let k in data){
+    const o = data[k];
+    let list = "";
+    for(let i in o.cart){ list += `${o.cart[i].qty} x ${i}<br>`;}
+    html+=`<div class="admin-card">
+      <h4>${o.name} (${o.phone})</h4>
+      <p>${list}</p>
+      <p><small>${o.time} | สถานะ: ${o.status}</small></p>
+      <button class="done-btn" onclick="updateStatus('${k}','เสร็จแล้ว')">เสร็จแล้ว</button>
+      <button class="delete-btn" onclick="deleteOrder('${k}')">ลบ</button>
+    </div>`;
+    if(o.status==="เสร็จแล้ว") sum+=parseInt(o.total||0);
   }
-
-  html+=`
-  <div class="card ${o.status}">
-  👤 ${o.name}<br>
-  📞 ${o.phone}<br>
-  🧾 ${list}
-  💰 ${o.total} บาท<br>
-
-  <button onclick="set('${k}','cook')">ทำ</button>
-  <button onclick="set('${k}','done')">เสร็จ</button>
-  <button onclick="set('${k}','paid')">จ่ายแล้ว</button>
-  </div>`;
-
-  if(o.status=="paid") sum+=parseInt(o.total||0);
- }
-
- orders.innerHTML=html;
- sumEl.innerText=sum;
+  document.getElementById("orders").innerHTML=html;
+  document.getElementById("sum").innerText=sum;
 });
 
-window.set=(k,s)=>{
- update(ref(db,"orders/"+k),{status:s});
-}
+function updateStatus(k,s){update(ref(db,"orders/"+k),{status:s});}
+function deleteOrder(k){remove(ref(db,"orders/"+k));}
 </script>
-
 </body>
 </html>
