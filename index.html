@@ -22,11 +22,11 @@ body { font-family: sans-serif; background: #f5f5f5; }
     <span>ตะกร้า (<span id="cart-count">0</span>)</span>
     <span>รวม: ฿<span id="cart-total">0</span></span>
 </div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-// Firebase config
 const firebaseConfig = {
  apiKey: "AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
  databaseURL:"https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app"
@@ -35,20 +35,29 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 const menuData = [
- {id:1,name:'ชาเขียวนม',price:20,img:'https://images.unsplash.com/photo-1571935445874-6629d16886aa?w=300'},
- {id:2,name:'ชานมโกโก้',price:25,img:'https://images.unsplash.com/photo-1541167760496-162955ed8a9f?w=300'},
- {id:3,name:'ชาไทย',price:20,img:'https://images.unsplash.com/photo-1594631252845-29fc4586d51c?w=300'},
- {id:4,name:'ชานมไต้หวัน',price:20,img:'https://images.unsplash.com/photo-1525193612562-0ec53b0e5d7c?w=300'},
- {id:5,name:'ชามะลิ',price:20,img:'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300'},
- {id:6,name:'นมสด',price:20,img:'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=300'},
- {id:7,name:'โกโก้',price:25,img:'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=300'},
- {id:8,name:'เอสเพรสโซ่',price:25,img:'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300'},
- {id:9,name:'แดงโซดา',price:20,img:'https://images.unsplash.com/photo-1536935338218-d4133eba883b?w=300'},
- {id:10,name:'บลูฮาวายโซดา',price:20,img:'https://images.unsplash.com/photo-1536935338218-d4133eba883b?w=300'}
+{id:1,name:'ชาเขียวนม',price:20,img:'https://images.unsplash.com/photo-1571935445874-6629d16886aa?w=300'},
+{id:2,name:'ชานมโกโก้',price:25,img:'https://images.unsplash.com/photo-1541167760496-162955ed8a9f?w=300'},
+{id:3,name:'ชาไทย',price:20,img:'https://images.unsplash.com/photo-1594631252845-29fc4586d51c?w=300'},
+{id:4,name:'ชานมไต้หวัน',price:20,img:'https://images.unsplash.com/photo-1525193612562-0ec53b0e5d7c?w=300'},
+{id:5,name:'ชามะลิ',price:20,img:'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300'},
+{id:6,name:'นมสด',price:20,img:'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=300'},
+{id:7,name:'โกโก้',price:25,img:'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=300'},
+{id:8,name:'เอสเพรสโซ่',price:25,img:'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300'},
+{id:9,name:'แดงโซดา',price:20,img:'https://images.unsplash.com/photo-1536935338218-d4133eba883b?w=300'},
+{id:10,name:'บลูฮาวายโซดา',price:20,img:'https://images.unsplash.com/photo-1536935338218-d4133eba883b?w=300'},
+{id:11,name:'ชาเขียวปั่น',price:25,img:'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=300'},
+{id:12,name:'ชาไทยปั่น',price:25,img:'https://images.unsplash.com/photo-1594631252845-29fc4586d51c?w=300'},
+{id:13,name:'ชานมไข่มุก',price:30,img:'https://images.unsplash.com/photo-1525193612562-0ec53b0e5d7c?w=300'},
+{id:14,name:'นมชมพู',price:25,img:'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=300'},
+{id:15,name:'ชาอัญชัน',price:20,img:'https://images.unsplash.com/photo-1525193612562-0ec53b0e5d7c?w=300'},
+{id:16,name:'ชาเสาวรส',price:20,img:'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300'},
+{id:17,name:'โกโก้ปั่น',price:30,img:'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=300'},
+{id:18,name:'คาปูชิโน่',price:25,img:'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300'},
+{id:19,name:'นมสดช็อกโกแลต',price:25,img:'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=300'},
+{id:20,name:'สตอเบอร์รี่โซดา',price:20,img:'https://images.unsplash.com/photo-1536935338218-d4133eba883b?w=300'}
 ];
 
 let cart = [];
-
 function renderMenu() {
  const grid = document.getElementById('menu-grid');
  grid.innerHTML = menuData.map(m=>`
@@ -67,7 +76,6 @@ function addToCart(id) {
  if(exist) exist.qty++; else cart.push({...item, qty:1});
  updateCartBar();
 }
-
 function updateCartBar() {
  const bar = document.getElementById('cart-bar');
  const count = cart.reduce((s,i)=>s+i.qty,0);
@@ -76,11 +84,10 @@ function updateCartBar() {
  document.getElementById('cart-total').innerText = total;
  bar.classList.toggle('hidden', count===0);
 }
-
 function showCart() {
- const orderData = {items: cart, total: cart.reduce((s,i)=>s+i.price*i.qty,0), time:new Date().toLocaleString()};
+ const orderData = {items: cart, total: cart.reduce((s,i)=>s+i.price*i.qty,0), status:'pending', time:new Date().toLocaleString()};
  push(ref(db,"orders"),orderData);
- alert('สั่งออเดอร์เรียบร้อย!');
+ alert('ส่งออเดอร์เรียบร้อย!');
  cart = []; updateCartBar();
 }
 </script>
