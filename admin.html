@@ -8,7 +8,7 @@
 </head>
 
 <body class="p-4">
-<h1 class="text-center text-xl font-bold">เจ้าของร้าน</h1>
+<h1 class="text-center text-xl font-bold">Hop Tea - เจ้าของร้าน</h1>
 
 <input id="pass" type="password" placeholder="รหัส" class="border p-2">
 <button onclick="login()" class="bg-black text-white px-3">เข้า</button>
@@ -33,8 +33,8 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebas
 import { getDatabase, ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
- apiKey:"YOUR_KEY",
- databaseURL:"YOUR_DB_URL"
+ apiKey: "AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
+ databaseURL:"https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app"
 };
 
 const app = initializeApp(firebaseConfig);
@@ -47,7 +47,7 @@ window.login = ()=>{
     document.getElementById("panel").classList.remove("hidden");
     loadMenu();
     loadOrders();
-  }else alert("ผิด");
+  }else alert("รหัสผิด");
 }
 
 function saveMenu(){
