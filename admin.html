@@ -7,27 +7,29 @@
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#ff6b00">
 <style>
-body{background:#111;color:#fff;font-family:sans-serif;padding:10px}
-h2,h3{margin:5px 0}
+body{margin:0;font-family:sans-serif;background:#111;color:#fff;padding:10px}
+.header{background:#ff6b00;color:#fff;padding:15px;font-size:20px;text-align:center}
 .card{background:#222;margin:5px;padding:10px;border-radius:10px}
 .new{border-left:5px solid red}
 .cook{border-left:5px solid orange}
 .done{border-left:5px solid green}
 .paid{border-left:5px solid blue}
-button{margin:3px;background:#ff6b00;color:#fff;border:none;padding:5px;border-radius:5px;cursor:pointer}
-input{padding:5px;border-radius:5px;border:none;margin:3px}
+button{margin:3px;padding:5px;border:none;border-radius:5px;background:#ff6b00;color:#fff;cursor:pointer}
+input{padding:5px;margin:3px;border-radius:5px;border:1px solid #ccc}
 </style>
 </head>
 <body>
 
-<h2>🔐 ระบบร้าน Hop Tea</h2>
-<input id="pass" type="password" placeholder="รหัสเข้าระบบ">
+<div class="header">📋 ระบบเจ้าของร้าน Hop Tea</div>
+
+<h4>🔐 เข้าสู่ระบบ</h4>
+<input type="password" id="pass" placeholder="รหัสเจ้าของร้าน">
 <button onclick="login()">เข้า</button>
 
 <div id="admin" style="display:none">
-  <h3>📺 ออเดอร์</h3>
-  <div id="orders"></div>
-  <h3>📊 ยอดขาย: <span id="sum">0</span> บาท</h3>
+<h3>📺 ออเดอร์ลูกค้า</h3>
+<div id="orders"></div>
+<h3>📊 ยอดขายรวม: <span id="sum">0</span> บาท</h3>
 </div>
 
 <script type="module">
@@ -40,47 +42,53 @@ const app = initializeApp({
 });
 const db=getDatabase(app);
 
-function login(){
-  if(document.getElementById("pass").value=="0000"){
-    document.getElementById("admin").style.display="block";
-  }else{
-    alert("รหัสผิด");
-  }
-}
-
-const ordersEl=document.getElementById("orders");
+const ordersDiv=document.getElementById("orders");
 const sumEl=document.getElementById("sum");
 
-onValue(ref(db,"orders"), snapshot=>{
-  const data = snapshot.val() || {};
-  let html="",sum=0;
-  for(let k in data){
-    let o=data[k],list="";
-    for(let i in o.cart){
-      let c=o.cart[i];
-      list+=`${i} x${c.qty} ${c.pearl?"ไข่มุก":""}<br>`;
-    }
-    html+=`
-      <div class="card ${o.status}">
-        👤 ${o.name}<br>
-        📞 ${o.phone}<br>
-        🧾 ${list}
-        💰 ${o.total} บาท<br>
-        <button onclick="setStatus('${k}','cook')">ทำ</button>
-        <button onclick="setStatus('${k}','done')">เสร็จ</button>
-        <button onclick="setStatus('${k}','paid')">จ่ายแล้ว</button>
-      </div>`;
-    if(o.status=="paid") sum+=parseInt(o.total||0);
-  }
-  ordersEl.innerHTML=html;
-  sumEl.innerText=sum;
-});
-
-function setStatus(id,status){
-  update(ref(db,"orders/"+id),{status:status});
+window.login=()=>{
+ if(document.getElementById("pass").value==="0000"){
+   document.getElementById("admin").style.display="block";
+ }else{
+   alert("รหัสไม่ถูกต้อง");
+ }
 }
 
-// PWA
+function renderOrders(data){
+ let html="",sum=0;
+ for(let k in data){
+   const o=data[k];
+   let list="";
+   for(let item in o.cart){
+     const c=o.cart[item];
+     list+=`${item} x${c.qty} <br>`;
+   }
+   html+=`<div class="card ${o.status}">
+   👤 ${o.name}<br>
+   📞 ${o.phone}<br>
+   🧾 ${list}
+   💰 ${o.total} บาท<br>
+   <button onclick="setStatus('${k}','cook')">ทำ</button>
+   <button onclick="setStatus('${k}','done')">เสร็จ</button>
+   <button onclick="setStatus('${k}','paid')">จ่ายแล้ว</button>
+   </div>`;
+   if(o.status==="paid") sum+=parseInt(o.total||0);
+ }
+ ordersDiv.innerHTML=html;
+ sumEl.innerText=sum;
+}
+
+// อัปเดตสถานะ
+window.setStatus=(key,status)=>{
+ update(ref(db,"orders/"+key),{status:status});
+}
+
+// ฟังค์ชั่น Real-time
+onValue(ref(db,"orders"),snapshot=>{
+  const data=snapshot.val()||{};
+  renderOrders(data);
+});
+
+// Service Worker
 if('serviceWorker' in navigator){
   navigator.serviceWorker.register('sw.js');
 }
