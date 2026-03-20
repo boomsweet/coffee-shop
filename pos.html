@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>HOP Chafe - POS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600&display=swap'); body { font-family: 'Kanit', sans-serif; }</style>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col overflow-hidden">
+    <nav class="bg-black text-white p-5 flex justify-between items-center shrink-0 shadow-2xl">
+        <span class="font-bold">HOP <span class="text-yellow-400 text-xs uppercase tracking-widest ml-1">Admin</span></span>
+        <div class="flex gap-6 text-[10px] font-bold uppercase">
+            <button onclick="setTab('orders')" id="t-orders" class="text-yellow-400 border-b-2 border-yellow-400 pb-1">ออเดอร์</button>
+            <button onclick="setTab('menu')" id="t-menu" class="text-gray-400 pb-1">จัดการเมนู</button>
+            <a href="admin.html" class="text-gray-400">สรุปยอด</a>
+        </div>
+    </nav>
+
+    <main id="tab-orders" class="flex-grow overflow-y-auto p-6 space-y-4">
+        <!-- Live orders will appear here -->
+    </main>
+
+    <main id="tab-menu" class="flex-grow overflow-y-auto p-6 hidden">
+        <button onclick="openModal()" class="w-full bg-white border-2 border-dashed border-gray-300 p-8 rounded-[35px] text-gray-400 font-bold mb-6">
+            <i class="fas fa-plus-circle text-2xl mb-2 block"></i> เพิ่มเมนูใหม่
+        </button>
+        <div id="menu-list" class="space-y-3"></div>
+    </main>
+
+    <!-- Modal for Menu Editing -->
+    <div id="modal" class="fixed inset-0 bg-black/70 hidden flex items-center justify-center p-6 z-50 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-sm rounded-[40px] p-10">
+            <h3 class="text-2xl font-bold mb-8 italic">Add New Menu</h3>
+            <input type="text" id="m-name" placeholder="ชื่อเมนู" class="w-full bg-gray-50 rounded-2xl px-6 py-4 mb-4 outline-none border border-gray-100">
+            <input type="number" id="m-price" placeholder="ราคา" class="w-full bg-gray-50 rounded-2xl px-6 py-4 mb-4 outline-none border border-gray-100">
+            <input type="text" id="m-img" placeholder="ลิงก์รูปภาพ (URL)" class="w-full bg-gray-50 rounded-2xl px-6 py-4 mb-8 outline-none border border-gray-100">
+            <div class="flex gap-4">
+                <button onclick="closeModal()" class="flex-1 text-gray-400 font-bold">ยกเลิก</button>
+                <button onclick="saveItem()" class="flex-1 bg-black text-white py-5 rounded-3xl font-bold shadow-xl">บันทึก</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getFirestore, collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'hop-chafe-pwa';
+
+        onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'orders'), (snap) => {
+            const orders = snap.docs.map(d => ({id: d.id, ...d.data()})).sort((a,b) => b.createdAt - a.createdAt);
+            document.getElementById('tab-orders').innerHTML = orders.map(o => `
+                <div class="bg-white p-6 rounded-[35px] shadow-sm border-l-[12px] ${o.status === 'pending' ? 'border-yellow-400' : 'border-green-500'}">
+                    <div class="flex justify-between items-start mb-4">
+                        <span class="font-bold text-gray-800 tracking-tight">Order #${o.id.slice(-4)}</span>
+                        <span class="text-[10px] px-3 py-1 rounded-full font-bold uppercase ${o.status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}">
+                            ${o.status === 'pending' ? 'รอดำเนินการ' : 'สำเร็จแล้ว'}
+                        </span>
+                    </div>
+                    <div class="text-sm space-y-1 mb-6 border-t pt-4">
+                        ${o.items.map(i => `<div>${i.name} <span class="font-bold">x${i.qty}</span></div>`).join('')}
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-2xl font-bold">฿${o.total}</span>
+                        ${o.status === 'pending' ? `<button onclick="complete('${o.id}')" class="bg-black text-white px-6 py-2.5 rounded-2xl text-xs font-bold shadow-lg">เสร็จสิ้น</button>` : `<i class="fas fa-check-circle text-green-500 text-2xl"></i>`}
+                    </div>
+                </div>
+            `).join('');
+        });
+
+        onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'menu'), (snap) => {
+            const menu = snap.docs.map(d => ({id: d.id, ...d.data()}));
+            document.getElementById('menu-list').innerHTML = menu.map(m => `
+                <div class="bg-white p-4 rounded-3xl flex items-center gap-4 shadow-sm">
+                    <img src="${m.image}" class="w-14 h-14 rounded-2xl object-cover">
+                    <div class="flex-grow font-bold text-gray-800">${m.name} <span class="text-yellow-600 ml-2">฿${m.price}</span></div>
+                    <button onclick="del('${m.id}')" class="text-red-400 p-2 hover:bg-red-50 rounded-full"><i class="fas fa-trash-alt"></i></button>
+                </div>
+            `).join('');
+        });
+
+        window.setTab = (tab) => {
+            document.getElementById('tab-orders').classList.toggle('hidden', tab !== 'orders');
+            document.getElementById('tab-menu').classList.toggle('hidden', tab !== 'menu');
+            document.getElementById('t-orders').className = tab === 'orders' ? 'text-yellow-400 border-b-2 border-yellow-400 pb-1' : 'text-gray-400 pb-1';
+            document.getElementById('t-menu').className = tab === 'menu' ? 'text-yellow-400 border-b-2 border-yellow-400 pb-1' : 'text-gray-400 pb-1';
+        };
+
+        window.openModal = () => document.getElementById('modal').classList.remove('hidden');
+        window.closeModal = () => document.getElementById('modal').classList.add('hidden');
+        window.saveItem = async () => {
+            const name = document.getElementById('m-name').value;
+            const price = Number(document.getElementById('m-price').value);
+            const image = document.getElementById('m-img').value;
+            if(!name || !price) return;
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'menu'), {name, price, image});
+            closeModal();
+            document.getElementById('m-name').value = ''; document.getElementById('m-price').value = ''; document.getElementById('m-img').value = '';
+        };
+        window.complete = async (id) => await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'orders', id), {status: 'completed'});
+        window.del = async (id) => confirm('ต้องการลบเมนูนี้ใช่ไหม?') && await deleteDoc(doc(db, 'artifacts', appId, 'public', 'data', 'menu', id));
+    </script>
+</body>
+</html>
+
