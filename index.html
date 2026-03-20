@@ -3,93 +3,101 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hop Tea - ลูกค้า</title>
-<link rel="manifest" href="manifest.json">
+<title>Hop Tea</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-body { font-family: sans-serif; background: #f5f5f5; }
-.menu-card { border-radius: 20px; overflow: hidden; cursor: pointer; transition: transform .2s; }
-.menu-card:hover { transform: scale(1.03); }
-.cart-bar { position: fixed; bottom: 10px; left: 10px; right: 10px; background: #000; color: #fff; padding: 10px; border-radius: 25px; display:flex; justify-content:space-between; align-items:center; }
+body { background:#f5f5f5; }
+.menu-card { border-radius:15px; overflow:hidden; }
+.cart-bar { position:fixed; bottom:10px; left:10px; right:10px; background:#000; color:#fff; padding:10px; border-radius:20px; display:flex; justify-content:space-between;}
 </style>
 </head>
+
 <body>
-<div id="app">
-    <h1 class="text-center text-2xl font-bold p-4">Hop Tea - ลูกค้า</h1>
-    <div id="menu-grid" class="grid grid-cols-2 gap-4 p-4"></div>
-</div>
-<div id="cart-bar" class="cart-bar hidden" onclick="showCart()">
-    <span>ตะกร้า (<span id="cart-count">0</span>)</span>
-    <span>รวม: ฿<span id="cart-total">0</span></span>
+<h1 class="text-center text-2xl font-bold p-4">Hop Tea</h1>
+
+<div id="menu-grid" class="grid grid-cols-2 gap-4 p-4"></div>
+
+<div id="cart-bar" class="cart-bar hidden" onclick="sendOrder()">
+  <span>🛒 <span id="cart-count">0</span></span>
+  <span>฿<span id="cart-total">0</span></span>
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, push, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
- apiKey: "AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
- databaseURL:"https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app"
+ apiKey: "YOUR_KEY",
+ databaseURL:"YOUR_DB_URL"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-const menuData = [
-{id:1,name:'ชาเขียวนม',price:20,img:'https://images.unsplash.com/photo-1571935445874-6629d16886aa?w=300'},
-{id:2,name:'ชานมโกโก้',price:25,img:'https://images.unsplash.com/photo-1541167760496-162955ed8a9f?w=300'},
-{id:3,name:'ชาไทย',price:20,img:'https://images.unsplash.com/photo-1594631252845-29fc4586d51c?w=300'},
-{id:4,name:'ชานมไต้หวัน',price:20,img:'https://images.unsplash.com/photo-1525193612562-0ec53b0e5d7c?w=300'},
-{id:5,name:'ชามะลิ',price:20,img:'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300'},
-{id:6,name:'นมสด',price:20,img:'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=300'},
-{id:7,name:'โกโก้',price:25,img:'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=300'},
-{id:8,name:'เอสเพรสโซ่',price:25,img:'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300'},
-{id:9,name:'แดงโซดา',price:20,img:'https://images.unsplash.com/photo-1536935338218-d4133eba883b?w=300'},
-{id:10,name:'บลูฮาวายโซดา',price:20,img:'https://images.unsplash.com/photo-1536935338218-d4133eba883b?w=300'},
-{id:11,name:'ชาเขียวปั่น',price:25,img:'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=300'},
-{id:12,name:'ชาไทยปั่น',price:25,img:'https://images.unsplash.com/photo-1594631252845-29fc4586d51c?w=300'},
-{id:13,name:'ชานมไข่มุก',price:30,img:'https://images.unsplash.com/photo-1525193612562-0ec53b0e5d7c?w=300'},
-{id:14,name:'นมชมพู',price:25,img:'https://images.unsplash.com/photo-1497034825429-c343d7c6a68f?w=300'},
-{id:15,name:'ชาอัญชัน',price:20,img:'https://images.unsplash.com/photo-1525193612562-0ec53b0e5d7c?w=300'},
-{id:16,name:'ชาเสาวรส',price:20,img:'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?w=300'},
-{id:17,name:'โกโก้ปั่น',price:30,img:'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=300'},
-{id:18,name:'คาปูชิโน่',price:25,img:'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=300'},
-{id:19,name:'นมสดช็อกโกแลต',price:25,img:'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=300'},
-{id:20,name:'สตอเบอร์รี่โซดา',price:20,img:'https://images.unsplash.com/photo-1536935338218-d4133eba883b?w=300'}
-];
+// ===== MENU =====
+let menu = JSON.parse(localStorage.getItem("menu") || "[]");
+
+onValue(ref(db,"menu"), snap=>{
+  if(snap.val()){
+    menu = Object.values(snap.val());
+    localStorage.setItem("menu", JSON.stringify(menu));
+    renderMenu();
+  }
+});
+
+function renderMenu(){
+  const grid = document.getElementById("menu-grid");
+  grid.innerHTML = menu.map(m=>`
+  <div class="menu-card bg-white p-2 shadow">
+    <img src="${m.img}" class="w-full h-24 object-cover">
+    <div>${m.name}</div>
+    <div class="text-yellow-600">฿${m.price}</div>
+    <div class="flex gap-2 mt-2">
+      <button onclick="add(${m.id})" class="bg-green-500 text-white px-2">+</button>
+      <button onclick="remove(${m.id})" class="bg-red-500 text-white px-2">-</button>
+    </div>
+  </div>
+  `).join("");
+}
 
 let cart = [];
-function renderMenu() {
- const grid = document.getElementById('menu-grid');
- grid.innerHTML = menuData.map(m=>`
- <div class="menu-card bg-white shadow p-2" onclick="addToCart(${m.id})">
- <img src="${m.img}" class="w-full h-24 object-cover mb-2">
- <div class="font-bold">${m.name}</div>
- <div class="text-yellow-600 font-bold">฿${m.price}</div>
- </div>
- `).join('');
-}
-renderMenu();
 
-function addToCart(id) {
- const item = menuData.find(x=>x.id===id);
- const exist = cart.find(c=>c.id===id);
- if(exist) exist.qty++; else cart.push({...item, qty:1});
- updateCartBar();
+window.add = (id)=>{
+  const item = menu.find(x=>x.id===id);
+  const ex = cart.find(c=>c.id===id);
+  if(ex) ex.qty++; else cart.push({...item, qty:1});
+  updateCart();
 }
-function updateCartBar() {
- const bar = document.getElementById('cart-bar');
- const count = cart.reduce((s,i)=>s+i.qty,0);
- const total = cart.reduce((s,i)=>s+i.price*i.qty,0);
- document.getElementById('cart-count').innerText = count;
- document.getElementById('cart-total').innerText = total;
- bar.classList.toggle('hidden', count===0);
+
+window.remove = (id)=>{
+  const ex = cart.find(c=>c.id===id);
+  if(!ex) return;
+  ex.qty--;
+  if(ex.qty<=0) cart = cart.filter(c=>c.id!==id);
+  updateCart();
 }
-function showCart() {
- const orderData = {items: cart, total: cart.reduce((s,i)=>s+i.price*i.qty,0), status:'pending', time:new Date().toLocaleString()};
- push(ref(db,"orders"),orderData);
- alert('ส่งออเดอร์เรียบร้อย!');
- cart = []; updateCartBar();
+
+function updateCart(){
+  const count = cart.reduce((s,i)=>s+i.qty,0);
+  const total = cart.reduce((s,i)=>s+i.qty*i.price,0);
+  document.getElementById("cart-count").innerText = count;
+  document.getElementById("cart-total").innerText = total;
+  document.getElementById("cart-bar").classList.toggle("hidden", count===0);
 }
+
+window.sendOrder = ()=>{
+  push(ref(db,"orders"),{
+    items: cart,
+    total: cart.reduce((s,i)=>s+i.qty*i.price,0),
+    status:"pending",
+    time:new Date().toLocaleString()
+  });
+  alert("ส่งออเดอร์แล้ว!");
+  cart=[];
+  updateCart();
+}
+
+renderMenu();
 </script>
 </body>
 </html>
