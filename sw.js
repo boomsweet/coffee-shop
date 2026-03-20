@@ -1,24 +1,28 @@
-const cacheName = 'hoptea-v1';
-const assets = [
-  './customer.html',
-  './admin.html',
-  './manifest.json',
-  './images/icon192.png',
-  './images/icon512.png'
+const cacheName = "hoptea-v1";
+const filesToCache = [
+  "/customer.html",
+  "/admin.html",
+  "/manifest.json",
+  "/sw.js",
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js",
+  "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js"
 ];
 
-self.addEventListener('install', e=>{
+// Install
+self.addEventListener("install", e => {
   e.waitUntil(
-    caches.open(cacheName).then(cache=>{
-      return cache.addAll(assets);
-    })
+    caches.open(cacheName).then(cache => cache.addAll(filesToCache))
   );
 });
 
-self.addEventListener('fetch', e=>{
+// Activate
+self.addEventListener("activate", e => {
+  e.waitUntil(self.clients.claim());
+});
+
+// Fetch
+self.addEventListener("fetch", e => {
   e.respondWith(
-    caches.match(e.request).then(res=>{
-      return res || fetch(e.request);
-    })
+    caches.match(e.request).then(r => r || fetch(e.request))
   );
 });
