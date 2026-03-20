@@ -3,72 +3,110 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Hop Tea - เจ้าของร้าน</title>
-<link rel="manifest" href="manifest-admin.json">
+<title>Admin</title>
 <script src="https://cdn.tailwindcss.com"></script>
-<style>
-body { font-family: sans-serif; background:#f5f5f5; }
-.order-card { border-left: 6px solid #f59e0b; background:#fff; border-radius:15px; padding:12px; margin-bottom:8px; }
-.order-card.completed { border-left-color:#10b981; }
-.order-card h3 { font-weight:bold; }
-button { background:#000; color:#fff; padding:4px 10px; border-radius:8px; }
-</style>
 </head>
-<body>
-<div class="p-4">
-<h1 class="text-center text-2xl font-bold mb-4">Hop Tea - เจ้าของร้าน</h1>
-<div class="mb-4 text-center">
-<input type="password" id="admin-pass" placeholder="รหัสเจ้าของร้าน" class="border p-2 rounded">
-<button onclick="login()">เข้าสู่ระบบ</button>
-</div>
 
-<div id="orders-container"></div>
+<body class="p-4">
+<h1 class="text-center text-xl font-bold">เจ้าของร้าน</h1>
+
+<input id="pass" type="password" placeholder="รหัส" class="border p-2">
+<button onclick="login()" class="bg-black text-white px-3">เข้า</button>
+
+<div id="panel" class="hidden">
+
+<h2 class="mt-4 font-bold">เพิ่มเมนู</h2>
+<input id="name" placeholder="ชื่อ">
+<input id="price" type="number" placeholder="ราคา">
+<input id="img" placeholder="รูป">
+<button onclick="addMenu()" class="bg-green-500 text-white px-2">เพิ่ม</button>
+
+<div id="menu-list" class="mt-4"></div>
+
+<h2 class="mt-6 font-bold">ออเดอร์</h2>
+<div id="orders"></div>
+
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+import { getDatabase, ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
 const firebaseConfig = {
- apiKey: "AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
- databaseURL:"https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app"
+ apiKey:"YOUR_KEY",
+ databaseURL:"YOUR_DB_URL"
 };
+
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-let loggedIn = false;
-function login() {
- if(document.getElementById('admin-pass').value === '0000') {
-   loggedIn = true;
-   alert('เข้าสู่ระบบสำเร็จ!');
-   document.getElementById('admin-pass').parentElement.style.display='none';
-   loadOrders();
- } else alert('รหัสผ่านไม่ถูกต้อง!');
+let menu = JSON.parse(localStorage.getItem("menu")||"[]");
+
+window.login = ()=>{
+  if(document.getElementById("pass").value==="0000"){
+    document.getElementById("panel").classList.remove("hidden");
+    loadMenu();
+    loadOrders();
+  }else alert("ผิด");
 }
 
-function loadOrders() {
- if(!loggedIn) return;
- const ordersRef = ref(db, "orders");
- onValue(ordersRef, snapshot => {
-   const data = snapshot.val() || {};
-   const container = document.getElementById('orders-container');
-   container.innerHTML = Object.keys(data).map(k=>{
-     const o = data[k];
-     const statusClass = o.status==='completed'?'completed':'';
-     return `<div class="order-card ${statusClass}">
-       <h3>Order #${k}</h3>
-       <p>เวลา: ${o.time}</p>
-       <p>รวม: ฿${o.total}</p>
-       <div>${Object.values(o.items).map(i=>`${i.name} x${i.qty}`).join('<br>')}</div>
-       ${o.status==='pending'?`<button onclick="markDone('${k}')">เสร็จแล้ว</button>`:''}
-     </div>`;
-   }).join('');
- });
+function saveMenu(){
+  localStorage.setItem("menu", JSON.stringify(menu));
+  const obj={}; menu.forEach(m=>obj[m.id]=m);
+  set(ref(db,"menu"), obj);
 }
 
-window.markDone = function(id) {
- update(ref(db, "orders/"+id), {status:'completed'});
-};
+window.addMenu = ()=>{
+  const m={
+    id:Date.now(),
+    name:name.value,
+    price:Number(price.value),
+    img:img.value
+  };
+  menu.push(m);
+  saveMenu();
+  renderMenu();
+}
+
+window.del = (id)=>{
+  menu = menu.filter(m=>m.id!==id);
+  saveMenu();
+  renderMenu();
+}
+
+function renderMenu(){
+  document.getElementById("menu-list").innerHTML = menu.map(m=>`
+    <div class="bg-white p-2 mb-2">
+      ${m.name} ฿${m.price}
+      <button onclick="del(${m.id})">ลบ</button>
+    </div>
+  `).join("");
+}
+
+function loadMenu(){
+  renderMenu();
+}
+
+function loadOrders(){
+  onValue(ref(db,"orders"), snap=>{
+    const data = snap.val()||{};
+    document.getElementById("orders").innerHTML =
+    Object.keys(data).map(k=>{
+      const o=data[k];
+      return `
+      <div class="bg-white p-2 mb-2">
+        <b>${o.time}</b><br>
+        ฿${o.total}<br>
+        ${Object.values(o.items).map(i=>i.name+" x"+i.qty).join("<br>")}
+        <button onclick="done('${k}')">เสร็จ</button>
+      </div>`;
+    }).join("");
+  });
+}
+
+window.done = (id)=>{
+  update(ref(db,"orders/"+id),{status:"completed"});
+}
 </script>
 </body>
 </html>
