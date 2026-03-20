@@ -41,6 +41,7 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 let menu = JSON.parse(localStorage.getItem("menu")||"[]");
+let lastCount = 0;
 
 window.login = ()=>{
   if(document.getElementById("pass").value==="0000"){
@@ -90,8 +91,16 @@ function loadMenu(){
 function loadOrders(){
   onValue(ref(db,"orders"), snap=>{
     const data = snap.val()||{};
+    const keys = Object.keys(data);
+
+    if(keys.length > lastCount){
+      new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
+      alert("มีออเดอร์ใหม่!");
+    }
+    lastCount = keys.length;
+
     document.getElementById("orders").innerHTML =
-    Object.keys(data).map(k=>{
+    keys.map(k=>{
       const o=data[k];
       return `
       <div class="bg-white p-2 mb-2">
@@ -99,6 +108,7 @@ function loadOrders(){
         ฿${o.total}<br>
         ${Object.values(o.items).map(i=>i.name+" x"+i.qty).join("<br>")}
         <button onclick="done('${k}')">เสร็จ</button>
+        <button onclick="printBill('${k}')">🧾 ปริ้น</button>
       </div>`;
     }).join("");
   });
@@ -106,6 +116,12 @@ function loadOrders(){
 
 window.done = (id)=>{
   update(ref(db,"orders/"+id),{status:"completed"});
+}
+
+window.printBill = (id)=>{
+  const text = document.querySelector(`[onclick="printBill('${id}')"]`).parentElement.innerText;
+  const w = window.open("", "", "width=300,height=600");
+  w.document.write("<h2>Hop Tea</h2><pre>"+text+"</pre><script>window.print()<\/script>");
 }
 </script>
 </body>
