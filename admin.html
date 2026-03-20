@@ -4,132 +4,97 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hop Tea - เจ้าของร้าน</title>
-<link rel="manifest" href="manifest.json">
+<link rel="manifest" href="manifest-admin.json">
 <meta name="theme-color" content="#ff6b00">
 <style>
-body{background:#111;color:#fff;font-family:sans-serif;padding:10px}
+body{margin:0;font-family:sans-serif;background:#111;color:#fff;padding:10px}
 .header{background:#ff6b00;color:#fff;padding:15px;font-size:20px;text-align:center}
-input, button{padding:5px;margin:3px;border-radius:5px;border:none;outline:none}
-button{background:#ff6b00;color:#fff;cursor:pointer}
-.card{background:#222;margin:5px;padding:10px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.5);}
-.card img{width:100%;height:100px;object-fit:cover;border-radius:10px;}
+button{background:#ff6b00;color:#fff;border:none;padding:5px;border-radius:5px;cursor:pointer;margin:2px}
+.card{background:#222;margin:5px;padding:10px;border-radius:10px;box-shadow:0 2px 6px rgba(0,0,0,0.2);}
 .new{border-left:5px solid red}
 .cook{border-left:5px solid orange}
 .done{border-left:5px solid green}
 .paid{border-left:5px solid blue}
+input{padding:5px;margin:2px;border-radius:5px;border:1px solid #ccc;width:calc(50% - 8px);}
+.install{position:fixed;top:0;left:0;right:0;bottom:0;background:#000;color:#fff;display:flex;flex-direction:column;justify-content:center;align-items:center;z-index:9999;}
 </style>
 </head>
 <body>
 
-<div class="header">📊 Hop Tea - ระบบเจ้าของร้าน</div>
+<!-- ติดตั้งแอป -->
+<div id="installBox" class="install">
+<h2>📱 ติดตั้งแอปเจ้าของร้าน</h2>
+<p>เพื่อใช้งานเหมือนแอปจริง</p>
+<button onclick="installApp()">ติดตั้งแอป</button>
+</div>
 
-<h3>🔒 เข้าสู่ระบบ</h3>
-<input id="pass" type="password" placeholder="รหัส">
-<button onclick="login()">เข้า</button>
+<div id="adminApp" style="display:none">
 
-<div id="admin" style="display:none">
+<div class="header">🏪 Hop Tea - เจ้าของร้าน</div>
+
+<h3>🔐 เข้าระบบ</h3>
+<input type="password" id="pass" placeholder="รหัสผ่าน">
+<button onclick="login()">เข้าสู่ระบบ</button>
+
+<div id="ordersSection" style="display:none">
 <h3>📺 ออเดอร์</h3>
 <div id="orders"></div>
-<h3>📈 ยอดขาย: <span id="sum">0</span> บาท</h3>
+<h3>📊 ยอดขาย: <span id="sum">0</span></h3>
+</div>
+
 </div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
+// Firebase
 const app = initializeApp({
  apiKey:"AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
  databaseURL:"https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app"
 });
-const db=getDatabase(app);
+const db = getDatabase(app);
 
-window.login=()=>{
- if(pass.value=="0000") admin.style.display="block";
+function login(){
+  if(pass.value==="0000"){
+    ordersSection.style.display="block";
+  }else{
+    alert("รหัสผิด");
+  }
 }
 
-function getMenuImage(name){
- const menuImages = {
-"ชาเขียวนม":"https://images.unsplash.com/photo-1556679343-c7306c1976bc",
-"ชานมโกโก้":"https://images.unsplash.com/photo-1600491624410-cd0f97d9c430",
-"ชาไทย":"https://images.unsplash.com/photo-1572557345907-1d21b1daea29",
-"ชานมไต้หวัน":"https://images.unsplash.com/photo-1597293285655-df9b0c46aa63",
-"ชาเนสที":"https://images.unsplash.com/photo-1572557345907-1d21b1daea29",
-"ชามะนาว":"https://images.unsplash.com/photo-1556911073-52527ac43794",
-"ชาดำ":"https://images.unsplash.com/photo-1572557345907-1d21b1daea29",
-"ชาเขียวใส":"https://images.unsplash.com/photo-1556679343-c7306c1976bc",
-"ชาเขียวมะนาว":"https://images.unsplash.com/photo-1556679343-c7306c1976bc",
-"ชาเขียวน้ำผึ้งมะนาว":"https://images.unsplash.com/photo-1556679343-c7306c1976bc",
-"ชามะลิ":"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
-"ชามะลิลิ้นจี่":"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
-"ชามะลิแอปเปิ้ล":"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
-"ชามะลิสตรอว์เบอร์รี่":"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
-"ชามะลิเก๊กฮวย":"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
-"ชามะลินม":"https://images.unsplash.com/photo-1565299624946-b28f40a0ae38",
-"ชาเบอร์รี่":"https://images.unsplash.com/photo-1590080871213-f43f2637b69b",
-"ชาเบอร์รี่มะนาว":"https://images.unsplash.com/photo-1590080871213-f43f2637b69b",
-"ชาเบอร์รี่น้ำผึ้ง":"https://images.unsplash.com/photo-1590080871213-f43f2637b69b",
-"ชาเบอร์รี่โกโก้":"https://images.unsplash.com/photo-1590080871213-f43f2637b69b",
-"นมสด":"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
-"นมชมพู":"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
-"โกโก้":"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
-"โอวัลติน":"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
-"นมเผือก":"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
-"นมแคนตาลูป":"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
-"สตรอว์เบอร์รี่นมสด":"https://images.unsplash.com/photo-1582719478250-c89cae4dc85b",
-"เอสเปรสโซ่":"https://images.unsplash.com/photo-1509042239860-f550ce710b93",
-"ลาเต้":"https://images.unsplash.com/photo-1509042239860-f550ce710b93",
-"มอคค่า":"https://images.unsplash.com/photo-1509042239860-f550ce710b93",
-"คาปูชิโน่":"https://images.unsplash.com/photo-1509042239860-f550ce710b93",
-"แดงโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
-"เขียวโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
-"มะนาวโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
-"น้ำผึ้งมะนาวโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
-"เสาวรสโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
-"บลูฮาวายโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
-"องุ่นโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
-"ลิ้นจี่โซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
-"แคนตาลูปโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
-"สตรอว์เบอร์รี่โซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
-"มะม่วงโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
-"กีวี่โซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
-"แอปเปิ้ลโซดา":"https://images.unsplash.com/photo-1527169402691-a4e7c08c1a2f",
-"ชาพีช":"https://images.unsplash.com/photo-1576564726205-0f2b430a2a07",
-"ชานมไต้หวัน บราวน์ชูก้า":"https://images.unsplash.com/photo-1576564726205-0f2b430a2a07",
-"ชาเขียว บราวน์ชูก้า":"https://images.unsplash.com/photo-1576564726205-0f2b430a2a07",
-"นมสด บราวน์ชูก้า":"https://images.unsplash.com/photo-1576564726205-0f2b430a2a07"
- };
- return menuImages[name]||"";
-}
-
+// ดูออเดอร์ real-time
 onValue(ref(db,"orders"),snapshot=>{
- const ordersEl = document.getElementById("orders");
- let data = snapshot.val()||{};
- let html="",sum=0;
- for(let k in data){
-   let o=data[k];
-   let list="";
-   for(let i in o.cart){
-     list+=`${i} x${o.cart[i]}<br>`;
-   }
-   html+=`<div class="card ${o.status}">
-   <img src="${getMenuImage(Object.keys(o.cart)[0])}">
-   👤 ${o.name}<br>
-   📞 ${o.phone}<br>
-   🧾 ${list}💰 ${o.total} บาท<br>
-   <button onclick="updateStatus('${k}','cook')">ทำ</button>
-   <button onclick="updateStatus('${k}','done')">เสร็จ</button>
-   <button onclick="updateStatus('${k}','paid')">จ่ายแล้ว</button>
-   </div>`;
-   if(o.status=="paid") sum+=parseInt(o.total||0);
- }
- ordersEl.innerHTML=html;
- document.getElementById("sum").innerText=sum;
+  let data = snapshot.val()||{}, html="", sum=0;
+  for(let k in data){
+    let o=data[k],list="";
+    for(let i in o.cart){
+      let c=o.cart[i];
+      list+=`${i} x${c.qty} ${c.pearl?"ไข่มุก":""}<br>`;
+    }
+    html+=`<div class="card ${o.status}">👤 ${o.name}<br>📞 ${o.phone}<br>🧾 ${list}💰 ${o.total} บาท<br>
+    <button onclick="setStatus('${k}','cook')">ทำ</button>
+    <button onclick="setStatus('${k}','done')">เสร็จ</button>
+    <button onclick="setStatus('${k}','paid')">จ่ายแล้ว</button></div>`;
+    if(o.status=="paid") sum+=parseInt(o.total||0);
+  }
+  orders.innerHTML=html;
+  sumEl.innerText=sum;
 });
 
-window.updateStatus=(k,s)=>{
- update(ref(db,"orders/"+k),{status:s});
+window.setStatus=(k,status)=>{
+  update(ref(db,"orders/"+k),{status:status});
 }
-
 </script>
+
+<script>
+// PWA install
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', (e) => {e.preventDefault();deferredPrompt=e;});
+window.installApp=async()=>{if(deferredPrompt){deferredPrompt.prompt();const { outcome } = await deferredPrompt.userChoice;if(outcome === 'accepted'){installBox.style.display="none";adminApp.style.display="block";}}else{alert("กรุณากด เพิ่มไปหน้าจอหลัก จากเมนูมือถือ");}};
+if(window.matchMedia('(display-mode: standalone)').matches){installBox.style.display="none";adminApp.style.display="block";}
+if('serviceWorker' in navigator){navigator.serviceWorker.register('sw.js');}
+</script>
+
 </body>
 </html>
