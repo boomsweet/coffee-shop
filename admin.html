@@ -14,7 +14,7 @@
         body { background-color: var(--bg); color: var(--text); font-family: 'Kanit', sans-serif; margin: 0; padding: 20px; }
         .container { max-width: 1000px; margin: auto; }
         #login { max-width: 350px; margin: 100px auto; text-align: center; background: var(--card); padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        h1 { font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        h1 { font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
         .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
         .stat-box { background: var(--card); padding: 20px; border-radius: 15px; border-left: 5px solid var(--primary); }
         .stat-box h3 { margin: 0; font-size: 0.8em; opacity: 0.7; text-transform: uppercase; }
@@ -41,6 +41,9 @@
         .history-table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 15px; overflow: hidden; margin-top: 10px; }
         .history-table th, .history-table td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
         .history-table th { background: #334155; font-size: 0.9em; }
+        
+        /* แจ้งเตือนเรื่องเสียง */
+        #audio-banner { background: var(--warning); color: #000; padding: 10px; text-align: center; font-size: 0.9em; border-radius: 10px; margin-bottom: 15px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -52,7 +55,12 @@
 </div>
 
 <div id="panel" style="display:none;" class="container">
-    <h1>📊 Dashboard <button id="installBtn" class="btn-blue" style="display:none; font-size:0.5em;">📲 ติดตั้งแอป</button></h1>
+    <div id="audio-banner" onclick="enableAudio()">🔔 แตะที่นี่หนึ่งครั้งเพื่อเปิดเสียงแจ้งเตือนออเดอร์ใหม่</div>
+    
+    <h1>
+        📊 Dashboard 
+        <button id="installBtn" class="btn-blue" style="display:none; font-size:0.5em;">📲 ติดตั้งแอป</button>
+    </h1>
     
     <div class="stats-grid">
         <div class="stat-box"><h3>💰 ยอดขายเดือนนี้</h3><p id="monthTotal">0 บาท</p></div>
@@ -84,9 +92,20 @@ const panelDiv = document.getElementById("panel");
 const passInput = document.getElementById("pass");
 const btnLogin = document.getElementById("btnLogin");
 const todayLabel = document.getElementById("todayLabel");
+const audioBanner = document.getElementById("audio-banner");
 
-const notificationSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+// แก้ไขเรื่องเสียง: เปลี่ยนลิงก์เสียงที่ดังชัดเจน และตั้งค่า Volume สูงสุด
+const notificationSound = new Audio('https://notificationsounds.com/storage/sounds/file-sounds-1150-pristine.mp3');
+notificationSound.volume = 1.0; 
 let lastOrderCount = -1;
+
+// ฟังก์ชันเปิดสิทธิ์เล่นเสียง (ต้องทำ 1 ครั้งหลังเปิดเว็บ)
+window.enableAudio = () => {
+    notificationSound.play().then(() => {
+        audioBanner.style.display = "none"; // ถ้าเล่นได้แล้วให้ซ่อนแถบเหลือง
+        console.log("Audio Enabled");
+    }).catch(e => console.log("Audio blocked", e));
+};
 
 const thaiLocale = 'th-TH';
 const thaiOptions = { timeZone: 'Asia/Bangkok' };
@@ -126,7 +145,6 @@ function loadOrders(){
             const dObj = new Date(o.time);
             const dStr = dObj.toLocaleDateString(thaiLocale, thaiOptions);
             
-            // สรุปยอด
             dailySummary[dStr] = (dailySummary[dStr] || 0) + orderSum;
             if(dStr === todayStr) dailyTotal += orderSum;
             if(dObj.getMonth() === thisMonth && dObj.getFullYear() === thisYear) monthTotal += orderSum;
@@ -146,7 +164,6 @@ function loadOrders(){
                 </div>
             `;
             
-            // ปุ่มลบ: แสดงเฉพาะถ้ายังไม่เสร็จ (Done)
             const deleteBtn = isDone ? '' : `<button onclick="deleteOrder('${id}')" style="position:absolute; top:-10px; right:-10px; padding:5px; border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border:2px solid var(--bg); font-weight:bold;" class="btn-red">×</button>`;
 
             card.innerHTML = `
@@ -172,9 +189,12 @@ function loadOrders(){
             else containers.new.push(card);
         });
 
-        // เสียงเตือน
+        // ระบบเสียงแจ้งเตือนออเดอร์ใหม่
         if (lastOrderCount !== -1 && currentNewOrders > lastOrderCount) {
-            notificationSound.play().catch(e => console.log("Audio play blocked"));
+            notificationSound.play().catch(e => {
+                console.log("Autoplay blocked. User must interact first.");
+                audioBanner.style.display = "block"; // แสดงแถบเตือนถ้าเสียงโดนบล็อก
+            });
         }
         lastOrderCount = currentNewOrders;
 
@@ -185,10 +205,9 @@ function loadOrders(){
         document.getElementById("daily").innerText = dailyTotal.toLocaleString() + " บาท";
         document.getElementById("monthTotal").innerText = monthTotal.toLocaleString() + " บาท";
 
-        // ตารางประวัติ
         const historyBody = document.getElementById("historyBody");
         historyBody.innerHTML = "";
-        Object.keys(dailySummary).sort((a,b) => b.localeCompare(a)).slice(0, 7).forEach(date => {
+        Object.keys(dailySummary).sort((a,b) => b.split('/').reverse().join('') < a.split('/').reverse().join('') ? -1 : 1).slice(0, 10).forEach(date => {
             historyBody.innerHTML += `<tr><td>${date}</td><td>${dailySummary[date].toLocaleString()}.-</td></tr>`;
         });
     });
