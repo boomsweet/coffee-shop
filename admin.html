@@ -1,233 +1,348 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-<meta charset="UTF-8">
-<title>Admin PRO</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hop Cafe | Admin Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --primary: #38bdf8;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --text: #f1f5f9;
+        }
 
-<style>
-body{background:#020617;color:#fff;font-family:sans-serif;padding:10px}
-.box{background:#1e293b;padding:10px;margin:10px;border-radius:10px}
-button{margin:3px;padding:6px;border-radius:6px}
-input{margin:5px;padding:6px}
-h2{margin-top:20px}
-</style>
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Kanit', sans-serif;
+            margin: 0;
+            padding: 20px;
+        }
 
+        .container { max-width: 1000px; margin: auto; }
+
+        /* 🔐 LOGIN UI */
+        #login {
+            max-width: 350px;
+            margin: 100px auto;
+            text-align: center;
+            background: var(--card);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        /* 📱 DASHBOARD */
+        h1 { font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 10px; }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        .stat-box {
+            background: var(--card);
+            padding: 20px;
+            border-radius: 15px;
+            border-left: 5px solid var(--primary);
+        }
+
+        .stat-box h3 { margin: 0; font-size: 0.9em; opacity: 0.7; }
+        .stat-box p { margin: 10px 0 0; font-size: 1.5em; font-weight: bold; }
+
+        /* 📦 ORDER SECTION */
+        .section-title {
+            background: #334155;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin: 25px 0 15px;
+            font-size: 1.1em;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .grid-orders {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+        }
+
+        .order-card {
+            background: var(--card);
+            border-radius: 15px;
+            padding: 15px;
+            border: 1px solid #334155;
+            position: relative;
+        }
+
+        .order-header {
+            border-bottom: 1px solid #334155;
+            padding-bottom: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .item-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95em;
+            margin-bottom: 5px;
+        }
+
+        .item-detail { font-size: 0.8em; color: #94a3b8; margin-bottom: 10px; }
+
+        /* 🔘 BUTTONS */
+        button {
+            border: none;
+            border-radius: 8px;
+            padding: 10px 15px;
+            cursor: pointer;
+            font-family: 'Kanit', sans-serif;
+            transition: 0.2s;
+            font-weight: 500;
+        }
+
+        .btn-blue { background: var(--primary); color: #000; }
+        .btn-orange { background: var(--warning); color: #000; }
+        .btn-green { background: var(--success); color: #fff; }
+        .btn-red { background: var(--danger); color: #fff; }
+
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 15px; }
+
+        /* 📋 MENU MANAGEMENT */
+        .menu-item {
+            display: flex;
+            gap: 10px;
+            background: #1e293b;
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+        }
+
+        input {
+            background: #0f172a;
+            border: 1px solid #334155;
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            outline: none;
+        }
+
+        input:focus { border-color: var(--primary); }
+
+        .badge {
+            padding: 2px 8px;
+            border-radius: 5px;
+            font-size: 0.75em;
+            font-weight: bold;
+        }
+        .bg-new { background: var(--primary); color: #000; }
+        .bg-doing { background: var(--warning); color: #000; }
+        .bg-done { background: var(--success); color: #fff; }
+    </style>
 </head>
 
 <body>
 
-<!-- 🔐 LOGIN -->
 <div id="login">
-<h2>เข้าสู่ระบบ</h2>
-<input id="pass" type="password" placeholder="รหัสผ่าน">
-<button id="btnLogin">เข้า</button>
+    <h2 style="margin-top:0">🔒 Admin Access</h2>
+    <input id="pass" type="password" placeholder="ใส่รหัสผ่านเพื่อเข้าถึง" style="width:100%; box-sizing:border-box; text-align:center;">
+    <button id="btnLogin" class="btn-blue" style="width:100%; margin-top:15px; font-size:1.1em;">เข้าสู่ระบบ</button>
 </div>
 
-<!-- 🔥 PANEL -->
-<div id="panel" style="display:none;">
+<div id="panel" style="display:none;" class="container">
+    <h1>📊 Dashboard <button id="installBtn" class="btn-blue" style="display:none; font-size:0.5em;">📲 ติดตั้งแอป</button></h1>
+    
+    <div class="stats-grid">
+        <div class="stat-box">
+            <h3>💰 ยอดขายทั้งหมด</h3>
+            <p id="totalAll">0 บาท</p>
+        </div>
+        <div class="stat-box" style="border-left-color: var(--success);">
+            <h3>📅 วันนี้ (${new Date().toLocaleDateString('th-TH')})</h3>
+            <p id="daily">0 บาท</p>
+        </div>
+    </div>
 
-<h1>📦 ระบบร้าน</h1>
+    <div class="section-title">🆕 ออเดอร์มาใหม่ <span id="count-new" class="badge bg-new">0</span></div>
+    <div id="new" class="grid-orders"></div>
 
-<h2 id="totalAll"></h2>
+    <div class="section-title">👨‍🍳 กำลังเตรียม <span id="count-doing" class="badge bg-doing">0</span></div>
+    <div id="doing" class="grid-orders"></div>
 
-<h2>🆕 รับออเดอร์</h2>
-<div id="new"></div>
+    <div class="section-title">✅ เสร็จสิ้น <span id="count-done" class="badge bg-done">0</span></div>
+    <div id="done" class="grid-orders"></div>
 
-<h2>👨‍🍳 กำลังทำ</h2>
-<div id="doing"></div>
+    <hr style="margin:40px 0; opacity:0.1;">
 
-<h2>✅ เสร็จสิ้น</h2>
-<div id="done"></div>
-
-<h2>📊 สรุปรายวัน (วันนี้)</h2>
-<div id="daily"></div>
-
-<h2>➕ จัดการเมนู</h2>
-<input id="mname" placeholder="ชื่อเมนู">
-<input id="mprice" placeholder="ราคา">
-<button id="addMenu">เพิ่มเมนู</button>
-
-<div id="menuList"></div>
-
-<!-- 📲 ติดตั้ง -->
-<button id="installBtn" style="display:none;">📲 ติดตั้งแอป</button>
-
+    <h2>➕ จัดการเมนู</h2>
+    <div class="box" style="background:var(--card); padding:20px; border-radius:15px; margin-bottom:20px;">
+        <input id="mname" placeholder="ชื่อเมนู" style="width:40%">
+        <input id="mprice" type="number" placeholder="ราคา" style="width:20%">
+        <button id="addMenu" class="btn-green">เพิ่มเมนูใหม่</button>
+    </div>
+    <div id="menuList"></div>
 </div>
 
 <script type="module">
-import { 
-  db, collection, onSnapshot, doc, updateDoc, addDoc 
-} from "./firebase.js";
-
+import { db, collection, onSnapshot, doc, updateDoc, addDoc } from "./firebase.js";
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// ELEMENT
 const loginDiv = document.getElementById("login");
 const panelDiv = document.getElementById("panel");
 const passInput = document.getElementById("pass");
 const btnLogin = document.getElementById("btnLogin");
 
-const newDiv = document.getElementById("new");
-const doingDiv = document.getElementById("doing");
-const doneDiv = document.getElementById("done");
-
-const totalAll = document.getElementById("totalAll");
-const dailyDiv = document.getElementById("daily");
-const menuListDiv = document.getElementById("menuList");
-
-// LOGIN
-if(localStorage.getItem("login")) showPanel();
-
+// LOGIN LOGIC
+if(localStorage.getItem("admin_login")) showPanel();
 btnLogin.onclick = () => {
- if(passInput.value === "0000"){
-   localStorage.setItem("login","1");
-   showPanel();
- }else{
-   alert("รหัสผิด");
- }
+    if(passInput.value === "0000"){
+        localStorage.setItem("admin_login","1");
+        showPanel();
+    } else { alert("รหัสผ่านไม่ถูกต้อง"); }
 };
 
 function showPanel(){
- loginDiv.style.display="none";
- panelDiv.style.display="block";
- loadOrders();
- loadMenu();
+    loginDiv.style.display="none";
+    panelDiv.style.display="block";
+    loadOrders();
+    loadMenu();
 }
 
-// 📦 ORDERS
 function loadOrders(){
- onSnapshot(collection(db,"orders"),snap=>{
-  newDiv.innerHTML="";
-  doingDiv.innerHTML="";
-  doneDiv.innerHTML="";
+    onSnapshot(collection(db,"orders"), snap => {
+        // Clear containers
+        const containers = { new: [], doing: [], done: [] };
+        let total = 0, dailyTotal = 0;
+        const today = new Date().toLocaleDateString("th-TH");
 
-  let total = 0;
-  let daily = {};
+        snap.forEach(d => {
+            const o = d.data();
+            const id = d.id;
+            let orderSum = 0;
 
-  const today = new Date().toLocaleDateString("th-TH");
+            (o.cart || []).forEach(item => {
+                orderSum += (item.price + (item.bubble || 0)) * item.qty;
+            });
 
-  snap.forEach(d=>{
-   const o = d.data();
-   const id = d.id;
+            total += orderSum;
+            if(new Date(o.time).toLocaleDateString("th-TH") === today) dailyTotal += orderSum;
 
-   let sum = 0;
-   (o.cart||[]).forEach(i=>{
-     sum += (i.price + (i.bubble||0)) * i.qty;
-   });
+            const card = document.createElement("div");
+            card.className = "order-card";
+            card.innerHTML = `
+                <div class="order-header">
+                    <strong>👤 ${o.name || 'ลูกค้าทั่วไป'}</strong>
+                    <span style="font-size:0.8em; opacity:0.6">${new Date(o.time).toLocaleTimeString('th-TH')}</span>
+                </div>
+                <div>
+                    ${(o.cart || []).map(item => `
+                        <div class="item-row">
+                            <span>${item.name} x ${item.qty}</span>
+                            <span>${(item.price + (item.bubble || 0)) * item.qty}.-</span>
+                        </div>
+                        <div class="item-detail">🍬 ${item.sweet || 'ปกติ'} ${item.bubble ? ' | 🧋 เพิ่มมุก' : ''}</div>
+                    `).join('')}
+                </div>
+                <div style="text-align:right; font-size:1.2em; font-weight:bold; color:var(--primary);">
+                    รวม ${orderSum} บาท
+                </div>
+                <div class="btn-group">
+                    <button onclick="updateStatus('${id}','new')" class="btn-blue" style="font-size:0.7em">รอ</button>
+                    <button onclick="updateStatus('${id}','doing')" class="btn-orange" style="font-size:0.7em">ทำ</button>
+                    <button onclick="updateStatus('${id}','done')" class="btn-green" style="font-size:0.7em">เสร็จ</button>
+                </div>
+                <button onclick="deleteOrder('${id}')" style="position:absolute; top:-10px; right:-10px; padding:5px; border-radius:50%; width:25px; height:25px; display:flex; align-items:center; justify-content:center;" class="btn-red">×</button>
+            `;
 
-   total += sum;
+            if(o.status === "doing") containers.doing.push(card);
+            else if(o.status === "done") containers.done.push(card);
+            else containers.new.push(card);
+        });
 
-   const orderDay = new Date(o.time).toLocaleDateString("th-TH");
-
-   // ✅ เฉพาะวันนี้
-   if(orderDay === today){
-     daily[today] = (daily[today]||0) + sum;
-   }
-
-   const div = document.createElement("div");
-   div.className = "box";
-
-   div.innerHTML = `
-   ${o.name || "-"}<br>
-   ${(o.cart||[]).map(i=>i.name+" x "+i.qty).join("<br>")}
-   <br><b>${sum} บาท</b>
-   <br>
-   <button data-id="${id}" data-status="new">รับออเดอร์</button>
-   <button data-id="${id}" data-status="doing">กำลังทำ</button>
-   <button data-id="${id}" data-status="done">เสร็จ</button>
-   `;
-
-   div.querySelectorAll("button").forEach(btn=>{
-     btn.onclick = ()=>{
-       updateDoc(doc(db,"orders",btn.dataset.id),{
-         status: btn.dataset.status
-       });
-     };
-   });
-
-   if(o.status==="doing"){
-     doingDiv.appendChild(div);
-   }else if(o.status==="done"){
-     doneDiv.appendChild(div);
-   }else{
-     newDiv.appendChild(div);
-   }
-  });
-
-  totalAll.innerText = "💰 รวมทั้งหมด: " + total + " บาท";
-
-  dailyDiv.innerHTML="";
-  Object.keys(daily).forEach(d=>{
-    dailyDiv.innerHTML += `${d} : ${daily[d]} บาท<br>`;
-  });
-
- });
+        // Update UI
+        renderSection("new", containers.new);
+        renderSection("doing", containers.doing);
+        renderSection("done", containers.done);
+        
+        document.getElementById("totalAll").innerText = total.toLocaleString() + " บาท";
+        document.getElementById("daily").innerText = dailyTotal.toLocaleString() + " บาท";
+    });
 }
 
-// ➕ MENU
-document.getElementById("addMenu").onclick = async ()=>{
- const name = document.getElementById("mname").value;
- const price = Number(document.getElementById("mprice").value);
+function renderSection(id, elements) {
+    const el = document.getElementById(id);
+    el.innerHTML = "";
+    elements.forEach(card => el.appendChild(card));
+    document.getElementById(`count-${id}`).innerText = elements.length;
+}
 
- if(!name || !price) return alert("กรอกไม่ครบ");
-
- await addDoc(collection(db,"menu"),{name,price});
+window.updateStatus = (id, status) => {
+    updateDoc(doc(db, "orders", id), { status });
 };
 
-// โหลดเมนู + แก้ไขได้
-function loadMenu(){
- onSnapshot(collection(db,"menu"),snap=>{
-  menuListDiv.innerHTML="";
+window.deleteOrder = async (id) => {
+    if(confirm("ลบออเดอร์นี้?")) await deleteDoc(doc(db, "orders", id));
+};
 
-  snap.forEach(d=>{
-    const m = d.data();
-    const id = d.id;
+// MENU MGMT
+window.loadMenu = () => {
+    onSnapshot(collection(db, "menu"), snap => {
+        const list = document.getElementById("menuList");
+        list.innerHTML = "";
+        snap.forEach(d => {
+            const m = d.data();
+            const id = d.id;
+            const div = document.createElement("div");
+            div.className = "menu-item";
+            div.innerHTML = `
+                <input value="${m.name}" id="n-${id}" style="flex:2">
+                <input type="number" value="${m.price}" id="p-${id}" style="width:60px">
+                <button onclick="saveMenu('${id}')" class="btn-blue">💾</button>
+                <button onclick="delMenu('${id}')" class="btn-red">🗑️</button>
+            `;
+            list.appendChild(div);
+        });
+    });
+};
 
-    const div = document.createElement("div");
-    div.className="box";
+window.saveMenu = (id) => {
+    const name = document.getElementById(`n-${id}`).value;
+    const price = Number(document.getElementById(`p-${id}`).value);
+    updateDoc(doc(db, "menu", id), { name, price });
+};
 
-    div.innerHTML = `
-    <input value="${m.name}" class="name">
-    <input value="${m.price}" class="price">
-    <button class="save">บันทึก</button>
-    <button class="del">ลบ</button>
-    `;
+window.delMenu = (id) => { if(confirm("ลบเมนูนี้?")) deleteDoc(doc(db, "menu", id)); };
 
-    const nameInput = div.querySelector(".name");
-    const priceInput = div.querySelector(".price");
+document.getElementById("addMenu").onclick = async () => {
+    const name = document.getElementById("mname").value;
+    const price = Number(document.getElementById("mprice").value);
+    if(!name || !price) return alert("กรอกข้อมูลให้ครบ");
+    await addDoc(collection(db, "menu"), { name, price });
+    document.getElementById("mname").value = "";
+    document.getElementById("mprice").value = "";
+};
 
-    div.querySelector(".save").onclick = ()=>{
-      updateDoc(doc(db,"menu",id),{
-        name: nameInput.value,
-        price: Number(priceInput.value)
-      });
-    };
-
-    div.querySelector(".del").onclick = ()=>{
-      deleteDoc(doc(db,"menu",id));
-    };
-
-    menuListDiv.appendChild(div);
-  });
- });
-}
-
-// 📲 INSTALL APP
+// PWA Install
 let deferredPrompt;
-
-window.addEventListener("beforeinstallprompt", (e)=>{
- e.preventDefault();
- deferredPrompt = e;
- document.getElementById("installBtn").style.display="block";
+window.addEventListener("beforeinstallprompt", (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    document.getElementById("installBtn").style.display = "inline-block";
 });
-
-document.getElementById("installBtn").onclick = async ()=>{
- if(deferredPrompt){
-   deferredPrompt.prompt();
-   deferredPrompt = null;
- }
+document.getElementById("installBtn").onclick = () => {
+    if(deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; }
 };
-
 </script>
 
 </body>
