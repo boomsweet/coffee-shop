@@ -2,28 +2,26 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Hop Cafe</title>
 
 <style>
-body{font-family:sans-serif;background:#f1f5f9;padding:10px}
-.card{background:#fff;padding:10px;margin:10px 0;border-radius:12px}
-button{padding:10px;margin:5px;border:none;border-radius:10px;background:#0ea5e9;color:#fff}
-input{padding:10px;width:100%;margin:5px 0;border-radius:10px}
+body{font-family:sans-serif;padding:10px;background:#f1f5f9}
+.card{background:#fff;padding:10px;margin:10px 0;border-radius:10px}
+button{padding:8px;margin:3px;border:none;border-radius:8px;background:#0ea5e9;color:#fff}
 .cart{background:#fff;padding:10px;margin:5px 0;border-radius:10px}
 </style>
 </head>
 
 <body>
 
-<h1>☕ Hop Cafe</h1>
-
+<h1>☕ เมนู</h1>
 <div id="menu"></div>
 
-<h2>🧾 รายการที่สั่ง</h2>
+<h2>🧾 รายการ</h2>
 <input id="name" placeholder="ชื่อ">
 <input id="phone" placeholder="เบอร์">
 <div id="cart"></div>
+<h3 id="total"></h3>
 
 <button onclick="submitOrder()">ยืนยัน</button>
 
@@ -33,62 +31,62 @@ import { db, collection, addDoc } from "./firebase.js";
 let cart=[];
 
 const menu=[
-{name:"เอสเพรสโซ่",price:25},{name:"ลาเต้",price:25},{name:"มอคค่า",price:25},{name:"คาปูชิโน่",price:25},
-{name:"โกโก้",price:25},{name:"นมสด",price:20},{name:"นมชมพู",price:20},
-{name:"ชาเขียวนม",price:25},{name:"ชาไทย",price:20},{name:"เนสที",price:20},
-{name:"แดงโซดา",price:20},{name:"มะนาวโซดา",price:20},
-{name:"ชานมบราวน์ซูการ์",price:20}
+{name:"ชาเขียวนม",price:25,cat:"ชา"},
+{name:"โกโก้ชา",price:25,cat:"ชา"},
+{name:"ชาไทย",price:20,cat:"ชา"},
+{name:"ชานมไต้หวัน",price:20,cat:"ชา"},
+{name:"เอสเพรสโซ่",price:25,cat:"กาแฟ"},
+{name:"ลาเต้",price:25,cat:"กาแฟ"},
+{name:"โกโก้",price:25,cat:"นม"},
+{name:"นมสด",price:20,cat:"นม"},
+{name:"แดงโซดา",price:20,cat:"โซดา"},
+{name:"มะนาวโซดา",price:20,cat:"โซดา"}
 ];
 
 const menuDiv=document.getElementById("menu");
-const cartDiv=document.getElementById("cart");
 
 menu.forEach((m,i)=>{
  menuDiv.innerHTML+=`
  <div class="card">
-  ${m.name} - ${m.price} บาท
+  [${m.cat}] ${m.name} - ${m.price}
   <br><button onclick="add(${i})">เพิ่ม</button>
  </div>`;
 });
 
-window.add=(i)=>{
+window.add=i=>{
  const e=cart.find(x=>x.id==i);
  if(e){e.qty++}else{cart.push({...menu[i],id:i,qty:1})}
  render();
 }
 
 function render(){
- cartDiv.innerHTML="";
+ let total=0;
+ cart.innerHTML="";
+ const div=document.getElementById("cart");
+ div.innerHTML="";
  cart.forEach((c,i)=>{
-  cartDiv.innerHTML+=`
+  total+=c.price*c.qty;
+  div.innerHTML+=`
   <div class="cart">
-   ${c.name} x ${c.qty}
-   <br>
-   <button onclick="inc(${i})">+</button>
-   <button onclick="dec(${i})">-</button>
-   <button onclick="del(${i})">ลบ</button>
+  ${c.name} x ${c.qty}
+  <button onclick="inc(${i})">+</button>
+  <button onclick="dec(${i})">-</button>
   </div>`;
  });
+ document.getElementById("total").innerText="รวม: "+total+" บาท";
 }
 
 window.inc=i=>{cart[i].qty++;render()}
 window.dec=i=>{cart[i].qty--;if(cart[i].qty<=0)cart.splice(i,1);render()}
-window.del=i=>{cart.splice(i,1);render()}
 
 window.submitOrder=async()=>{
- if(cart.length==0)return alert("ยังไม่ได้สั่ง");
-
  await addDoc(collection(db,"orders"),{
   name:document.getElementById("name").value,
   phone:document.getElementById("phone").value,
-  cart,
-  status:"new",
-  time:Date.now()
+  cart,status:"new",time:Date.now()
  });
-
- alert("สั่งสำเร็จ");
- cart=[];
- render();
+ alert("สำเร็จ");
+ cart=[];render();
 }
 </script>
 
