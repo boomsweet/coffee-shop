@@ -8,7 +8,7 @@
     
     <style>
         :root {
-            --primary: #6f4e37; /* สีน้ำตาลกาแฟ */
+            --primary: #6f4e37;
             --secondary: #ecf0f1;
             --accent: #e67e22;
             --success: #27ae60;
@@ -19,7 +19,7 @@
             font-family: 'Kanit', sans-serif;
             background: var(--bg);
             margin: 0;
-            padding-bottom: 100px; /* กันโดนปุ่มด้านล่างทับ */
+            padding-bottom: 120px;
             color: #333;
         }
 
@@ -34,7 +34,6 @@
 
         .container { max-width: 600px; margin: auto; padding: 15px; }
 
-        /* การจัดวางเมนูแบบ Grid */
         #menu {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -47,16 +46,13 @@
             border-radius: 15px;
             overflow: hidden;
             box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            transition: transform 0.2s;
             display: flex;
             flex-direction: column;
         }
 
-        .card:active { transform: scale(0.95); }
-
         .card img {
             width: 100%;
-            height: 120px;
+            height: 110px;
             object-fit: cover;
         }
 
@@ -64,14 +60,32 @@
 
         .price { color: var(--accent); font-weight: bold; font-size: 1.1em; }
 
-        .option-label {
-            font-size: 0.85em;
-            display: block;
-            margin: 5px 0;
-            color: #666;
+        .option-group {
+            background: #fdfdfd;
+            padding: 8px;
+            border-radius: 10px;
+            margin: 8px 0;
+            border: 1px solid #f0f0f0;
+            text-align: left;
         }
 
-        /* สไตล์ปุ่ม */
+        .option-label {
+            font-size: 0.8em;
+            display: block;
+            margin-bottom: 4px;
+            color: #888;
+        }
+
+        select {
+            width: 100%;
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            font-family: 'Kanit', sans-serif;
+            font-size: 0.9em;
+            outline: none;
+        }
+
         button {
             border: none;
             border-radius: 8px;
@@ -85,10 +99,11 @@
             color: white;
             width: 100%;
             padding: 10px;
-            margin-top: 5px;
+            font-weight: 600;
         }
 
-        /* ส่วนฟอร์มข้อมูล */
+        .btn-add:active { transform: scale(0.95); }
+
         .order-form {
             background: white;
             padding: 20px;
@@ -107,27 +122,28 @@
             font-size: 1em;
         }
 
-        /* ส่วนตระกร้าสินค้า */
         .cart-item {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 10px 0;
+            padding: 12px 0;
             border-bottom: 1px dashed #eee;
         }
 
+        .qty-controls { display: flex; align-items: center; }
         .qty-controls button {
-            width: 30px;
-            height: 30px;
+            width: 28px;
+            height: 28px;
             background: #eee;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
 
-        /* แถบสรุปยอดด้านล่างแบบ Fixed */
         .bottom-bar {
             position: fixed;
             bottom: 0;
-            left: 0;
-            right: 0;
+            left: 0; right: 0;
             background: white;
             padding: 15px 25px;
             box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
@@ -146,13 +162,20 @@
         }
 
         .status-card {
-            background: #d4edda;
-            color: #155724;
+            background: #fff;
             padding: 15px;
             border-radius: 10px;
             margin-top: 15px;
             text-align: center;
-            border-left: 5px solid var(--success);
+            border: 2px solid #eee;
+        }
+
+        .sweet-tag {
+            background: #fff3cd;
+            color: #856404;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75em;
         }
     </style>
 </head>
@@ -226,23 +249,48 @@
             <div class="card-content">
                 <div style="font-weight:600">${m.name}</div>
                 <div class="price">${m.price}.-</div>
-                <label class="option-label">
-                    <input type="checkbox" id="b${i}"> เพิ่มไข่มุก (+5)
-                </label>
+                
+                <div class="option-group">
+                    <span class="option-label">ความหวาน</span>
+                    <select id="sweet${i}">
+                        <option value="หวานปกติ">หวานปกติ</option>
+                        <option value="ไม่หวาน">ไม่หวาน (0%)</option>
+                        <option value="หวานน้อย">หวานน้อย (50%)</option>
+                        <option value="หวานพิเศษ">หวานพิเศษ (125%)</option>
+                    </select>
+                    
+                    <label style="font-size: 0.85em; margin-top:8px; display:block;">
+                        <input type="checkbox" id="b${i}"> เพิ่มไข่มุก (+5)
+                    </label>
+                </div>
+                
                 <button class="btn-add" onclick="add(${i})">เพิ่มลงรถเข็น</button>
             </div>
         </div>`;
     });
 
     window.add = (i) => {
+        const sweetLevel = document.getElementById("sweet"+i).value;
         const hasBubble = document.getElementById("b"+i).checked;
         const bubblePrice = hasBubble ? 5 : 0;
-        const itemIndex = cart.findIndex(x => x.id === i && x.bubble === bubblePrice);
+        
+        // เช็คว่ามีสินค้าที่ชื่อเหมือนกัน + ความหวานเดียวกัน + มุกเหมือนกัน ในตระกร้าหรือยัง
+        const itemIndex = cart.findIndex(x => 
+            x.id === i && 
+            x.bubble === bubblePrice && 
+            x.sweet === sweetLevel
+        );
 
         if(itemIndex > -1) {
             cart[itemIndex].qty++;
         } else {
-            cart.push({ ...menuList[i], id: i, qty: 1, bubble: bubblePrice });
+            cart.push({ 
+                ...menuList[i], 
+                id: i, 
+                qty: 1, 
+                bubble: bubblePrice, 
+                sweet: sweetLevel 
+            });
         }
         render();
     };
@@ -261,13 +309,19 @@
             total += itemTotal;
             cartDiv.innerHTML += `
             <div class="cart-item">
-                <div>
-                    <div><b>${c.name}</b> ${c.bubble > 0 ? '<small>(+มุก)</small>' : ''}</div>
-                    <small>${c.price + c.bubble} x ${c.qty}</small>
+                <div style="flex:1">
+                    <div>
+                        <b>${c.name}</b> 
+                        ${c.bubble > 0 ? '<small style="color:var(--accent)">(+มุก)</small>' : ''}
+                    </div>
+                    <div style="margin-top:2px">
+                        <span class="sweet-tag">${c.sweet}</span>
+                        <small style="margin-left:5px; color:#666">${c.price + c.bubble}.-</small>
+                    </div>
                 </div>
                 <div class="qty-controls">
                     <button onclick="dec(${i})">-</button>
-                    <span style="margin: 0 10px">${c.qty}</span>
+                    <b style="width: 30px; text-align:center">${c.qty}</b>
                     <button onclick="inc(${i})">+</button>
                 </div>
             </div>`;
@@ -293,13 +347,15 @@
         }
 
         try {
-            const ref = await addDoc(collection(db, "orders"), {
+            const orderData = {
                 name: nameInput.value,
                 phone: phoneInput.value,
                 cart: cart,
                 status: "new",
                 time: Date.now()
-            });
+            };
+
+            const ref = await addDoc(collection(db, "orders"), orderData);
 
             onSnapshot(doc(db, "orders", ref.id), (snap) => {
                 if(!snap.exists()) return;
@@ -311,17 +367,16 @@
                 if(s === "done") { text = "✅ เครื่องดื่มเสร็จแล้ว! เชิญมารับได้เลย"; color = "#27ae60"; }
 
                 statusBox.innerHTML = `
-                <div class="status-card" style="border-left-color: ${color}">
+                <div class="status-card" style="border-left: 5px solid ${color}">
                     <strong>สถานะออเดอร์:</strong><br>
-                    <span style="font-size: 1.2em; color: ${color}">${text}</span>
+                    <span style="font-size: 1.2em; color: ${color}; font-weight:600">${text}</span>
                 </div>`;
             });
 
             alert("ส่งคำสั่งซื้อเรียบร้อยแล้ว!");
             cart = [];
             render();
-            nameInput.value = "";
-            phoneInput.value = "";
+            // เก็บชื่อ/เบอร์ไว้ เผื่อลูกค้าจะสั่งต่อได้ง่ายขึ้น (หรือจะล้างก็ได้ถ้าต้องการ)
 
         } catch (e) {
             alert("เกิดข้อผิดพลาด: " + e.message);
