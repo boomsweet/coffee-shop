@@ -1,6 +1,17 @@
 {
-  "name": "Coffee App",
-  "short_name": "Coffee",
-  "start_url": "admin.html",
-  "display": "standalone"
+  "name": "Hop Cafe & ครัวอารมณ์ดี",
+  "short_name": "Hop Cafe",
+  "description": "สั่งอาหารและเครื่องดื่มออนไลน์จากครัวอารมณ์ดี",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#f8f9fa",
+  "theme_color": "#6f4e37",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2734/2734035.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
 }
