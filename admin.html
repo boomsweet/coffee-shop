@@ -2,92 +2,63 @@
 <html lang="th">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Admin</title>
 
 <style>
-body{font-family:sans-serif;padding:10px;background:#020617;color:#fff}
-input{
-  padding:10px;
-  width:100%;
-  border-radius:10px;
-  border:none;
-  margin:10px 0
-}
-button{
-  padding:10px;
-  width:100%;
-  border:none;
-  border-radius:10px;
-  background:#22c55e;
-  color:#fff;
-  font-size:18px
-}
-.order{
-  background:#1e293b;
-  padding:10px;
-  margin:10px 0;
-  border-radius:10px
-}
+body{font-family:sans-serif;background:#020617;color:#fff;padding:10px}
+input{padding:10px;width:100%;border-radius:10px;margin:10px 0}
+button{padding:10px;width:100%;border:none;border-radius:10px;background:#22c55e;color:#fff}
+.box{background:#1e293b;padding:10px;margin:10px 0;border-radius:10px}
 </style>
 
 </head>
 <body>
 
 <div id="login">
-  <h2>🔐 เข้าสู่ระบบ</h2>
-  <input type="password" id="pass" placeholder="รหัสผ่าน">
-  <button onclick="login()">เข้าใช้งาน</button>
+<h2>เข้าสู่ระบบ</h2>
+<input type="password" id="pass">
+<button onclick="login()">เข้า</button>
 </div>
 
 <div id="panel" style="display:none;">
-  <h1>📦 ออเดอร์</h1>
-  <div id="orders"></div>
+<h1>ออเดอร์</h1>
+<div id="orders"></div>
 </div>
 
 <script type="module">
-
 import { db, collection, onSnapshot } from "./firebase.js";
 
-const passInput = document.getElementById("pass");
-const panel = document.getElementById("panel");
-const loginDiv = document.getElementById("login");
+window.login=()=>{
+ if(document.getElementById("pass").value==="0000"){
+  document.getElementById("login").style.display="none";
+  document.getElementById("panel").style.display="block";
+  load();
+ }else alert("รหัสผิด");
+}
 
-window.login = ()=>{
-  if(passInput.value==="0000"){
-    loginDiv.style.display="none";
-    panel.style.display="block";
-    loadOrders();
-  }else{
-    alert("รหัสผิด");
-  }
-};
+function load(){
+ const div=document.getElementById("orders");
 
-function loadOrders(){
-  const ordersDiv = document.getElementById("orders");
+ onSnapshot(collection(db,"orders"),snap=>{
+  div.innerHTML="";
 
-  onSnapshot(collection(db,"orders"), snapshot=>{
-    ordersDiv.innerHTML="";
+  snap.forEach(d=>{
+   const o=d.data();
 
-    snapshot.forEach(doc=>{
-      const o = doc.data();
-
-      ordersDiv.innerHTML += `
-      <div class="order">
-        <h3>${o.name} (${o.phone})</h3>
-        ${o.cart.map(i=>`${i.name} x ${i.qty}`).join("<br>")}
-      </div>`;
-    });
-
-    playSound();
+   div.innerHTML+=`
+   <div class="box">
+    <b>${o.name}</b> (${o.phone})<br>
+    ${o.cart.map(i=>i.name+" x "+i.qty).join("<br>")}
+   </div>`;
   });
+
+  sound();
+ });
 }
 
-function playSound(){
-  const audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
-  audio.play();
+function sound(){
+ new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3").play();
 }
-
 </script>
 
 </body>
