@@ -98,7 +98,14 @@
             margin-bottom: 5px;
         }
 
-        .item-detail { font-size: 0.8em; color: #94a3b8; margin-bottom: 10px; }
+        .item-detail { 
+            font-size: 0.9em; 
+            color: #cbd5e1; 
+            margin-bottom: 12px;
+            padding: 4px 8px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 6px;
+        }
 
         /* 🔘 BUTTONS */
         button {
@@ -118,17 +125,6 @@
 
         .btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 15px; }
 
-        /* 📋 MENU MANAGEMENT */
-        .menu-item {
-            display: flex;
-            gap: 10px;
-            background: #1e293b;
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 10px;
-            align-items: center;
-        }
-
         input {
             background: #0f172a;
             border: 1px solid #334155;
@@ -137,8 +133,6 @@
             border-radius: 8px;
             outline: none;
         }
-
-        input:focus { border-color: var(--primary); }
 
         .badge {
             padding: 2px 8px;
@@ -165,11 +159,11 @@
     
     <div class="stats-grid">
         <div class="stat-box">
-            <h3>💰 ยอดขายทั้งหมด</h3>
+            <h3>💰 ยอดขายสะสม</h3>
             <p id="totalAll">0 บาท</p>
         </div>
         <div class="stat-box" style="border-left-color: var(--success);">
-            <h3>📅 วันนี้ (${new Date().toLocaleDateString('th-TH')})</h3>
+            <h3>📅 ยอดวันนี้ (<span id="todayLabel">-</span>)</h3>
             <p id="daily">0 บาท</p>
         </div>
     </div>
@@ -182,16 +176,6 @@
 
     <div class="section-title">✅ เสร็จสิ้น <span id="count-done" class="badge bg-done">0</span></div>
     <div id="done" class="grid-orders"></div>
-
-    <hr style="margin:40px 0; opacity:0.1;">
-
-    <h2>➕ จัดการเมนู</h2>
-    <div class="box" style="background:var(--card); padding:20px; border-radius:15px; margin-bottom:20px;">
-        <input id="mname" placeholder="ชื่อเมนู" style="width:40%">
-        <input id="mprice" type="number" placeholder="ราคา" style="width:20%">
-        <button id="addMenu" class="btn-green">เพิ่มเมนูใหม่</button>
-    </div>
-    <div id="menuList"></div>
 </div>
 
 <script type="module">
@@ -202,6 +186,11 @@ const loginDiv = document.getElementById("login");
 const panelDiv = document.getElementById("panel");
 const passInput = document.getElementById("pass");
 const btnLogin = document.getElementById("btnLogin");
+const todayLabel = document.getElementById("todayLabel");
+
+// CONFIG เขตเวลาไทย
+const thaiLocale = 'th-TH';
+const thaiOptions = { timeZone: 'Asia/Bangkok' };
 
 // LOGIN LOGIC
 if(localStorage.getItem("admin_login")) showPanel();
@@ -215,16 +204,15 @@ btnLogin.onclick = () => {
 function showPanel(){
     loginDiv.style.display="none";
     panelDiv.style.display="block";
+    todayLabel.innerText = new Date().toLocaleDateString(thaiLocale, thaiOptions);
     loadOrders();
-    loadMenu();
 }
 
 function loadOrders(){
     onSnapshot(collection(db,"orders"), snap => {
-        // Clear containers
         const containers = { new: [], doing: [], done: [] };
         let total = 0, dailyTotal = 0;
-        const today = new Date().toLocaleDateString("th-TH");
+        const todayStr = new Date().toLocaleDateString(thaiLocale, thaiOptions);
 
         snap.forEach(d => {
             const o = d.data();
@@ -236,33 +224,47 @@ function loadOrders(){
             });
 
             total += orderSum;
-            if(new Date(o.time).toLocaleDateString("th-TH") === today) dailyTotal += orderSum;
+            
+            // ตรวจสอบวันที่แบบไทย
+            const orderDate = new Date(o.time).toLocaleDateString(thaiLocale, thaiOptions);
+            if(orderDate === todayStr) dailyTotal += orderSum;
 
             const card = document.createElement("div");
             card.className = "order-card";
+            
+            // เวลาแบบไทย (HH:mm)
+            const orderTime = new Date(o.time).toLocaleTimeString(thaiLocale, { 
+                ...thaiOptions, 
+                hour: '2-digit', 
+                minute: '2-digit' 
+            });
+
             card.innerHTML = `
                 <div class="order-header">
                     <strong>👤 ${o.name || 'ลูกค้าทั่วไป'}</strong>
-                    <span style="font-size:0.8em; opacity:0.6">${new Date(o.time).toLocaleTimeString('th-TH')}</span>
+                    <span style="font-size:0.85em; opacity:0.7">${orderTime} น.</span>
                 </div>
                 <div>
                     ${(o.cart || []).map(item => `
                         <div class="item-row">
-                            <span>${item.name} x ${item.qty}</span>
+                            <span><b>${item.name}</b> x ${item.qty}</span>
                             <span>${(item.price + (item.bubble || 0)) * item.qty}.-</span>
                         </div>
-                        <div class="item-detail">🍬 ${item.sweet || 'ปกติ'} ${item.bubble ? ' | 🧋 เพิ่มมุก' : ''}</div>
+                        <div class="item-detail">
+                            ความหวาน: ${item.sweet || 'ปกติ'} 
+                            ${item.bubble ? ' | เพิ่มไข่มุก' : ''}
+                        </div>
                     `).join('')}
                 </div>
-                <div style="text-align:right; font-size:1.2em; font-weight:bold; color:var(--primary);">
-                    รวม ${orderSum} บาท
+                <div style="text-align:right; font-size:1.2em; font-weight:bold; color:var(--primary); border-top: 1px dashed #334155; padding-top:10px;">
+                    รวม ${orderSum.toLocaleString()} บาท
                 </div>
                 <div class="btn-group">
-                    <button onclick="updateStatus('${id}','new')" class="btn-blue" style="font-size:0.7em">รอ</button>
-                    <button onclick="updateStatus('${id}','doing')" class="btn-orange" style="font-size:0.7em">ทำ</button>
-                    <button onclick="updateStatus('${id}','done')" class="btn-green" style="font-size:0.7em">เสร็จ</button>
+                    <button onclick="updateStatus('${id}','new')" class="btn-blue" style="font-size:0.75em">รอ</button>
+                    <button onclick="updateStatus('${id}','doing')" class="btn-orange" style="font-size:0.75em">ทำ</button>
+                    <button onclick="updateStatus('${id}','done')" class="btn-green" style="font-size:0.75em">เสร็จ</button>
                 </div>
-                <button onclick="deleteOrder('${id}')" style="position:absolute; top:-10px; right:-10px; padding:5px; border-radius:50%; width:25px; height:25px; display:flex; align-items:center; justify-content:center;" class="btn-red">×</button>
+                <button onclick="deleteOrder('${id}')" style="position:absolute; top:-10px; right:-10px; padding:5px; border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border:2px solid var(--bg); font-weight:bold;" class="btn-red">×</button>
             `;
 
             if(o.status === "doing") containers.doing.push(card);
@@ -270,7 +272,6 @@ function loadOrders(){
             else containers.new.push(card);
         });
 
-        // Update UI
         renderSection("new", containers.new);
         renderSection("doing", containers.doing);
         renderSection("done", containers.done);
@@ -283,7 +284,8 @@ function loadOrders(){
 function renderSection(id, elements) {
     const el = document.getElementById(id);
     el.innerHTML = "";
-    elements.forEach(card => el.appendChild(card));
+    // เรียงออเดอร์ใหม่ไว้บนสุด
+    elements.reverse().forEach(card => el.appendChild(card));
     document.getElementById(`count-${id}`).innerText = elements.length;
 }
 
@@ -292,45 +294,7 @@ window.updateStatus = (id, status) => {
 };
 
 window.deleteOrder = async (id) => {
-    if(confirm("ลบออเดอร์นี้?")) await deleteDoc(doc(db, "orders", id));
-};
-
-// MENU MGMT
-window.loadMenu = () => {
-    onSnapshot(collection(db, "menu"), snap => {
-        const list = document.getElementById("menuList");
-        list.innerHTML = "";
-        snap.forEach(d => {
-            const m = d.data();
-            const id = d.id;
-            const div = document.createElement("div");
-            div.className = "menu-item";
-            div.innerHTML = `
-                <input value="${m.name}" id="n-${id}" style="flex:2">
-                <input type="number" value="${m.price}" id="p-${id}" style="width:60px">
-                <button onclick="saveMenu('${id}')" class="btn-blue">💾</button>
-                <button onclick="delMenu('${id}')" class="btn-red">🗑️</button>
-            `;
-            list.appendChild(div);
-        });
-    });
-};
-
-window.saveMenu = (id) => {
-    const name = document.getElementById(`n-${id}`).value;
-    const price = Number(document.getElementById(`p-${id}`).value);
-    updateDoc(doc(db, "menu", id), { name, price });
-};
-
-window.delMenu = (id) => { if(confirm("ลบเมนูนี้?")) deleteDoc(doc(db, "menu", id)); };
-
-document.getElementById("addMenu").onclick = async () => {
-    const name = document.getElementById("mname").value;
-    const price = Number(document.getElementById("mprice").value);
-    if(!name || !price) return alert("กรอกข้อมูลให้ครบ");
-    await addDoc(collection(db, "menu"), { name, price });
-    document.getElementById("mname").value = "";
-    document.getElementById("mprice").value = "";
+    if(confirm("ยืนยันการลบออเดอร์นี้ออกจากระบบ?")) await deleteDoc(doc(db, "orders", id));
 };
 
 // PWA Install
