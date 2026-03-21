@@ -3,53 +3,46 @@
 <head>
 <meta charset="UTF-8">
 <title>Admin</title>
-<link rel="manifest" href="manifest.json">
 </head>
 
 <body>
 
 <div id="login">
-<input id="pass" type="password">
+<input id="pass" type="password" placeholder="รหัส">
 <button onclick="login()">เข้า</button>
 </div>
 
 <div id="panel" style="display:none;">
-<h1>ออเดอร์</h1>
+<h1>📦 ออเดอร์</h1>
 <div id="orders"></div>
-
-<h2>เพิ่มเมนู</h2>
-<input id="mname">
-<input id="mprice">
-<button onclick="addMenu()">เพิ่ม</button>
 </div>
 
 <script type="module">
-import { db, collection, onSnapshot, doc, updateDoc, addDoc } from "./firebase.js";
+import { db, collection, onSnapshot } from "./firebase.js";
 
 window.login=()=>{
- if(pass.value==="0000"){
-  login.style.display="none";
-  panel.style.display="block";
+ if(document.getElementById("pass").value==="0000"){
+  document.getElementById("login").style.display="none";
+  document.getElementById("panel").style.display="block";
   load();
- }else alert("ผิด");
+ }else{
+  alert("รหัสผิด");
+ }
 }
 
 function load(){
  onSnapshot(collection(db,"orders"),snap=>{
-  orders.innerHTML="";
+  const div=document.getElementById("orders");
+  div.innerHTML="";
   snap.forEach(d=>{
    const o=d.data();
-   orders.innerHTML+=`${o.name}<br>`;
+   div.innerHTML+=`
+   <div>
+   ${o.name} (${o.phone})<br>
+   ${o.cart.map(i=>i.name+" x "+i.qty).join("<br>")}
+   </div><hr>`;
   });
  });
-}
-
-window.addMenu=async()=>{
- await addDoc(collection(db,"menu"),{
-  name:mname.value,
-  price:Number(mprice.value)
- });
- alert("เพิ่มแล้ว");
 }
 </script>
 
