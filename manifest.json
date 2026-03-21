@@ -1,6 +1,6 @@
 {
-  "name": "Coffee Admin",
-  "short_name": "Admin",
-  "start_url": "./admin.html",
+  "name": "Coffee App",
+  "short_name": "Coffee",
+  "start_url": "admin.html",
   "display": "standalone"
 }
