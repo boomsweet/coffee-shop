@@ -3,46 +3,90 @@
 <head>
 <meta charset="UTF-8">
 <title>Admin</title>
+<style>
+body{background:#020617;color:#fff;font-family:sans-serif;padding:10px}
+.box{background:#1e293b;padding:10px;margin:10px;border-radius:10px}
+button{margin:3px;padding:5px}
+</style>
 </head>
 
 <body>
 
 <div id="login">
-<input id="pass" type="password" placeholder="รหัส">
+<h2>เข้าสู่ระบบ</h2>
+<input id="pass" type="password">
 <button onclick="login()">เข้า</button>
 </div>
 
 <div id="panel" style="display:none;">
 <h1>📦 ออเดอร์</h1>
-<div id="orders"></div>
+
+<h2>🆕 ใหม่</h2>
+<div id="new"></div>
+
+<h2>👨‍🍳 กำลังทำ</h2>
+<div id="doing"></div>
+
+<h2>✅ เสร็จ</h2>
+<div id="done"></div>
+
 </div>
 
 <script type="module">
-import { db, collection, onSnapshot } from "./firebase.js";
+import { db, collection, onSnapshot, doc, updateDoc } from "./firebase.js";
+
+if(localStorage.getItem("login")){
+ showPanel();
+}
 
 window.login=()=>{
  if(document.getElementById("pass").value==="0000"){
-  document.getElementById("login").style.display="none";
-  document.getElementById("panel").style.display="block";
-  load();
+  localStorage.setItem("login","1");
+  showPanel();
  }else{
   alert("รหัสผิด");
  }
 }
 
+function showPanel(){
+ document.getElementById("login").style.display="none";
+ document.getElementById("panel").style.display="block";
+ load();
+}
+
 function load(){
  onSnapshot(collection(db,"orders"),snap=>{
-  const div=document.getElementById("orders");
-  div.innerHTML="";
+  document.getElementById("new").innerHTML="";
+  document.getElementById("doing").innerHTML="";
+  document.getElementById("done").innerHTML="";
+
   snap.forEach(d=>{
    const o=d.data();
-   div.innerHTML+=`
-   <div>
+   const id=d.id;
+
+   const html=`
+   <div class="box">
    ${o.name} (${o.phone})<br>
    ${o.cart.map(i=>i.name+" x "+i.qty).join("<br>")}
-   </div><hr>`;
+   <br>
+   <button onclick="set('${id}','new')">ใหม่</button>
+   <button onclick="set('${id}','doing')">ทำ</button>
+   <button onclick="set('${id}','done')">เสร็จ</button>
+   </div>`;
+
+   if(o.status==="doing"){
+     document.getElementById("doing").innerHTML+=html;
+   }else if(o.status==="done"){
+     document.getElementById("done").innerHTML+=html;
+   }else{
+     document.getElementById("new").innerHTML+=html;
+   }
   });
  });
+}
+
+window.set=(id,status)=>{
+ updateDoc(doc(db,"orders",id),{status});
 }
 </script>
 
