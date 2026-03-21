@@ -1,179 +1,332 @@
 <!DOCTYPE html>
-<html>
+<html lang="th">
 <head>
-<meta charset="UTF-8">
-<title>Hop Cafe</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hop Cafe | สั่งเครื่องดื่มออนไลน์</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --primary: #6f4e37; /* สีน้ำตาลกาแฟ */
+            --secondary: #ecf0f1;
+            --accent: #e67e22;
+            --success: #27ae60;
+            --bg: #f8f9fa;
+        }
 
-<style>
-body{font-family:sans-serif;background:#f1f5f9;padding:10px}
-.card{background:#fff;padding:10px;margin:10px;border-radius:10px}
-.cart{background:#fff;padding:10px;margin:5px;border-radius:10px}
-button{padding:8px;margin:3px}
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: var(--bg);
+            margin: 0;
+            padding-bottom: 100px; /* กันโดนปุ่มด้านล่างทับ */
+            color: #333;
+        }
 
-/* ✅ แก้รูป */
-img{
- width:100%;
- height:120px;
- object-fit:cover;
- border-radius:10px
-}
+        header {
+            background: var(--primary);
+            color: white;
+            padding: 20px;
+            text-align: center;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
 
-.status{background:#fff;padding:10px;margin:10px;border-radius:10px}
-</style>
+        .container { max-width: 600px; margin: auto; padding: 15px; }
 
+        /* การจัดวางเมนูแบบ Grid */
+        #menu {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 15px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            transition: transform 0.2s;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .card:active { transform: scale(0.95); }
+
+        .card img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+        }
+
+        .card-content { padding: 10px; text-align: center; flex-grow: 1; }
+
+        .price { color: var(--accent); font-weight: bold; font-size: 1.1em; }
+
+        .option-label {
+            font-size: 0.85em;
+            display: block;
+            margin: 5px 0;
+            color: #666;
+        }
+
+        /* สไตล์ปุ่ม */
+        button {
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            font-family: 'Kanit', sans-serif;
+        }
+
+        .btn-add {
+            background: var(--primary);
+            color: white;
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+        }
+
+        /* ส่วนฟอร์มข้อมูล */
+        .order-form {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            margin-top: 25px;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.05);
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            margin: 8px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+            font-size: 1em;
+        }
+
+        /* ส่วนตระกร้าสินค้า */
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px dashed #eee;
+        }
+
+        .qty-controls button {
+            width: 30px;
+            height: 30px;
+            background: #eee;
+        }
+
+        /* แถบสรุปยอดด้านล่างแบบ Fixed */
+        .bottom-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 15px 25px;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .btn-submit {
+            background: var(--success);
+            color: white;
+            padding: 12px 30px;
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+
+        .status-card {
+            background: #d4edda;
+            color: #155724;
+            padding: 15px;
+            border-radius: 10px;
+            margin-top: 15px;
+            text-align: center;
+            border-left: 5px solid var(--success);
+        }
+    </style>
 </head>
 
 <body>
 
-<h1>☕ Hop Cafe</h1>
-<div id="menu"></div>
+<header>
+    <h1 style="margin:0">☕ Hop Cafe</h1>
+    <small>หอมกรุ่น สดชื่น ทุกแก้ว</small>
+</header>
 
-<h2>🧾 รายการ</h2>
-<input id="name" placeholder="ชื่อ">
-<input id="phone" placeholder="เบอร์">
-<div id="cart"></div>
-<h3 id="total"></h3>
+<div class="container">
+    <div id="menu"></div>
 
-<button onclick="submitOrder()">ยืนยัน</button>
+    <div class="order-form">
+        <h3>📍 ข้อมูลผู้สั่ง</h3>
+        <input id="name" type="text" placeholder="ชื่อของคุณ">
+        <input id="phone" type="tel" placeholder="เบอร์โทรศัพท์">
+        
+        <hr>
+        
+        <h3>🛒 สรุปรายการ</h3>
+        <div id="cart">
+            <p style="color:#999; text-align:center">ยังไม่ได้เลือกเมนู</p>
+        </div>
+    </div>
 
-<h2>📡 สถานะออเดอร์</h2>
-<div id="statusBox"></div>
+    <div id="statusBox"></div>
+</div>
+
+<div class="bottom-bar">
+    <div>
+        <small>ยอดรวมทั้งหมด</small>
+        <div id="total" style="font-size: 1.4em; font-weight: bold; color: var(--primary);">0 บาท</div>
+    </div>
+    <button class="btn-submit" onclick="submitOrder()">ยืนยันสั่งซื้อ</button>
+</div>
 
 <script type="module">
-import { db, collection, addDoc, doc, onSnapshot } from "./firebase.js";
+    import { db, collection, addDoc, doc, onSnapshot } from "./firebase.js";
 
-let cart=[];
-let currentOrderId=null;
+    let cart = [];
+    const nameInput = document.getElementById("name");
+    const phoneInput = document.getElementById("phone");
+    const menuDiv = document.getElementById("menu");
+    const cartDiv = document.getElementById("cart");
+    const statusBox = document.getElementById("statusBox");
+    const totalDiv = document.getElementById("total");
 
-// ✅ FIX input
-const nameInput = document.getElementById("name");
-const phoneInput = document.getElementById("phone");
+    const img = "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=300&q=80";
 
-// รูป
-const img = "https://images.unsplash.com/photo-1509042239860-f550ce710b93";
+    const menuList = [
+        {name:"ชาเขียวนม", price:25, img},
+        {name:"โกโก้ชา", price:25, img},
+        {name:"ชาไทย", price:20, img},
+        {name:"ชานมไต้หวัน", price:20, img},
+        {name:"เนสที", price:20, img},
+        {name:"ชามะนาว", price:20, img},
+        {name:"โกโก้", price:25, img},
+        {name:"นมสด", price:20, img},
+        {name:"เอสเพรสโซ่", price:25, img},
+        {name:"ลาเต้", price:25, img},
+        {name:"ชานมบราวน์ซูการ์", price:20, img}
+    ];
 
-const menuList = [
-{name:"ชาเขียวนม",price:25,img},
-{name:"โกโก้ชา",price:25,img},
-{name:"ชาไทย",price:20,img},
-{name:"ชานมไต้หวัน",price:20,img},
-{name:"เนสที",price:20,img},
-{name:"ชามะนาว",price:20,img},
-{name:"ชาดำ",price:20,img},
-{name:"ชาเขียวใส",price:20,img},
-{name:"ชาเขียวมะนาว",price:20,img},
-{name:"ชาเขียวน้ำผึ้งมะนาว",price:20,img},
+    // Render Menu
+    menuList.forEach((m, i) => {
+        menuDiv.innerHTML += `
+        <div class="card">
+            <img src="${m.img}" alt="${m.name}">
+            <div class="card-content">
+                <div style="font-weight:600">${m.name}</div>
+                <div class="price">${m.price}.-</div>
+                <label class="option-label">
+                    <input type="checkbox" id="b${i}"> เพิ่มไข่มุก (+5)
+                </label>
+                <button class="btn-add" onclick="add(${i})">เพิ่มลงรถเข็น</button>
+            </div>
+        </div>`;
+    });
 
-{name:"โกโก้",price:25,img},
-{name:"นมสด",price:20,img},
-{name:"นมชมพู",price:20,img},
+    window.add = (i) => {
+        const hasBubble = document.getElementById("b"+i).checked;
+        const bubblePrice = hasBubble ? 5 : 0;
+        const itemIndex = cart.findIndex(x => x.id === i && x.bubble === bubblePrice);
 
-{name:"เอสเพรสโซ่",price:25,img},
-{name:"ลาเต้",price:25,img},
+        if(itemIndex > -1) {
+            cart[itemIndex].qty++;
+        } else {
+            cart.push({ ...menuList[i], id: i, qty: 1, bubble: bubblePrice });
+        }
+        render();
+    };
 
-{name:"แดงโซดา",price:20,img},
-{name:"เขียวโซดา",price:20,img},
+    function render() {
+        if(cart.length === 0) {
+            cartDiv.innerHTML = '<p style="color:#999; text-align:center">ยังไม่ได้เลือกเมนู</p>';
+            totalDiv.innerText = "0 บาท";
+            return;
+        }
 
-{name:"ชาพีช",price:20,img},
-{name:"ชานมบราวน์ซูการ์",price:20,img}
-];
+        let total = 0;
+        cartDiv.innerHTML = "";
+        cart.forEach((c, i) => {
+            const itemTotal = (c.price + c.bubble) * c.qty;
+            total += itemTotal;
+            cartDiv.innerHTML += `
+            <div class="cart-item">
+                <div>
+                    <div><b>${c.name}</b> ${c.bubble > 0 ? '<small>(+มุก)</small>' : ''}</div>
+                    <small>${c.price + c.bubble} x ${c.qty}</small>
+                </div>
+                <div class="qty-controls">
+                    <button onclick="dec(${i})">-</button>
+                    <span style="margin: 0 10px">${c.qty}</span>
+                    <button onclick="inc(${i})">+</button>
+                </div>
+            </div>`;
+        });
+        totalDiv.innerText = total + " บาท";
+    }
 
-const menuDiv=document.getElementById("menu");
-const cartDiv=document.getElementById("cart");
-const statusBox=document.getElementById("statusBox");
+    window.inc = (i) => { cart[i].qty++; render(); }
+    window.dec = (i) => { 
+        cart[i].qty--; 
+        if(cart[i].qty <= 0) cart.splice(i, 1); 
+        render(); 
+    }
 
-// แสดงเมนู
-menuList.forEach((m,i)=>{
- menuDiv.innerHTML+=`
- <div class="card">
- <img src="${m.img}">
- <b>${m.name}</b> (${m.price} บาท)
- <br>
- <label><input type="checkbox" id="b${i}"> ไข่มุก +5</label>
- <br>
- <button onclick="add(${i})">เพิ่ม</button>
- </div>`;
-});
+    window.submitOrder = async () => {
+        if(!nameInput.value.trim() || !phoneInput.value.trim()){
+            alert("กรุณากรอกชื่อและเบอร์โทรศัพท์");
+            return;
+        }
+        if(cart.length === 0){
+            alert("กรุณาเลือกเครื่องดื่มอย่างน้อย 1 อย่าง");
+            return;
+        }
 
-// เพิ่มสินค้า
-window.add=i=>{
- const bubble=document.getElementById("b"+i).checked?5:0;
- const e=cart.find(x=>x.id==i && x.bubble==bubble);
- if(e){e.qty++}
- else{cart.push({...menuList[i],id:i,qty:1,bubble})}
- render();
-};
+        try {
+            const ref = await addDoc(collection(db, "orders"), {
+                name: nameInput.value,
+                phone: phoneInput.value,
+                cart: cart,
+                status: "new",
+                time: Date.now()
+            });
 
-// render
-function render(){
- let total=0;
- cartDiv.innerHTML="";
- cart.forEach((c,i)=>{
-  total+=(c.price+c.bubble)*c.qty;
-  cartDiv.innerHTML+=`
-  <div class="cart">
-  ${c.name} x ${c.qty}
-  <button onclick="inc(${i})">+</button>
-  <button onclick="dec(${i})">-</button>
-  </div>`;
- });
- document.getElementById("total").innerText="รวม "+total+" บาท";
-}
+            onSnapshot(doc(db, "orders", ref.id), (snap) => {
+                if(!snap.exists()) return;
+                const s = snap.data().status;
+                let text = "⌛ รับออเดอร์แล้ว";
+                let color = "#666";
+                
+                if(s === "doing") { text = "☕ กำลังชงเครื่องดื่ม..."; color = "#e67e22"; }
+                if(s === "done") { text = "✅ เครื่องดื่มเสร็จแล้ว! เชิญมารับได้เลย"; color = "#27ae60"; }
 
-window.inc=i=>{cart[i].qty++;render()}
-window.dec=i=>{cart[i].qty--;if(cart[i].qty<=0)cart.splice(i,1);render()}
+                statusBox.innerHTML = `
+                <div class="status-card" style="border-left-color: ${color}">
+                    <strong>สถานะออเดอร์:</strong><br>
+                    <span style="font-size: 1.2em; color: ${color}">${text}</span>
+                </div>`;
+            });
 
-// 🔥 สั่งสินค้า (แก้แล้วจริง)
-window.submitOrder=async()=>{
- try{
+            alert("ส่งคำสั่งซื้อเรียบร้อยแล้ว!");
+            cart = [];
+            render();
+            nameInput.value = "";
+            phoneInput.value = "";
 
-  // ✅ FIX ตรงนี้
-  if(!nameInput.value.trim() || !phoneInput.value.trim()){
-    alert("กรอกชื่อ/เบอร์ก่อน");
-    return;
-  }
-
-  if(cart.length===0){
-    alert("ยังไม่ได้เลือกสินค้า");
-    return;
-  }
-
-  const ref = await addDoc(collection(db,"orders"),{
-    name:nameInput.value,
-    phone:phoneInput.value,
-    cart,
-    status:"new",
-    time:Date.now()
-  });
-
-  currentOrderId = ref.id;
-
-  // ฟังสถานะ
-  onSnapshot(doc(db,"orders",currentOrderId),(snap)=>{
-    if(!snap.exists()) return;
-
-    const s = snap.data().status;
-
-    let text="รับออเดอร์แล้ว";
-    if(s==="doing") text="กำลังทำ";
-    if(s==="done") text="เสร็จแล้ว";
-
-    statusBox.innerHTML = `
-    <div class="status">
-    สถานะ: <b>${text}</b>
-    </div>`;
-  });
-
-  alert("สั่งสำเร็จ");
-
-  cart=[];
-  render();
-
- }catch(e){
-  console.error(e);
-  alert("❌ สั่งไม่สำเร็จ: " + e.message);
- }
-}
+        } catch (e) {
+            alert("เกิดข้อผิดพลาด: " + e.message);
+        }
+    }
 </script>
 
 </body>
