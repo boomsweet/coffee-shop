@@ -39,7 +39,7 @@ h2{margin-top:20px}
 <h2>✅ เสร็จสิ้น</h2>
 <div id="done"></div>
 
-<h2>📊 สรุปรายวัน</h2>
+<h2>📊 สรุปรายวัน (วันนี้)</h2>
 <div id="daily"></div>
 
 <h2>➕ จัดการเมนู</h2>
@@ -49,6 +49,9 @@ h2{margin-top:20px}
 
 <div id="menuList"></div>
 
+<!-- 📲 ติดตั้ง -->
+<button id="installBtn" style="display:none;">📲 ติดตั้งแอป</button>
+
 </div>
 
 <script type="module">
@@ -56,7 +59,6 @@ import {
   db, collection, onSnapshot, doc, updateDoc, addDoc 
 } from "./firebase.js";
 
-// ✅ FIX: import deleteDoc แยก
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 // ELEMENT
@@ -102,6 +104,8 @@ function loadOrders(){
   let total = 0;
   let daily = {};
 
+  const today = new Date().toLocaleDateString("th-TH");
+
   snap.forEach(d=>{
    const o = d.data();
    const id = d.id;
@@ -113,10 +117,12 @@ function loadOrders(){
 
    total += sum;
 
-   const date = new Date(o.time);
-   const day = date.toLocaleDateString("th-TH");
+   const orderDay = new Date(o.time).toLocaleDateString("th-TH");
 
-   daily[day] = (daily[day]||0) + sum;
+   // ✅ เฉพาะวันนี้
+   if(orderDay === today){
+     daily[today] = (daily[today]||0) + sum;
+   }
 
    const div = document.createElement("div");
    div.className = "box";
@@ -151,7 +157,7 @@ function loadOrders(){
   totalAll.innerText = "💰 รวมทั้งหมด: " + total + " บาท";
 
   dailyDiv.innerHTML="";
-  Object.keys(daily).sort().forEach(d=>{
+  Object.keys(daily).forEach(d=>{
     dailyDiv.innerHTML += `${d} : ${daily[d]} บาท<br>`;
   });
 
@@ -168,7 +174,7 @@ document.getElementById("addMenu").onclick = async ()=>{
  await addDoc(collection(db,"menu"),{name,price});
 };
 
-// โหลดเมนู
+// โหลดเมนู + แก้ไขได้
 function loadMenu(){
  onSnapshot(collection(db,"menu"),snap=>{
   menuListDiv.innerHTML="";
@@ -181,11 +187,23 @@ function loadMenu(){
     div.className="box";
 
     div.innerHTML = `
-    ${m.name} (${m.price})
-    <button>ลบ</button>
+    <input value="${m.name}" class="name">
+    <input value="${m.price}" class="price">
+    <button class="save">บันทึก</button>
+    <button class="del">ลบ</button>
     `;
 
-    div.querySelector("button").onclick = ()=>{
+    const nameInput = div.querySelector(".name");
+    const priceInput = div.querySelector(".price");
+
+    div.querySelector(".save").onclick = ()=>{
+      updateDoc(doc(db,"menu",id),{
+        name: nameInput.value,
+        price: Number(priceInput.value)
+      });
+    };
+
+    div.querySelector(".del").onclick = ()=>{
       deleteDoc(doc(db,"menu",id));
     };
 
@@ -193,6 +211,22 @@ function loadMenu(){
   });
  });
 }
+
+// 📲 INSTALL APP
+let deferredPrompt;
+
+window.addEventListener("beforeinstallprompt", (e)=>{
+ e.preventDefault();
+ deferredPrompt = e;
+ document.getElementById("installBtn").style.display="block";
+});
+
+document.getElementById("installBtn").onclick = async ()=>{
+ if(deferredPrompt){
+   deferredPrompt.prompt();
+   deferredPrompt = null;
+ }
+};
 
 </script>
 
