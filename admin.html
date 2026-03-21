@@ -3,70 +3,97 @@
 <head>
 <meta charset="UTF-8">
 <title>Admin</title>
+<link rel="manifest" href="manifest.json">
 
 <style>
-body{font-family:sans-serif;background:#020617;color:#fff;padding:10px}
+body{background:#020617;color:#fff;font-family:sans-serif;padding:10px}
 .box{background:#1e293b;padding:10px;margin:10px;border-radius:10px}
-button{padding:5px;margin:3px;border:none;border-radius:8px}
-.new{background:red}
-.doing{background:orange}
-.done{background:green}
+button{margin:3px;padding:5px}
 </style>
 </head>
 
 <body>
 
+<div id="login">
+<h2>Login</h2>
+<input id="pass" type="password">
+<button onclick="login()">เข้า</button>
+</div>
+
+<div id="panel" style="display:none;">
 <h1>📦 ออเดอร์</h1>
 <h2 id="total"></h2>
 
-<h2>🆕 ใหม่</h2>
 <div id="new"></div>
-
-<h2>👨‍🍳 กำลังทำ</h2>
 <div id="doing"></div>
-
-<h2>✅ เสร็จแล้ว</h2>
 <div id="done"></div>
 
+<h2>➕ เพิ่มเมนู</h2>
+<input id="mname" placeholder="ชื่อ">
+<input id="mprice" placeholder="ราคา">
+<button onclick="addMenu()">เพิ่ม</button>
+
+</div>
+
 <script type="module">
-import { db, collection, onSnapshot, doc, updateDoc } from "./firebase.js";
+import { db, collection, onSnapshot, doc, updateDoc, addDoc } from "./firebase.js";
 
-onSnapshot(collection(db,"orders"),snap=>{
- let total=0;
+if(localStorage.getItem("login")){
+ document.getElementById("login").style.display="none";
+ document.getElementById("panel").style.display="block";
+ load();
+}
 
- new.innerHTML="";
- doing.innerHTML="";
- done.innerHTML="";
+window.login=()=>{
+ if(document.getElementById("pass").value=="0000"){
+  localStorage.setItem("login","1");
+  location.reload();
+ }
+}
 
- snap.forEach(d=>{
-  const o=d.data();
-  const id=d.id;
+function load(){
+ onSnapshot(collection(db,"orders"),snap=>{
+  let total=0;
+  new.innerHTML="<h2>ใหม่</h2>";
+  doing.innerHTML="<h2>กำลังทำ</h2>";
+  done.innerHTML="<h2>เสร็จ</h2>";
 
-  let sum=0;
-  o.cart.forEach(i=>sum+=i.price*i.qty);
-  total+=sum;
+  snap.forEach(d=>{
+   const o=d.data();
+   const id=d.id;
 
-  const html=`
-  <div class="box">
-  ${o.name} (${o.phone})<br>
-  ${o.cart.map(i=>i.name+" x "+i.qty).join("<br>")}
-  <br>💰 ${sum}
-  <br>
-  <button class="new" onclick="set('${id}','new')">ใหม่</button>
-  <button class="doing" onclick="set('${id}','doing')">ทำ</button>
-  <button class="done" onclick="set('${id}','done')">เสร็จ</button>
-  </div>`;
+   let sum=0;
+   o.cart.forEach(i=>sum+=i.price*i.qty);
+   total+=sum;
 
-  if(o.status=="doing") doing.innerHTML+=html;
-  else if(o.status=="done") done.innerHTML+=html;
-  else new.innerHTML+=html;
+   const html=`
+   <div class="box">
+   ${o.name} (${o.phone})<br>
+   ${o.cart.map(i=>i.name+" x "+i.qty).join("<br>")}
+   <br>${sum} บาท
+   <br>
+   <button onclick="set('${id}','new')">ใหม่</button>
+   <button onclick="set('${id}','doing')">ทำ</button>
+   <button onclick="set('${id}','done')">เสร็จ</button>
+   </div>`;
+
+   if(o.status=="doing") doing.innerHTML+=html;
+   else if(o.status=="done") done.innerHTML+=html;
+   else new.innerHTML+=html;
+  });
+
+  total.innerText="รวม "+total+" บาท";
  });
+}
 
- document.getElementById("total").innerText="ยอดรวม "+total+" บาท";
-});
+window.set=(id,s)=>updateDoc(doc(db,"orders",id),{status:s});
 
-window.set=async(id,status)=>{
- await updateDoc(doc(db,"orders",id),{status});
+window.addMenu=async()=>{
+ await addDoc(collection(db,"menu"),{
+  name:mname.value,
+  price:Number(mprice.value)
+ });
+ alert("เพิ่มแล้ว");
 }
 </script>
 
