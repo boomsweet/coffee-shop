@@ -225,19 +225,26 @@ function loadOrders(){
 
             total += orderSum;
             
-            // ตรวจสอบวันที่แบบไทย
             const orderDate = new Date(o.time).toLocaleDateString(thaiLocale, thaiOptions);
             if(orderDate === todayStr) dailyTotal += orderSum;
 
             const card = document.createElement("div");
             card.className = "order-card";
             
-            // เวลาแบบไทย (HH:mm)
             const orderTime = new Date(o.time).toLocaleTimeString(thaiLocale, { 
                 ...thaiOptions, 
                 hour: '2-digit', 
                 minute: '2-digit' 
             });
+
+            // ✅ ตรวจสอบสถานะ: ถ้าเสร็จแล้ว (done) จะไม่แสดงปุ่มจัดการสถานะ
+            const actionButtons = o.status === 'done' ? '' : `
+                <div class="btn-group">
+                    <button onclick="updateStatus('${id}','new')" class="btn-blue" style="font-size:0.75em">รอ</button>
+                    <button onclick="updateStatus('${id}','doing')" class="btn-orange" style="font-size:0.75em">ทำ</button>
+                    <button onclick="updateStatus('${id}','done')" class="btn-green" style="font-size:0.75em">เสร็จ</button>
+                </div>
+            `;
 
             card.innerHTML = `
                 <div class="order-header">
@@ -259,11 +266,7 @@ function loadOrders(){
                 <div style="text-align:right; font-size:1.2em; font-weight:bold; color:var(--primary); border-top: 1px dashed #334155; padding-top:10px;">
                     รวม ${orderSum.toLocaleString()} บาท
                 </div>
-                <div class="btn-group">
-                    <button onclick="updateStatus('${id}','new')" class="btn-blue" style="font-size:0.75em">รอ</button>
-                    <button onclick="updateStatus('${id}','doing')" class="btn-orange" style="font-size:0.75em">ทำ</button>
-                    <button onclick="updateStatus('${id}','done')" class="btn-green" style="font-size:0.75em">เสร็จ</button>
-                </div>
+                ${actionButtons}
                 <button onclick="deleteOrder('${id}')" style="position:absolute; top:-10px; right:-10px; padding:5px; border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border:2px solid var(--bg); font-weight:bold;" class="btn-red">×</button>
             `;
 
@@ -284,7 +287,6 @@ function loadOrders(){
 function renderSection(id, elements) {
     const el = document.getElementById(id);
     el.innerHTML = "";
-    // เรียงออเดอร์ใหม่ไว้บนสุด
     elements.reverse().forEach(card => el.appendChild(card));
     document.getElementById(`count-${id}`).innerText = elements.length;
 }
