@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Admin PRO</title>
+<title>Admin</title>
 <style>
 body{background:#020617;color:#fff;font-family:sans-serif;padding:10px}
 .box{background:#1e293b;padding:10px;margin:10px;border-radius:10px}
@@ -19,27 +19,19 @@ button{margin:3px;padding:5px}
 
 <div id="panel" style="display:none;">
 
-<h1>📦 ออเดอร์</h1>
-<h2 id="total"></h2>
+<h2>🆕 ออเดอร์ใหม่</h2>
+<div id="new"></div>
 
-<div id="orders"></div>
+<h2>👨‍🍳 กำลังทำ</h2>
+<div id="doing"></div>
 
-<h2>📊 สรุปรายวัน</h2>
-<div id="report"></div>
-
-<h2>➕ เพิ่มเมนู</h2>
-<input id="mname" placeholder="ชื่อเมนู">
-<input id="mprice" placeholder="ราคา">
-<button onclick="addMenu()">เพิ่ม</button>
-
-<div id="menuList"></div>
+<h2>✅ เสร็จแล้ว</h2>
+<div id="done"></div>
 
 </div>
 
 <script type="module">
-import { db, collection, onSnapshot, doc, updateDoc, addDoc } from "./firebase.js";
-
-let lastCount=0;
+import { db, collection, onSnapshot, doc, updateDoc } from "./firebase.js";
 
 if(localStorage.getItem("login")) show();
 
@@ -57,64 +49,38 @@ function show(){
 }
 
 function load(){
-
  onSnapshot(collection(db,"orders"),snap=>{
-  let total=0;
-  let daily={};
-
-  orders.innerHTML="";
-
-  if(snap.size>lastCount){
-    new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3").play();
-  }
-  lastCount=snap.size;
+  new.innerHTML="";
+  doing.innerHTML="";
+  done.innerHTML="";
 
   snap.forEach(d=>{
    const o=d.data();
    const id=d.id;
 
-   let sum=0;
-   o.cart.forEach(i=>sum+=(i.price+i.bubble)*i.qty);
-   total+=sum;
-
-   // 📅 สรุปรายวัน
-   const date=new Date(o.time);
-   const key=date.toLocaleDateString("th-TH");
-
-   daily[key]=(daily[key]||0)+sum;
-
-   orders.innerHTML+=`
+   const html=`
    <div class="box">
    ${o.name}<br>
    ${o.cart.map(i=>i.name+" x "+i.qty).join("<br>")}
-   <br>${sum} บาท
    <br>
+   <button onclick="set('${id}','new')">ใหม่</button>
    <button onclick="set('${id}','doing')">ทำ</button>
    <button onclick="set('${id}','done')">เสร็จ</button>
    </div>`;
+
+   if(o.status==="doing"){
+     doing.innerHTML+=html;
+   }else if(o.status==="done"){
+     done.innerHTML+=html;
+   }else{
+     new.innerHTML+=html;
+   }
   });
-
-  total.innerText="รวมทั้งหมด "+total+" บาท";
-
-  // แสดงรายวัน
-  report.innerHTML="";
-  Object.keys(daily).sort().forEach(d=>{
-    report.innerHTML+=`${d} : ${daily[d]} บาท<br>`;
-  });
-
  });
-
 }
 
-window.set=(id,s)=>updateDoc(doc(db,"orders",id),{status:s});
-
-// ➕ เพิ่มเมนู
-window.addMenu=async()=>{
- await addDoc(collection(db,"menu"),{
-  name:mname.value,
-  price:Number(mprice.value)
- });
- alert("เพิ่มแล้ว");
+window.set=(id,status)=>{
+ updateDoc(doc(db,"orders",id),{status});
 }
 </script>
 
