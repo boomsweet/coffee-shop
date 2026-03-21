@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hop Cafe | Admin Dashboard</title>
+    <link rel="manifest" href="manifest-admin.json">
+    
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     
     <style>
@@ -237,7 +239,6 @@ function loadOrders(){
                 minute: '2-digit' 
             });
 
-            // ✅ ตรวจสอบสถานะ: ถ้าเสร็จแล้ว (done) จะไม่แสดงปุ่มจัดการสถานะ
             const actionButtons = o.status === 'done' ? '' : `
                 <div class="btn-group">
                     <button onclick="updateStatus('${id}','new')" class="btn-blue" style="font-size:0.75em">รอ</button>
@@ -299,7 +300,7 @@ window.deleteOrder = async (id) => {
     if(confirm("ยืนยันการลบออเดอร์นี้ออกจากระบบ?")) await deleteDoc(doc(db, "orders", id));
 };
 
-// PWA Install
+// PWA Install Logic
 let deferredPrompt;
 window.addEventListener("beforeinstallprompt", (e) => {
     e.preventDefault();
@@ -309,6 +310,16 @@ window.addEventListener("beforeinstallprompt", (e) => {
 document.getElementById("installBtn").onclick = () => {
     if(deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; }
 };
+</script>
+
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => console.log('Service Worker Registered!', reg))
+        .catch(err => console.log('Service Worker Fail!', err));
+    });
+  }
 </script>
 
 </body>
