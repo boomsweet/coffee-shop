@@ -1,8 +1,6 @@
 {
   "name": "Coffee Admin",
   "short_name": "Admin",
-  "start_url": "admin.html",
-  "display": "standalone",
-  "background_color": "#020617",
-  "theme_color": "#020617"
+  "start_url": "./admin.html",
+  "display": "standalone"
 }
