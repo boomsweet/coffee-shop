@@ -6,38 +6,12 @@
 <title>ร้านกาแฟ</title>
 
 <style>
-body{font-family:sans-serif;padding:10px;background:#f8fafc}
-h1{font-size:24px}
-.card{
-  background:#fff;
-  border-radius:12px;
-  padding:10px;
-  margin:10px 0;
-  box-shadow:0 2px 5px rgba(0,0,0,0.1)
-}
+body{font-family:sans-serif;padding:10px;background:#f1f5f9}
+.card{background:#fff;padding:10px;margin:10px 0;border-radius:12px}
 img{width:100%;height:120px;object-fit:cover;border-radius:10px}
-button{
-  padding:10px 15px;
-  font-size:18px;
-  border:none;
-  border-radius:10px;
-  background:#0ea5e9;
-  color:#fff;
-  margin:5px
-}
-input{
-  padding:10px;
-  width:100%;
-  margin:5px 0;
-  border-radius:10px;
-  border:1px solid #ccc
-}
-.cart-item{
-  background:#fff;
-  padding:10px;
-  margin:5px 0;
-  border-radius:10px
-}
+button{padding:10px;font-size:18px;margin:5px;border:none;border-radius:10px;background:#0ea5e9;color:#fff}
+input{padding:10px;width:100%;margin:5px 0;border-radius:10px;border:1px solid #ccc}
+.cart{background:#fff;padding:10px;margin:5px 0;border-radius:10px}
 </style>
 
 </head>
@@ -47,87 +21,73 @@ input{
 <div id="menu"></div>
 
 <h2>🧾 รายการที่สั่ง</h2>
-<input id="name" placeholder="ชื่อผู้สั่ง">
+<input id="name" placeholder="ชื่อ">
 <input id="phone" placeholder="เบอร์โทร">
 <div id="cart"></div>
 
-<button onclick="submitOrder()">✅ ยืนยันออเดอร์</button>
+<button onclick="submitOrder()">ยืนยันออเดอร์</button>
 
 <script type="module">
-
 import { db, collection, addDoc } from "./firebase.js";
 
-let cart = [];
+let cart=[];
 
-const menu = [
-  { id:1, name:"ลาเต้", price:50, img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93" },
-  { id:2, name:"อเมริกาโน่", price:40, img:"https://images.unsplash.com/photo-1495474472287-4d71bcdd2085" }
+const menu=[
+ {id:1,name:"ลาเต้",price:50,img:"https://images.unsplash.com/photo-1509042239860-f550ce710b93"},
+ {id:2,name:"อเมริกาโน่",price:40,img:"https://images.unsplash.com/photo-1495474472287-4d71bcdd2085"}
 ];
 
-const menuDiv = document.getElementById("menu");
-const cartDiv = document.getElementById("cart");
+const menuDiv=document.getElementById("menu");
+const cartDiv=document.getElementById("cart");
 
-menu.forEach(item=>{
-  menuDiv.innerHTML += `
-  <div class="card">
-    <img src="${item.img}">
-    <h3>${item.name}</h3>
-    <p>${item.price} บาท</p>
-    <button onclick="add(${item.id})">➕ เพิ่ม</button>
-  </div>`;
+menu.forEach(i=>{
+ menuDiv.innerHTML+=`
+ <div class="card">
+  <img src="${i.img}">
+  <h3>${i.name}</h3>
+  <p>${i.price} บาท</p>
+  <button onclick="add(${i.id})">เพิ่ม</button>
+ </div>`;
 });
 
-window.add = (id)=>{
-  const item = menu.find(m=>m.id===id);
-  const exist = cart.find(c=>c.id===id);
-
-  if(exist){ exist.qty++; }
-  else{ cart.push({...item, qty:1}); }
-
-  renderCart();
-};
-
-function renderCart(){
-  cartDiv.innerHTML = "";
-  cart.forEach((item,i)=>{
-    cartDiv.innerHTML += `
-    <div class="cart-item">
-      ${item.name} x ${item.qty}
-      <br>
-      <button onclick="inc(${i})">➕</button>
-      <button onclick="dec(${i})">➖</button>
-      <button onclick="removeItem(${i})">🗑 ลบ</button>
-    </div>`;
-  });
+window.add=(id)=>{
+ const m=menu.find(x=>x.id===id);
+ const e=cart.find(x=>x.id===id);
+ if(e){e.qty++}else{cart.push({...m,qty:1})}
+ render();
 }
 
-window.inc = (i)=>{ cart[i].qty++; renderCart(); }
-window.dec = (i)=>{
-  cart[i].qty--;
-  if(cart[i].qty<=0) cart.splice(i,1);
-  renderCart();
+function render(){
+ cartDiv.innerHTML="";
+ cart.forEach((i,index)=>{
+  cartDiv.innerHTML+=`
+  <div class="cart">
+   ${i.name} x ${i.qty}<br>
+   <button onclick="inc(${index})">+</button>
+   <button onclick="dec(${index})">-</button>
+   <button onclick="del(${index})">ลบ</button>
+  </div>`;
+ });
 }
-window.removeItem = (i)=>{
-  cart.splice(i,1);
-  renderCart();
+
+window.inc=(i)=>{cart[i].qty++;render()}
+window.dec=(i)=>{cart[i].qty--;if(cart[i].qty<=0)cart.splice(i,1);render()}
+window.del=(i)=>{cart.splice(i,1);render()}
+
+window.submitOrder=async()=>{
+ const name=document.getElementById("name").value;
+ const phone=document.getElementById("phone").value;
+
+ if(cart.length==0)return alert("ยังไม่ได้สั่ง");
+
+ await addDoc(collection(db,"orders"),{
+  name,phone,cart,time:Date.now()
+ });
+
+ alert("สั่งสำเร็จ");
+ cart=[];
+ render();
 }
-
-window.submitOrder = async ()=>{
-  const name = document.getElementById("name").value;
-  const phone = document.getElementById("phone").value;
-
-  if(cart.length===0) return alert("ยังไม่ได้สั่ง");
-
-  await addDoc(collection(db,"orders"),{
-    name, phone, cart,
-    time: Date.now()
-  });
-
-  alert("สั่งสำเร็จ");
-  cart=[];
-  renderCart();
-};
-
 </script>
 
 </body>
