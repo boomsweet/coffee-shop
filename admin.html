@@ -2,38 +2,62 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Admin</title>
+<title>Admin PRO</title>
+
 <style>
 body{background:#020617;color:#fff;font-family:sans-serif;padding:10px}
 .box{background:#1e293b;padding:10px;margin:10px;border-radius:10px}
-button{margin:3px;padding:5px}
+button{margin:3px;padding:6px;border-radius:6px}
+input{margin:5px;padding:6px}
+h2{margin-top:20px}
 </style>
+
 </head>
 
 <body>
 
+<!-- 🔐 LOGIN -->
 <div id="login">
-<input id="pass" type="password">
+<h2>เข้าสู่ระบบ</h2>
+<input id="pass" type="password" placeholder="รหัสผ่าน">
 <button id="btnLogin">เข้า</button>
 </div>
 
+<!-- 🔥 PANEL -->
 <div id="panel" style="display:none;">
 
-<h2>🆕 ออเดอร์ใหม่</h2>
+<h1>📦 ระบบร้าน</h1>
+
+<h2 id="totalAll"></h2>
+
+<!-- สถานะ -->
+<h2>🆕 รับออเดอร์</h2>
 <div id="new"></div>
 
 <h2>👨‍🍳 กำลังทำ</h2>
 <div id="doing"></div>
 
-<h2>✅ เสร็จแล้ว</h2>
+<h2>✅ เสร็จสิ้น</h2>
 <div id="done"></div>
+
+<!-- 📊 รายวัน -->
+<h2>📊 สรุปรายวัน</h2>
+<div id="daily"></div>
+
+<!-- ➕ เมนู -->
+<h2>➕ จัดการเมนู</h2>
+<input id="mname" placeholder="ชื่อเมนู">
+<input id="mprice" placeholder="ราคา">
+<button id="addMenu">เพิ่มเมนู</button>
+
+<div id="menuList"></div>
 
 </div>
 
 <script type="module">
-import { db, collection, onSnapshot, doc, updateDoc } from "./firebase.js";
+import { db, collection, onSnapshot, doc, updateDoc, addDoc, deleteDoc } from "./firebase.js";
 
-// ✅ ดึง element ให้ถูกต้อง
+// ELEMENT
 const loginDiv = document.getElementById("login");
 const panelDiv = document.getElementById("panel");
 const passInput = document.getElementById("pass");
@@ -43,12 +67,14 @@ const newDiv = document.getElementById("new");
 const doingDiv = document.getElementById("doing");
 const doneDiv = document.getElementById("done");
 
-// ✅ auto login
-if(localStorage.getItem("login")){
- showPanel();
-}
+const totalAll = document.getElementById("totalAll");
+const dailyDiv = document.getElementById("daily");
 
-// ✅ ปุ่ม login
+const menuListDiv = document.getElementById("menuList");
+
+// LOGIN
+if(localStorage.getItem("login")) showPanel();
+
 btnLogin.onclick = () => {
  if(passInput.value === "0000"){
    localStorage.setItem("login","1");
@@ -58,56 +84,114 @@ btnLogin.onclick = () => {
  }
 };
 
-// ✅ แสดง panel
 function showPanel(){
  loginDiv.style.display="none";
  panelDiv.style.display="block";
  loadOrders();
+ loadMenu();
 }
 
-// ✅ โหลดออเดอร์
+// 📦 โหลดออเดอร์
 function loadOrders(){
  onSnapshot(collection(db,"orders"),snap=>{
   newDiv.innerHTML="";
   doingDiv.innerHTML="";
   doneDiv.innerHTML="";
 
+  let total = 0;
+  let daily = {};
+
   snap.forEach(d=>{
    const o = d.data();
    const id = d.id;
 
-   const html = document.createElement("div");
-   html.className = "box";
+   let sum = 0;
+   (o.cart||[]).forEach(i=>{
+     sum += (i.price + (i.bubble||0)) * i.qty;
+   });
 
-   html.innerHTML = `
+   total += sum;
+
+   // 📅 วันที่ไทย
+   const date = new Date(o.time);
+   const day = date.toLocaleDateString("th-TH");
+
+   daily[day] = (daily[day]||0) + sum;
+
+   const div = document.createElement("div");
+   div.className = "box";
+
+   div.innerHTML = `
    ${o.name || "-"}<br>
    ${(o.cart||[]).map(i=>i.name+" x "+i.qty).join("<br>")}
+   <br><b>${sum} บาท</b>
    <br>
-   <button data-id="${id}" data-status="new">ใหม่</button>
-   <button data-id="${id}" data-status="doing">ทำ</button>
+   <button data-id="${id}" data-status="new">รับออเดอร์</button>
+   <button data-id="${id}" data-status="doing">กำลังทำ</button>
    <button data-id="${id}" data-status="done">เสร็จ</button>
    `;
 
-   // ✅ ผูก event ปุ่ม (สำคัญ)
-   html.querySelectorAll("button").forEach(btn=>{
-     btn.onclick = () => {
-       const status = btn.getAttribute("data-status");
-       const docId = btn.getAttribute("data-id");
-       updateDoc(doc(db,"orders",docId),{status});
+   div.querySelectorAll("button").forEach(btn=>{
+     btn.onclick = ()=>{
+       updateDoc(doc(db,"orders",btn.dataset.id),{
+         status: btn.dataset.status
+       });
      };
    });
 
-   // ✅ แยกสถานะ
-   if(o.status === "doing"){
-     doingDiv.appendChild(html);
-   }else if(o.status === "done"){
-     doneDiv.appendChild(html);
+   if(o.status==="doing"){
+     doingDiv.appendChild(div);
+   }else if(o.status==="done"){
+     doneDiv.appendChild(div);
    }else{
-     newDiv.appendChild(html);
+     newDiv.appendChild(div);
    }
+  });
+
+  totalAll.innerText = "💰 รวมทั้งหมด: " + total + " บาท";
+
+  // รายวัน
+  dailyDiv.innerHTML="";
+  Object.keys(daily).sort().forEach(d=>{
+    dailyDiv.innerHTML += `${d} : ${daily[d]} บาท<br>`;
+  });
+
+ });
+}
+
+// ➕ เมนู
+document.getElementById("addMenu").onclick = async ()=>{
+ const name = document.getElementById("mname").value;
+ const price = Number(document.getElementById("mprice").value);
+
+ if(!name || !price) return alert("กรอกไม่ครบ");
+
+ await addDoc(collection(db,"menu"),{name,price});
+};
+
+// โหลดเมนู
+function loadMenu(){
+ onSnapshot(collection(db,"menu"),snap=>{
+  menuListDiv.innerHTML="";
+
+  snap.forEach(d=>{
+    const m = d.data();
+    const id = d.id;
+
+    menuListDiv.innerHTML += `
+    <div class="box">
+    ${m.name} (${m.price})
+    <button onclick="delMenu('${id}')">ลบ</button>
+    </div>`;
   });
  });
 }
+
+// ลบเมนู
+window.delMenu = (id)=>{
+ deleteDoc(doc(db,"menu",id));
+};
+
 </script>
 
 </body>
