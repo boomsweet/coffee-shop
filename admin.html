@@ -3,177 +3,91 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin</title>
 
-<title>Hop Tea - เจ้าของร้าน</title>
+<style>
+body{font-family:sans-serif;padding:10px;background:#020617;color:#fff}
+input{
+  padding:10px;
+  width:100%;
+  border-radius:10px;
+  border:none;
+  margin:10px 0
+}
+button{
+  padding:10px;
+  width:100%;
+  border:none;
+  border-radius:10px;
+  background:#22c55e;
+  color:#fff;
+  font-size:18px
+}
+.order{
+  background:#1e293b;
+  padding:10px;
+  margin:10px 0;
+  border-radius:10px
+}
+</style>
 
-<!-- ✅ PWA (แก้ path ให้ตรง GitHub Pages) -->
-<link rel="manifest" href="./manifest-admin.json">
-<meta name="theme-color" content="#000000">
-
-<script src="https://cdn.tailwindcss.com"></script>
 </head>
+<body>
 
-<body class="p-4 bg-gray-100">
-
-<h1 class="text-center text-xl font-bold mb-4">Hop Tea - เจ้าของร้าน</h1>
-
-<!-- 🔐 LOGIN -->
-<div id="login-box" class="text-center">
-  <input id="pass" type="password" placeholder="รหัส" class="border p-2 rounded">
-  <button onclick="login()" class="bg-black text-white px-4 py-1 rounded">เข้า</button>
+<div id="login">
+  <h2>🔐 เข้าสู่ระบบ</h2>
+  <input type="password" id="pass" placeholder="รหัสผ่าน">
+  <button onclick="login()">เข้าใช้งาน</button>
 </div>
 
-<!-- 📊 PANEL -->
-<div id="panel" class="hidden">
-
-<h2 class="mt-4 font-bold">เพิ่มเมนู</h2>
-<div class="flex gap-2 flex-wrap">
-  <input id="name" placeholder="ชื่อ" class="border p-1">
-  <input id="price" type="number" placeholder="ราคา" class="border p-1">
-  <input id="img" placeholder="ลิงก์รูป" class="border p-1">
-  <button onclick="addMenu()" class="bg-green-500 text-white px-2 rounded">เพิ่ม</button>
-</div>
-
-<div id="menu-list" class="mt-4"></div>
-
-<h2 class="mt-6 font-bold">ออเดอร์</h2>
-<div id="orders"></div>
-
+<div id="panel" style="display:none;">
+  <h1>📦 ออเดอร์</h1>
+  <div id="orders"></div>
 </div>
 
 <script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getDatabase, ref, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
-const firebaseConfig = {
- apiKey: "AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
- databaseURL:"https://coffee-shop-2042e-default-rtdb.asia-southeast1.firebasedatabase.app"
-};
+import { db, collection, onSnapshot } from "./firebase.js";
 
-const app = initializeApp(firebaseConfig);
-const db = getDatabase(app);
-
-// ✅ จำ login
-if(localStorage.getItem("admin_login")==="true"){
-  startApp();
-}
+const passInput = document.getElementById("pass");
+const panel = document.getElementById("panel");
+const loginDiv = document.getElementById("login");
 
 window.login = ()=>{
-  if(pass.value==="0000"){
-    localStorage.setItem("admin_login","true");
-    startApp();
-  }else alert("รหัสผิด");
-}
-
-function startApp(){
-  document.getElementById("login-box").style.display="none";
-  document.getElementById("panel").classList.remove("hidden");
-  loadMenu();
-  loadOrders();
-}
-
-// ===== MENU =====
-let menu = JSON.parse(localStorage.getItem("menu")||"[]");
-
-function saveMenu(){
-  localStorage.setItem("menu", JSON.stringify(menu));
-  const obj={}; menu.forEach(m=>obj[m.id]=m);
-  set(ref(db,"menu"), obj);
-}
-
-window.addMenu = ()=>{
-  if(!name.value || !price.value) return alert("กรอกข้อมูล");
-
-  const m={
-    id:Date.now(),
-    name:name.value,
-    price:Number(price.value),
-    img:img.value
-  };
-  menu.push(m);
-  saveMenu();
-  renderMenu();
-
-  name.value=""; price.value=""; img.value="";
-}
-
-window.del = (id)=>{
-  menu = menu.filter(m=>m.id!==id);
-  saveMenu();
-  renderMenu();
-}
-
-function renderMenu(){
-  document.getElementById("menu-list").innerHTML = menu.map(m=>`
-    <div class="bg-white p-2 mb-2 rounded shadow flex justify-between">
-      <div>${m.name} ฿${m.price}</div>
-      <button onclick="del(${m.id})" class="text-red-500">ลบ</button>
-    </div>
-  `).join("");
-}
-
-function loadMenu(){
-  renderMenu();
-}
-
-// ===== ORDERS =====
-let firstLoad = true;
+  if(passInput.value==="0000"){
+    loginDiv.style.display="none";
+    panel.style.display="block";
+    loadOrders();
+  }else{
+    alert("รหัสผิด");
+  }
+};
 
 function loadOrders(){
-  onValue(ref(db,"orders"), snap=>{
-    const data = snap.val()||{};
-    const keys = Object.keys(data);
+  const ordersDiv = document.getElementById("orders");
 
-    if(!firstLoad && keys.length>0){
-      new Audio("https://actions.google.com/sounds/v1/alarms/beep_short.ogg").play();
-    }
-    firstLoad = false;
+  onSnapshot(collection(db,"orders"), snapshot=>{
+    ordersDiv.innerHTML="";
 
-    document.getElementById("orders").innerHTML =
-    keys.reverse().map(k=>{
-      const o=data[k];
-      return `
-      <div class="bg-white p-2 mb-2 rounded shadow">
-        <b>${o.time}</b><br>
-        ฿${o.total}<br>
-        ${Object.values(o.items).map(i=>i.name+" x"+i.qty).join("<br>")}
-        <div class="mt-2 flex gap-2">
-          <button onclick="done('${k}')" class="bg-green-500 text-white px-2 rounded">เสร็จ</button>
-          <button onclick="printBill('${k}')" class="bg-blue-500 text-white px-2 rounded">🧾 ปริ้น</button>
-        </div>
+    snapshot.forEach(doc=>{
+      const o = doc.data();
+
+      ordersDiv.innerHTML += `
+      <div class="order">
+        <h3>${o.name} (${o.phone})</h3>
+        ${o.cart.map(i=>`${i.name} x ${i.qty}`).join("<br>")}
       </div>`;
-    }).join("");
+    });
+
+    playSound();
   });
 }
 
-window.done = (id)=>{
-  update(ref(db,"orders/"+id),{status:"completed"});
+function playSound(){
+  const audio = new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3");
+  audio.play();
 }
 
-window.printBill = (id)=>{
-  const text = document.querySelector(`[onclick="printBill('${id}')"]`).parentElement.parentElement.innerText;
-  const w = window.open("", "", "width=300,height=600");
-  w.document.write("<h2>Hop Tea</h2><pre>"+text+"</pre><script>window.print()<\/script>");
-}
-
-// ✅🔥 แก้สำคัญ: path service worker (GitHub Pages)
-if ("serviceWorker" in navigator) {
-  navigator.serviceWorker.register("./service-worker.js");
-}
-
-// 📱 ปุ่มติดตั้ง
-let deferredPrompt;
-window.addEventListener("beforeinstallprompt", (e)=>{
-  e.preventDefault();
-  deferredPrompt = e;
-
-  const btn = document.createElement("button");
-  btn.innerText="ติดตั้งแอดมิน";
-  btn.className="fixed top-2 right-2 bg-blue-500 text-white px-3 py-1 rounded shadow";
-
-  btn.onclick=()=>deferredPrompt.prompt();
-  document.body.appendChild(btn);
-});
 </script>
 
 </body>
