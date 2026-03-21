@@ -24,27 +24,44 @@ button{padding:8px;margin:3px}
 
 <button onclick="submitOrder()">ยืนยัน</button>
 
-<h2>📡 สถานะออเดอร์</h2>
-<div id="status"></div>
-
 <script type="module">
-import { db, collection, addDoc, onSnapshot } from "./firebase.js";
+import { db, collection, addDoc } from "./firebase.js";
 
 let cart=[];
 
-// ใช้เมนูเดิมของคุณ
-const menu=[
+// 🔥 เมนูครบทั้งหมด
+const menuList = [
 {name:"ชาเขียวนม",price:25},{name:"โกโก้ชา",price:25},
 {name:"ชาไทย",price:20},{name:"ชานมไต้หวัน",price:20},{name:"เนสที",price:20},
 {name:"ชามะนาว",price:20},{name:"ชาดำ",price:20},{name:"ชาเขียวใส",price:20},
 {name:"ชาเขียวมะนาว",price:20},{name:"ชาเขียวน้ำผึ้งมะนาว",price:20},
-{name:"เอสเพรสโซ่",price:25},{name:"ลาเต้",price:25}
+
+{name:"ชามะลิ",price:20},{name:"มะลิลิ้นจี่",price:20},{name:"มะลิแอปเปิ้ล",price:20},
+{name:"มะลิสตรอว์เบอร์รี",price:20},{name:"มะลิน้ำผึ้ง",price:20},{name:"มะลินม",price:20},
+
+{name:"โกโก้เบอร์รี",price:25},{name:"ชาเบอร์รี",price:20},{name:"เบอร์รีมะนาว",price:20},{name:"เบอร์รีน้ำผึ้ง",price:20},
+
+{name:"โกโก้",price:25},{name:"นมสด",price:20},{name:"นมชมพู",price:20},{name:"โอวัลติน",price:20},
+{name:"นมเผือก",price:20},{name:"นมแคนตาลูป",price:20},{name:"นมสตรอว์เบอร์รี",price:20},
+
+{name:"เอสเพรสโซ่",price:25},{name:"ลาเต้",price:25},{name:"มอคค่า",price:25},{name:"คาปูชิโน่",price:25},
+
+{name:"แดงโซดา",price:20},{name:"เขียวโซดา",price:20},{name:"มะนาวโซดา",price:20},{name:"น้ำผึ้งมะนาวโซดา",price:20},
+{name:"เสาวรสโซดา",price:20},{name:"บลูฮาวาย",price:20},{name:"องุ่นโซดา",price:20},{name:"ลิ้นจี่โซดา",price:20},
+{name:"แคนตาลูปโซดา",price:20},{name:"สตรอว์เบอร์รีโซดา",price:20},{name:"มะม่วงโซดา",price:20},
+{name:"กีวี่โซดา",price:20},{name:"แอปเปิ้ลโซดา",price:20},
+
+{name:"ชาพีช",price:20},{name:"ชานมบราวน์ซูการ์",price:20},
+{name:"ชาเขียวบราวน์ซูการ์",price:20},{name:"นมสดบราวน์ซูการ์",price:20}
 ];
 
-menu.forEach((m,i)=>{
- menu.innerHTML+=`
+const menuDiv=document.getElementById("menu");
+const cartDiv=document.getElementById("cart");
+
+menuList.forEach((m,i)=>{
+ menuDiv.innerHTML+=`
  <div class="card">
- ${m.name} (${m.price})
+ ${m.name} (${m.price} บาท)
  <br>
  <label><input type="checkbox" id="b${i}"> ไข่มุก +5</label>
  <br>
@@ -55,15 +72,16 @@ menu.forEach((m,i)=>{
 window.add=i=>{
  const bubble=document.getElementById("b"+i).checked?5:0;
  const e=cart.find(x=>x.id==i && x.bubble==bubble);
- if(e){e.qty++}else{cart.push({...menu[i],id:i,qty:1,bubble})}
+ if(e){e.qty++}
+ else{cart.push({...menuList[i],id:i,qty:1,bubble})}
  render();
 }
 
 function render(){
- let t=0;
+ let total=0;
  cartDiv.innerHTML="";
  cart.forEach((c,i)=>{
-  t+=(c.price+c.bubble)*c.qty;
+  total+=(c.price+c.bubble)*c.qty;
   cartDiv.innerHTML+=`
   <div class="cart">
   ${c.name} x ${c.qty}
@@ -71,29 +89,22 @@ function render(){
   <button onclick="dec(${i})">-</button>
   </div>`;
  });
- total.innerText="รวม "+t+" บาท";
+ document.getElementById("total").innerText="รวม "+total+" บาท";
 }
 
 window.inc=i=>{cart[i].qty++;render()}
 window.dec=i=>{cart[i].qty--;if(cart[i].qty<=0)cart.splice(i,1);render()}
 
 window.submitOrder=async()=>{
- const doc=await addDoc(collection(db,"orders"),{
+ await addDoc(collection(db,"orders"),{
   name:name.value,
   phone:phone.value,
   cart,
   status:"new",
   time:Date.now()
  });
-
- // 🔥 แสดงสถานะ realtime
- onSnapshot(doc,d=>{
-  const s=d.data().status;
-  status.innerText="สถานะ: "+(s=="done"?"เสร็จแล้ว":"กำลังทำ");
- });
-
- cart=[]; render();
  alert("สั่งสำเร็จ");
+ cart=[];render();
 }
 </script>
 
