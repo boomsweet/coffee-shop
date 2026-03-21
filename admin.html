@@ -6,54 +6,67 @@
 
 <style>
 body{font-family:sans-serif;background:#020617;color:#fff;padding:10px}
-input{padding:10px;width:100%;border-radius:10px;margin:10px 0}
-button{padding:10px;width:100%;border:none;border-radius:10px;background:#22c55e;color:#fff}
-.box{background:#1e293b;padding:10px;margin:10px 0;border-radius:10px}
+.box{background:#1e293b;padding:10px;margin:10px;border-radius:10px}
+button{padding:5px;margin:3px;border:none;border-radius:8px}
+.new{background:red}
+.doing{background:orange}
+.done{background:green}
 </style>
-
 </head>
+
 <body>
 
-<div id="login">
-<h2>เข้าสู่ระบบ</h2>
-<input type="password" id="pass">
-<button onclick="login()">เข้า</button>
-</div>
+<h1>📦 ออเดอร์</h1>
+<h2 id="total"></h2>
 
-<div id="panel" style="display:none;">
-<h1>ออเดอร์</h1>
-<div id="orders"></div>
-</div>
+<h2>🆕 ใหม่</h2>
+<div id="new"></div>
+
+<h2>👨‍🍳 กำลังทำ</h2>
+<div id="doing"></div>
+
+<h2>✅ เสร็จแล้ว</h2>
+<div id="done"></div>
 
 <script type="module">
-import { db, collection, onSnapshot } from "./firebase.js";
+import { db, collection, onSnapshot, doc, updateDoc } from "./firebase.js";
 
-window.login=()=>{
- if(document.getElementById("pass").value==="0000"){
-  document.getElementById("login").style.display="none";
-  document.getElementById("panel").style.display="block";
-  load();
- }else alert("รหัสผิด");
-}
+onSnapshot(collection(db,"orders"),snap=>{
+ let total=0;
 
-function load(){
- const div=document.getElementById("orders");
+ new.innerHTML="";
+ doing.innerHTML="";
+ done.innerHTML="";
 
- onSnapshot(collection(db,"orders"),snap=>{
-  div.innerHTML="";
+ snap.forEach(d=>{
+  const o=d.data();
+  const id=d.id;
 
-  snap.forEach(d=>{
-   const o=d.data();
+  let sum=0;
+  o.cart.forEach(i=>sum+=i.price*i.qty);
+  total+=sum;
 
-   div.innerHTML+=`
-   <div class="box">
-    <b>${o.name}</b> (${o.phone})<br>
-    ${o.cart.map(i=>i.name+" x "+i.qty).join("<br>")}
-   </div>`;
-  });
+  const html=`
+  <div class="box">
+  ${o.name} (${o.phone})<br>
+  ${o.cart.map(i=>i.name+" x "+i.qty).join("<br>")}
+  <br>💰 ${sum}
+  <br>
+  <button class="new" onclick="set('${id}','new')">ใหม่</button>
+  <button class="doing" onclick="set('${id}','doing')">ทำ</button>
+  <button class="done" onclick="set('${id}','done')">เสร็จ</button>
+  </div>`;
 
-  new Audio("https://www.soundjay.com/buttons/sounds/button-3.mp3").play();
+  if(o.status=="doing") doing.innerHTML+=html;
+  else if(o.status=="done") done.innerHTML+=html;
+  else new.innerHTML+=html;
  });
+
+ document.getElementById("total").innerText="ยอดรวม "+total+" บาท";
+});
+
+window.set=async(id,status)=>{
+ await updateDoc(doc(db,"orders",id),{status});
 }
 </script>
 
