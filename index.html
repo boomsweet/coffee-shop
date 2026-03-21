@@ -7,6 +7,7 @@
 body{font-family:sans-serif;background:#f1f5f9;padding:10px}
 .card{background:#fff;padding:10px;margin:10px;border-radius:10px}
 button{padding:8px;margin:3px}
+.cart{background:#fff;padding:10px;margin:5px;border-radius:10px}
 </style>
 </head>
 
@@ -21,7 +22,7 @@ button{padding:8px;margin:3px}
 <div id="cart"></div>
 <h3 id="total"></h3>
 
-<button onclick="submitOrder()">ยืนยัน</button>
+<button onclick="submitOrder()">ยืนยันออเดอร์</button>
 
 <script type="module">
 import { db, collection, addDoc } from "./firebase.js";
@@ -33,34 +34,20 @@ const menu=[
 {name:"ชาไทย",price:20},{name:"ชานมไต้หวัน",price:20},{name:"เนสที",price:20},
 {name:"ชามะนาว",price:20},{name:"ชาดำ",price:20},{name:"ชาเขียวใส",price:20},
 {name:"ชาเขียวมะนาว",price:20},{name:"ชาเขียวน้ำผึ้งมะนาว",price:20},
-
-{name:"ชามะลิ",price:20},{name:"มะลิลิ้นจี่",price:20},{name:"มะลิแอปเปิ้ล",price:20},
-{name:"มะลิสตรอว์เบอร์รี",price:20},{name:"มะลิน้ำผึ้ง",price:20},{name:"มะลินม",price:20},
-
-{name:"โกโก้เบอร์รี",price:25},{name:"ชาเบอร์รี",price:20},{name:"เบอร์รีมะนาว",price:20},{name:"เบอร์รีน้ำผึ้ง",price:20},
-
-{name:"โกโก้",price:25},{name:"นมสด",price:20},{name:"นมชมพู",price:20},{name:"โอวัลติน",price:20},
-{name:"นมเผือก",price:20},{name:"นมแคนตาลูป",price:20},{name:"นมสตรอว์เบอร์รี",price:20},
-
-{name:"เอสเพรสโซ่",price:25},{name:"ลาเต้",price:25},{name:"มอคค่า",price:25},{name:"คาปูชิโน่",price:25},
-
-{name:"แดงโซดา",price:20},{name:"เขียวโซดา",price:20},{name:"มะนาวโซดา",price:20},{name:"น้ำผึ้งมะนาวโซดา",price:20},
-{name:"เสาวรสโซดา",price:20},{name:"บลูฮาวาย",price:20},{name:"องุ่นโซดา",price:20},{name:"ลิ้นจี่โซดา",price:20},
-{name:"แคนตาลูปโซดา",price:20},{name:"สตรอว์เบอร์รีโซดา",price:20},{name:"มะม่วงโซดา",price:20},
-{name:"กีวี่โซดา",price:20},{name:"แอปเปิ้ลโซดา",price:20},
-
-{name:"ชาพีช",price:20},{name:"ชานมบราวน์ซูการ์",price:20},
-{name:"ชาเขียวบราวน์ซูการ์",price:20},{name:"นมสดบราวน์ซูการ์",price:20}
+{name:"โกโก้",price:25},{name:"นมสด",price:20},
+{name:"เอสเพรสโซ่",price:25},{name:"ลาเต้",price:25},
+{name:"แดงโซดา",price:20},{name:"มะนาวโซดา",price:20}
 ];
 
 const menuDiv=document.getElementById("menu");
+const cartDiv=document.getElementById("cart");
 
 menu.forEach((m,i)=>{
  menuDiv.innerHTML+=`
  <div class="card">
- ${m.name} (${m.price} บาท)
+ ${m.name} (${m.price})
  <br>
- <label><input type="checkbox" id="b${i}"> เพิ่มไข่มุก +5</label>
+ <label><input type="checkbox" id="b${i}"> ไข่มุก +5</label>
  <br>
  <button onclick="add(${i})">เพิ่ม</button>
  </div>`;
@@ -69,31 +56,50 @@ menu.forEach((m,i)=>{
 window.add=i=>{
  const bubble=document.getElementById("b"+i).checked?5:0;
  const e=cart.find(x=>x.id==i && x.bubble==bubble);
+
  if(e){e.qty++}
  else{cart.push({...menu[i],id:i,qty:1,bubble})}
+
  render();
 }
 
 function render(){
  let total=0;
- const cartDiv=document.getElementById("cart");
  cartDiv.innerHTML="";
+
  cart.forEach((c,i)=>{
   total+=(c.price+c.bubble)*c.qty;
-  cartDiv.innerHTML+=`${c.name} ${c.bubble?"+ไข่มุก":""} x ${c.qty}<br>`;
+
+  cartDiv.innerHTML+=`
+  <div class="cart">
+  ${c.name} ${c.bubble?"+ไข่มุก":""}
+  <br>
+  จำนวน: ${c.qty}
+  <br>
+  <button onclick="inc(${i})">➕</button>
+  <button onclick="dec(${i})">➖</button>
+  <button onclick="removeItem(${i})">❌ ลบ</button>
+  </div>`;
  });
+
  document.getElementById("total").innerText="รวม "+total+" บาท";
 }
 
+window.inc=i=>{cart[i].qty++;render()}
+window.dec=i=>{cart[i].qty--;if(cart[i].qty<=0)cart.splice(i,1);render()}
+window.removeItem=i=>{cart.splice(i,1);render()}
+
 window.submitOrder=async()=>{
- if(cart.length==0)return alert("ยังไม่ได้สั่ง");
+ if(cart.length===0) return alert("ยังไม่ได้สั่ง");
+
  await addDoc(collection(db,"orders"),{
-  name:name.value,
-  phone:phone.value,
+  name:document.getElementById("name").value,
+  phone:document.getElementById("phone").value,
   cart,
   status:"new",
   time:Date.now()
  });
+
  alert("สั่งสำเร็จ");
  cart=[]; render();
 }
