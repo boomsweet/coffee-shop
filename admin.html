@@ -14,7 +14,7 @@ button{margin:3px;padding:5px}
 
 <div id="login">
 <input id="pass" type="password">
-<button onclick="login()">เข้า</button>
+<button id="btnLogin">เข้า</button>
 </div>
 
 <div id="panel" style="display:none;">
@@ -33,54 +33,80 @@ button{margin:3px;padding:5px}
 <script type="module">
 import { db, collection, onSnapshot, doc, updateDoc } from "./firebase.js";
 
-if(localStorage.getItem("login")) show();
+// ✅ ดึง element ให้ถูกต้อง
+const loginDiv = document.getElementById("login");
+const panelDiv = document.getElementById("panel");
+const passInput = document.getElementById("pass");
+const btnLogin = document.getElementById("btnLogin");
 
-window.login=()=>{
- if(pass.value==="0000"){
-  localStorage.setItem("login","1");
-  show();
- }else alert("ผิด");
+const newDiv = document.getElementById("new");
+const doingDiv = document.getElementById("doing");
+const doneDiv = document.getElementById("done");
+
+// ✅ auto login
+if(localStorage.getItem("login")){
+ showPanel();
 }
 
-function show(){
- login.style.display="none";
- panel.style.display="block";
- load();
+// ✅ ปุ่ม login
+btnLogin.onclick = () => {
+ if(passInput.value === "0000"){
+   localStorage.setItem("login","1");
+   showPanel();
+ }else{
+   alert("รหัสผิด");
+ }
+};
+
+// ✅ แสดง panel
+function showPanel(){
+ loginDiv.style.display="none";
+ panelDiv.style.display="block";
+ loadOrders();
 }
 
-function load(){
+// ✅ โหลดออเดอร์
+function loadOrders(){
  onSnapshot(collection(db,"orders"),snap=>{
-  new.innerHTML="";
-  doing.innerHTML="";
-  done.innerHTML="";
+  newDiv.innerHTML="";
+  doingDiv.innerHTML="";
+  doneDiv.innerHTML="";
 
   snap.forEach(d=>{
-   const o=d.data();
-   const id=d.id;
+   const o = d.data();
+   const id = d.id;
 
-   const html=`
-   <div class="box">
-   ${o.name}<br>
-   ${o.cart.map(i=>i.name+" x "+i.qty).join("<br>")}
+   const html = document.createElement("div");
+   html.className = "box";
+
+   html.innerHTML = `
+   ${o.name || "-"}<br>
+   ${(o.cart||[]).map(i=>i.name+" x "+i.qty).join("<br>")}
    <br>
-   <button onclick="set('${id}','new')">ใหม่</button>
-   <button onclick="set('${id}','doing')">ทำ</button>
-   <button onclick="set('${id}','done')">เสร็จ</button>
-   </div>`;
+   <button data-id="${id}" data-status="new">ใหม่</button>
+   <button data-id="${id}" data-status="doing">ทำ</button>
+   <button data-id="${id}" data-status="done">เสร็จ</button>
+   `;
 
-   if(o.status==="doing"){
-     doing.innerHTML+=html;
-   }else if(o.status==="done"){
-     done.innerHTML+=html;
+   // ✅ ผูก event ปุ่ม (สำคัญ)
+   html.querySelectorAll("button").forEach(btn=>{
+     btn.onclick = () => {
+       const status = btn.getAttribute("data-status");
+       const docId = btn.getAttribute("data-id");
+       updateDoc(doc(db,"orders",docId),{status});
+     };
+   });
+
+   // ✅ แยกสถานะ
+   if(o.status === "doing"){
+     doingDiv.appendChild(html);
+   }else if(o.status === "done"){
+     doneDiv.appendChild(html);
    }else{
-     new.innerHTML+=html;
+     newDiv.appendChild(html);
    }
   });
  });
-}
-
-window.set=(id,status)=>{
- updateDoc(doc(db,"orders",id),{status});
 }
 </script>
 
