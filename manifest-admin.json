@@ -1,16 +1,17 @@
 {
-  "name": "Hop Tea Admin",
-  "short_name": "Admin",
-  "start_url": "/coffee-shop/admin.html",
-  "scope": "/coffee-shop/",
+  "name": "Admin - ครัวอารมณ์ดี",
+  "short_name": "Admin Kitchen",
+  "description": "ระบบจัดการออเดอร์สำหรับเจ้าของร้าน",
+  "start_url": "admin.html",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#0f172a",
+  "theme_color": "#e67e22",
   "icons": [
     {
-      "src": "https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?w=128",
-      "sizes": "128x128",
-      "type": "image/png"
+      "src": "https://cdn-icons-png.flaticon.com/512/9322/9322765.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }
