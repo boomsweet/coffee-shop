@@ -5,163 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hop Cafe | Admin Dashboard</title>
     <link rel="manifest" href="manifest-admin.json">
-    
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
-    
     <style>
         :root {
-            --bg: #0f172a;
-            --card: #1e293b;
-            --primary: #38bdf8;
-            --success: #22c55e;
-            --warning: #f59e0b;
-            --danger: #ef4444;
-            --text: #f1f5f9;
+            --bg: #0f172a; --card: #1e293b; --primary: #38bdf8;
+            --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; --text: #f1f5f9;
         }
-
-        body {
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Kanit', sans-serif;
-            margin: 0;
-            padding: 20px;
-        }
-
+        body { background-color: var(--bg); color: var(--text); font-family: 'Kanit', sans-serif; margin: 0; padding: 20px; }
         .container { max-width: 1000px; margin: auto; }
-
-        /* 🔐 LOGIN UI */
-        #login {
-            max-width: 350px;
-            margin: 100px auto;
-            text-align: center;
-            background: var(--card);
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-
-        /* 📱 DASHBOARD */
+        #login { max-width: 350px; margin: 100px auto; text-align: center; background: var(--card); padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         h1 { font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 10px; }
-        
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 15px;
-            margin-bottom: 30px;
-        }
-
-        .stat-box {
-            background: var(--card);
-            padding: 20px;
-            border-radius: 15px;
-            border-left: 5px solid var(--primary);
-        }
-
-        .stat-box h3 { margin: 0; font-size: 0.9em; opacity: 0.7; }
-        .stat-box p { margin: 10px 0 0; font-size: 1.5em; font-weight: bold; }
-
-        /* 📦 ORDER SECTION */
-        .section-title {
-            background: #334155;
-            padding: 10px 15px;
-            border-radius: 10px;
-            margin: 25px 0 15px;
-            font-size: 1.1em;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .grid-orders {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 15px;
-        }
-
-        .order-card {
-            background: var(--card);
-            border-radius: 15px;
-            padding: 15px;
-            border: 1px solid #334155;
-            position: relative;
-        }
-
-        .order-header {
-            border-bottom: 1px solid #334155;
-            padding-bottom: 10px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-        }
-
-        .customer-info {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-
-        .phone-link {
-            color: var(--primary);
-            text-decoration: none;
-            font-size: 0.9em;
-            font-weight: 400;
-        }
-
-        .item-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.95em;
-            margin-bottom: 5px;
-        }
-
-        .item-detail { 
-            font-size: 0.9em; 
-            color: #cbd5e1; 
-            margin-bottom: 12px;
-            padding: 4px 8px;
-            background: rgba(255,255,255,0.05);
-            border-radius: 6px;
-        }
-
-        /* 🔘 BUTTONS */
-        button {
-            border: none;
-            border-radius: 8px;
-            padding: 10px 15px;
-            cursor: pointer;
-            font-family: 'Kanit', sans-serif;
-            transition: 0.2s;
-            font-weight: 500;
-        }
-
+        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
+        .stat-box { background: var(--card); padding: 20px; border-radius: 15px; border-left: 5px solid var(--primary); }
+        .stat-box h3 { margin: 0; font-size: 0.8em; opacity: 0.7; text-transform: uppercase; }
+        .stat-box p { margin: 10px 0 0; font-size: 1.3em; font-weight: bold; }
+        .section-title { background: #334155; padding: 10px 15px; border-radius: 10px; margin: 25px 0 15px; font-size: 1.1em; display: flex; justify-content: space-between; }
+        .grid-orders { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
+        .order-card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid #334155; position: relative; }
+        .order-header { border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .customer-info { display: flex; flex-direction: column; gap: 2px; }
+        .phone-link { color: var(--primary); text-decoration: none; font-size: 0.9em; }
+        .item-row { display: flex; justify-content: space-between; font-size: 0.95em; margin-bottom: 5px; }
+        .item-detail { font-size: 0.85em; color: #cbd5e1; margin-bottom: 12px; padding: 4px 8px; background: rgba(255,255,255,0.05); border-radius: 6px; }
+        button { border: none; border-radius: 8px; padding: 10px 15px; cursor: pointer; font-family: 'Kanit', sans-serif; transition: 0.2s; font-weight: 500; }
         .btn-blue { background: var(--primary); color: #000; }
         .btn-orange { background: var(--warning); color: #000; }
         .btn-green { background: var(--success); color: #fff; }
         .btn-red { background: var(--danger); color: #fff; }
-
         .btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 15px; }
-
-        input {
-            background: #0f172a;
-            border: 1px solid #334155;
-            color: #fff;
-            padding: 10px;
-            border-radius: 8px;
-            outline: none;
-        }
-
-        .badge {
-            padding: 2px 8px;
-            border-radius: 5px;
-            font-size: 0.75em;
-            font-weight: bold;
-        }
+        input { background: #0f172a; border: 1px solid #334155; color: #fff; padding: 10px; border-radius: 8px; outline: none; }
+        .badge { padding: 2px 8px; border-radius: 5px; font-size: 0.75em; font-weight: bold; }
         .bg-new { background: var(--primary); color: #000; }
         .bg-doing { background: var(--warning); color: #000; }
         .bg-done { background: var(--success); color: #fff; }
+        .history-table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 15px; overflow: hidden; margin-top: 10px; }
+        .history-table th, .history-table td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
+        .history-table th { background: #334155; font-size: 0.9em; }
     </style>
 </head>
-
 <body>
 
 <div id="login">
@@ -174,14 +55,8 @@
     <h1>📊 Dashboard <button id="installBtn" class="btn-blue" style="display:none; font-size:0.5em;">📲 ติดตั้งแอป</button></h1>
     
     <div class="stats-grid">
-        <div class="stat-box">
-            <h3>💰 ยอดขายสะสม</h3>
-            <p id="totalAll">0 บาท</p>
-        </div>
-        <div class="stat-box" style="border-left-color: var(--success);">
-            <h3>📅 ยอดวันนี้ (<span id="todayLabel">-</span>)</h3>
-            <p id="daily">0 บาท</p>
-        </div>
+        <div class="stat-box"><h3>💰 ยอดขายเดือนนี้</h3><p id="monthTotal">0 บาท</p></div>
+        <div class="stat-box" style="border-left-color: var(--success);"><h3>📅 ยอดวันนี้ (<span id="todayLabel">-</span>)</h3><p id="daily">0 บาท</p></div>
     </div>
 
     <div class="section-title">🆕 ออเดอร์มาใหม่ <span id="count-new" class="badge bg-new">0</span></div>
@@ -190,12 +65,18 @@
     <div class="section-title">👨‍🍳 กำลังเตรียม <span id="count-doing" class="badge bg-doing">0</span></div>
     <div id="doing" class="grid-orders"></div>
 
-    <div class="section-title">✅ เสร็จสิ้น <span id="count-done" class="badge bg-done">0</span></div>
+    <div class="section-title">✅ เสร็จสิ้น (ลบไม่ได้) <span id="count-done" class="badge bg-done">0</span></div>
     <div id="done" class="grid-orders"></div>
+
+    <div class="section-title">📈 สรุปยอดขายย้อนหลัง</div>
+    <table class="history-table">
+        <thead><tr><th>วันที่</th><th>ยอดขายรวม</th></tr></thead>
+        <tbody id="historyBody"></tbody>
+    </table>
 </div>
 
 <script type="module">
-import { db, collection, onSnapshot, doc, updateDoc, addDoc } from "./firebase.js";
+import { db, collection, onSnapshot, doc, updateDoc } from "./firebase.js";
 import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const loginDiv = document.getElementById("login");
@@ -204,11 +85,12 @@ const passInput = document.getElementById("pass");
 const btnLogin = document.getElementById("btnLogin");
 const todayLabel = document.getElementById("todayLabel");
 
-// CONFIG เขตเวลาไทย
+const notificationSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
+let lastOrderCount = -1;
+
 const thaiLocale = 'th-TH';
 const thaiOptions = { timeZone: 'Asia/Bangkok' };
 
-// LOGIN LOGIC
 if(localStorage.getItem("admin_login")) showPanel();
 btnLogin.onclick = () => {
     if(passInput.value === "0000"){
@@ -227,67 +109,62 @@ function showPanel(){
 function loadOrders(){
     onSnapshot(collection(db,"orders"), snap => {
         const containers = { new: [], doing: [], done: [] };
-        let total = 0, dailyTotal = 0;
+        let dailyTotal = 0, monthTotal = 0;
+        const dailySummary = {};
         const todayStr = new Date().toLocaleDateString(thaiLocale, thaiOptions);
+        const thisMonth = new Date().getMonth();
+        const thisYear = new Date().getFullYear();
+
+        let currentNewOrders = 0;
 
         snap.forEach(d => {
             const o = d.data();
             const id = d.id;
             let orderSum = 0;
+            (o.cart || []).forEach(item => { orderSum += (item.price + (item.bubble || 0)) * item.qty; });
 
-            (o.cart || []).forEach(item => {
-                orderSum += (item.price + (item.bubble || 0)) * item.qty;
-            });
-
-            total += orderSum;
+            const dObj = new Date(o.time);
+            const dStr = dObj.toLocaleDateString(thaiLocale, thaiOptions);
             
-            const orderDate = new Date(o.time).toLocaleDateString(thaiLocale, thaiOptions);
-            if(orderDate === todayStr) dailyTotal += orderSum;
+            // สรุปยอด
+            dailySummary[dStr] = (dailySummary[dStr] || 0) + orderSum;
+            if(dStr === todayStr) dailyTotal += orderSum;
+            if(dObj.getMonth() === thisMonth && dObj.getFullYear() === thisYear) monthTotal += orderSum;
+
+            if(o.status === 'new') currentNewOrders++;
 
             const card = document.createElement("div");
             card.className = "order-card";
-            
-            const orderTime = new Date(o.time).toLocaleTimeString(thaiLocale, { 
-                ...thaiOptions, 
-                hour: '2-digit', 
-                minute: '2-digit' 
-            });
+            const orderTime = dObj.toLocaleTimeString(thaiLocale, { ...thaiOptions, hour: '2-digit', minute: '2-digit' });
 
-            const actionButtons = o.status === 'done' ? '' : `
+            const isDone = o.status === 'done';
+            const actionButtons = isDone ? '' : `
                 <div class="btn-group">
                     <button onclick="updateStatus('${id}','new')" class="btn-blue" style="font-size:0.75em">รอ</button>
                     <button onclick="updateStatus('${id}','doing')" class="btn-orange" style="font-size:0.75em">ทำ</button>
                     <button onclick="updateStatus('${id}','done')" class="btn-green" style="font-size:0.75em">เสร็จ</button>
                 </div>
             `;
+            
+            // ปุ่มลบ: แสดงเฉพาะถ้ายังไม่เสร็จ (Done)
+            const deleteBtn = isDone ? '' : `<button onclick="deleteOrder('${id}')" style="position:absolute; top:-10px; right:-10px; padding:5px; border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border:2px solid var(--bg); font-weight:bold;" class="btn-red">×</button>`;
 
-            // แก้ไขส่วนนี้: เพิ่มการแสดงเบอร์โทรศัพท์ และทำให้กดโทรออกได้ทันที
             card.innerHTML = `
                 <div class="order-header">
                     <div class="customer-info">
-                        <strong>👤 ${o.name || 'ลูกค้าทั่วไป'}</strong>
-                        ${o.phone ? `<a href="tel:${o.phone}" class="phone-link">📞 ${o.phone}</a>` : '<span style="font-size:0.8em; opacity:0.5">ไม่มีเบอร์โทร</span>'}
+                        <strong>👤 ${o.name || 'ลูกค้า'}</strong>
+                        ${o.phone ? `<a href="tel:${o.phone}" class="phone-link">📞 ${o.phone}</a>` : ''}
                     </div>
-                    <span style="font-size:0.85em; opacity:0.7">${orderTime} น.</span>
+                    <span style="font-size:0.85em; opacity:0.7">${orderTime}</span>
                 </div>
                 <div>
                     ${(o.cart || []).map(item => `
-                        <div class="item-row">
-                            <span><b>${item.name}</b> x ${item.qty}</span>
-                            <span>${(item.price + (item.bubble || 0)) * item.qty}.-</span>
-                        </div>
-                        <div class="item-detail">
-                            ความหวาน: ${item.sweet || 'ปกติ'} 
-                            ${item.bubble ? ' | เพิ่มไข่มุก' : ''}
-                            ${item.note ? ` | ${item.note}` : ''}
-                        </div>
+                        <div class="item-row"><span><b>${item.name}</b> x ${item.qty}</span><span>${(item.price + (item.bubble || 0)) * item.qty}.-</span></div>
+                        <div class="item-detail">${item.sweet || 'ปกติ'}${item.bubble ? ' | ไข่มุก' : ''}${item.note ? ` | ${item.note}` : ''}</div>
                     `).join('')}
                 </div>
-                <div style="text-align:right; font-size:1.2em; font-weight:bold; color:var(--primary); border-top: 1px dashed #334155; padding-top:10px;">
-                    รวม ${orderSum.toLocaleString()} บาท
-                </div>
-                ${actionButtons}
-                <button onclick="deleteOrder('${id}')" style="position:absolute; top:-10px; right:-10px; padding:5px; border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border:2px solid var(--bg); font-weight:bold;" class="btn-red">×</button>
+                <div style="text-align:right; font-size:1.1em; font-weight:bold; color:var(--primary); border-top: 1px dashed #334155; padding-top:10px;">รวม ${orderSum.toLocaleString()}.-</div>
+                ${actionButtons}${deleteBtn}
             `;
 
             if(o.status === "doing") containers.doing.push(card);
@@ -295,12 +172,25 @@ function loadOrders(){
             else containers.new.push(card);
         });
 
+        // เสียงเตือน
+        if (lastOrderCount !== -1 && currentNewOrders > lastOrderCount) {
+            notificationSound.play().catch(e => console.log("Audio play blocked"));
+        }
+        lastOrderCount = currentNewOrders;
+
         renderSection("new", containers.new);
         renderSection("doing", containers.doing);
         renderSection("done", containers.done);
         
-        document.getElementById("totalAll").innerText = total.toLocaleString() + " บาท";
         document.getElementById("daily").innerText = dailyTotal.toLocaleString() + " บาท";
+        document.getElementById("monthTotal").innerText = monthTotal.toLocaleString() + " บาท";
+
+        // ตารางประวัติ
+        const historyBody = document.getElementById("historyBody");
+        historyBody.innerHTML = "";
+        Object.keys(dailySummary).sort((a,b) => b.localeCompare(a)).slice(0, 7).forEach(date => {
+            historyBody.innerHTML += `<tr><td>${date}</td><td>${dailySummary[date].toLocaleString()}.-</td></tr>`;
+        });
     });
 }
 
@@ -311,35 +201,16 @@ function renderSection(id, elements) {
     document.getElementById(`count-${id}`).innerText = elements.length;
 }
 
-window.updateStatus = (id, status) => {
-    updateDoc(doc(db, "orders", id), { status });
-};
+window.updateStatus = (id, status) => { updateDoc(doc(db, "orders", id), { status }); };
+window.deleteOrder = async (id) => { if(confirm("ลบออเดอร์นี้?")) await deleteDoc(doc(db, "orders", id)); };
 
-window.deleteOrder = async (id) => {
-    if(confirm("ยืนยันการลบออเดอร์นี้ออกจากระบบ?")) await deleteDoc(doc(db, "orders", id));
-};
-
-// PWA Install Logic
 let deferredPrompt;
-window.addEventListener("beforeinstallprompt", (e) => {
-    e.preventDefault();
-    deferredPrompt = e;
-    document.getElementById("installBtn").style.display = "inline-block";
-});
-document.getElementById("installBtn").onclick = () => {
-    if(deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; }
-};
+window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById("installBtn").style.display = "inline-block"; });
+document.getElementById("installBtn").onclick = () => { if(deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; } };
 </script>
 
 <script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('Service Worker Registered!', reg))
-        .catch(err => console.log('Service Worker Fail!', err));
-    });
-  }
+  if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); }); }
 </script>
-
 </body>
 </html>
