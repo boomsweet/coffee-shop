@@ -9,12 +9,13 @@ body{font-family:sans-serif;background:#f1f5f9;padding:10px}
 button{padding:8px;margin:3px}
 </style>
 </head>
+
 <body>
 
-<h1>☕ เมนู</h1>
+<h1>☕ Hop Cafe</h1>
 <div id="menu"></div>
 
-<h2>รายการ</h2>
+<h2>🧾 รายการ</h2>
 <input id="name" placeholder="ชื่อ">
 <input id="phone" placeholder="เบอร์">
 <div id="cart"></div>
@@ -27,8 +28,7 @@ import { db, collection, addDoc } from "./firebase.js";
 
 let cart=[];
 
-// ✅ เมนูครบทั้งหมด
-const menu = [
+const menu=[
 {name:"ชาเขียวนม",price:25},{name:"โกโก้ชา",price:25},
 {name:"ชาไทย",price:20},{name:"ชานมไต้หวัน",price:20},{name:"เนสที",price:20},
 {name:"ชามะนาว",price:20},{name:"ชาดำ",price:20},{name:"ชาเขียวใส",price:20},
@@ -53,12 +53,14 @@ const menu = [
 {name:"ชาเขียวบราวน์ซูการ์",price:20},{name:"นมสดบราวน์ซูการ์",price:20}
 ];
 
+const menuDiv=document.getElementById("menu");
+
 menu.forEach((m,i)=>{
- menu.innerHTML+=`
+ menuDiv.innerHTML+=`
  <div class="card">
- ${m.name} (${m.price})
+ ${m.name} (${m.price} บาท)
  <br>
- <label><input type="checkbox" id="b${i}"> ไข่มุก +5</label>
+ <label><input type="checkbox" id="b${i}"> เพิ่มไข่มุก +5</label>
  <br>
  <button onclick="add(${i})">เพิ่ม</button>
  </div>`;
@@ -67,25 +69,33 @@ menu.forEach((m,i)=>{
 window.add=i=>{
  const bubble=document.getElementById("b"+i).checked?5:0;
  const e=cart.find(x=>x.id==i && x.bubble==bubble);
- if(e){e.qty++}else{cart.push({...menu[i],id:i,qty:1,bubble})}
+ if(e){e.qty++}
+ else{cart.push({...menu[i],id:i,qty:1,bubble})}
  render();
 }
 
 function render(){
- let t=0;
+ let total=0;
+ const cartDiv=document.getElementById("cart");
  cartDiv.innerHTML="";
  cart.forEach((c,i)=>{
-  t+=(c.price+c.bubble)*c.qty;
-  cartDiv.innerHTML+=`${c.name} x ${c.qty}<br>`;
+  total+=(c.price+c.bubble)*c.qty;
+  cartDiv.innerHTML+=`${c.name} ${c.bubble?"+ไข่มุก":""} x ${c.qty}<br>`;
  });
- total.innerText="รวม "+t+" บาท";
+ document.getElementById("total").innerText="รวม "+total+" บาท";
 }
 
 window.submitOrder=async()=>{
+ if(cart.length==0)return alert("ยังไม่ได้สั่ง");
  await addDoc(collection(db,"orders"),{
-  name:name.value,phone:phone.value,cart,status:"new",time:Date.now()
+  name:name.value,
+  phone:phone.value,
+  cart,
+  status:"new",
+  time:Date.now()
  });
- alert("สำเร็จ"); cart=[]; render();
+ alert("สั่งสำเร็จ");
+ cart=[]; render();
 }
 </script>
 
