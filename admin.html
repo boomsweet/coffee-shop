@@ -14,13 +14,11 @@
         .container { max-width: 1000px; margin: auto; }
         #login { max-width: 350px; margin: 100px auto; text-align: center; background: var(--card); padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         
-        /* Sales Summary Box */
         .sales-overview { background: linear-gradient(135deg, #1e293b, #334155); padding: 20px; border-radius: 25px; margin-bottom: 25px; border: 1px solid #475569; }
         .sales-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: center; }
         .sales-item h4 { margin: 0; font-size: 0.85em; color: var(--primary); opacity: 0.8; }
         .sales-item p { margin: 5px 0 0; font-size: 1.4em; font-weight: bold; }
 
-        /* Navigation Tabs */
         .admin-nav { display: flex; gap: 10px; margin-bottom: 20px; }
         .nav-btn { flex: 1; padding: 12px; border-radius: 15px; border: none; background: #334155; color: white; cursor: pointer; font-weight: 600; }
         .nav-btn.active { background: var(--primary); color: #000; }
@@ -39,14 +37,16 @@
         .item-list { margin: 15px 0; }
         .item-row { display: flex; justify-content: space-between; font-size: 0.95em; }
         
-        button { cursor: pointer; border: none; font-family: 'Kanit'; }
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
-        .btn-status { padding: 12px; border-radius: 12px; font-weight: bold; }
+        button { cursor: pointer; border: none; font-family: 'Kanit'; transition: 0.2s; }
+        button:active { transform: scale(0.95); }
+        .btn-group { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 15px; }
+        .btn-status { padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; }
         
         .page { display: none; }
         .page.active { display: block; }
         
-        input { background: #0f172a; border: 1px solid #334155; color: #fff; padding: 12px; border-radius: 10px; width: 100%; box-sizing: border-box; }
+        input { background: #0f172a; border: 1px solid #334155; color: #fff; padding: 12px; border-radius: 10px; width: 100%; box-sizing: border-box; outline: none; }
+        input:focus { border-color: var(--primary); }
         #audio-banner { background: var(--warning); color: #000; padding: 12px; text-align: center; border-radius: 12px; margin-bottom: 15px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
@@ -55,11 +55,11 @@
 <div id="login">
     <h2 style="margin-top:0">🔒 Admin Access</h2>
     <input id="pass" type="password" placeholder="รหัสผ่าน">
-    <button onclick="checkLogin()" style="width:100%; margin-top:15px; padding:12px; border-radius:10px; background:var(--primary); font-weight:bold;">เข้าสู่ระบบ</button>
+    <button id="loginBtn" style="width:100%; margin-top:15px; padding:12px; border-radius:10px; background:var(--primary); font-weight:bold;">เข้าสู่ระบบ</button>
 </div>
 
 <div id="panel" style="display:none;" class="container">
-    <div id="audio-banner" onclick="enableAudio()">🔔 แตะที่นี่หนึ่งครั้งเพื่อ "เปิดเสียงพูด" แจ้งเตือนออเดอร์</div>
+    <div id="audio-banner">🔔 แตะที่นี่หนึ่งครั้งเพื่อ "เปิดเสียงพูด" แจ้งเตือนออเดอร์</div>
 
     <div class="sales-overview">
         <div class="sales-grid">
@@ -99,15 +99,17 @@
     let lastOrderCount = -1;
     let isAudioEnabled = false;
 
-    // --- Audio System (Speech) ---
-    window.enableAudio = () => {
+    // --- Audio System ---
+    const audioBanner = document.getElementById("audio-banner");
+    audioBanner.addEventListener("click", () => {
         isAudioEnabled = true;
-        document.getElementById("audio-banner").style.display = "none";
+        audioBanner.style.display = "none";
         speakText("เปิดระบบเสียงเรียบร้อยค่ะ");
-    };
+    });
 
     function speakText(text) {
         if (!isAudioEnabled) return;
+        window.speechSynthesis.cancel(); // หยุดเสียงที่ค้างอยู่ก่อนหน้า
         const msg = new SpeechSynthesisUtterance();
         msg.text = text;
         msg.lang = 'th-TH';
@@ -115,21 +117,30 @@
         window.speechSynthesis.speak(msg);
     }
 
-    // --- Auth ---
-    window.checkLogin = () => {
-        if(document.getElementById("pass").value === "0000") {
+    // --- Authentication ---
+    const loginBtn = document.getElementById("loginBtn");
+    const passInput = document.getElementById("pass");
+
+    const checkLogin = () => {
+        if(passInput.value === "0000") {
             localStorage.setItem("admin_active", "true");
             location.reload();
-        } else { alert("รหัสผิด!"); }
+        } else { 
+            alert("รหัสผ่านไม่ถูกต้อง!"); 
+        }
     };
 
-    if(localStorage.getItem("admin_active")) {
+    loginBtn.addEventListener("click", checkLogin);
+    passInput.addEventListener("keypress", (e) => { if(e.key === "Enter") checkLogin(); });
+
+    // Check Login Status on Load
+    if(localStorage.getItem("admin_active") === "true") {
         document.getElementById("login").style.display = "none";
         document.getElementById("panel").style.display = "block";
         initDashboard();
     }
 
-    // --- Navigation ---
+    // --- Navigation (Global Scope) ---
     window.showTab = (tab) => {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -137,12 +148,15 @@
         document.getElementById(`nav-${tab}`).classList.add('active');
     };
 
+    // --- Dashboard Core ---
     function initDashboard() {
         onSnapshot(ordersRef, (snap) => {
             const list = { new: [], doing: [], done: [] };
             let dailyTotal = 0, monthTotal = 0;
-            const todayStr = new Date().toLocaleDateString('th-TH');
-            const thisMonth = new Date().getMonth();
+            const now = new Date();
+            const todayStr = now.toLocaleDateString('th-TH');
+            const thisMonth = now.getMonth();
+            const thisYear = now.getFullYear();
 
             let newCount = 0;
 
@@ -150,25 +164,31 @@
                 const o = d.data();
                 const id = d.id;
                 let sum = 0;
-                o.cart.forEach(i => sum += (i.price + (i.bubble||0)) * i.qty);
+                if(o.cart) {
+                    o.cart.forEach(i => sum += (i.price + (i.bubble || 0)) * i.qty);
+                }
 
                 const dObj = new Date(o.time);
                 if(dObj.toLocaleDateString('th-TH') === todayStr) dailyTotal += sum;
-                if(dObj.getMonth() === thisMonth) monthTotal += sum;
+                if(dObj.getMonth() === thisMonth && dObj.getFullYear() === thisYear) monthTotal += sum;
 
                 const card = createOrderCard(id, o, sum);
-                if(o.status === 'new') { list.new.push(card); newCount++; }
-                else if(o.status === 'doing') list.doing.push(card);
-                else list.done.push(card);
+                if(o.status === 'new') { 
+                    list.new.push(card); 
+                    newCount++; 
+                } else if(o.status === 'doing') {
+                    list.doing.push(card);
+                } else {
+                    list.done.push(card);
+                }
             });
 
-            // แจ้งเตือนเสียงพูด
+            // Voice Alert
             if (lastOrderCount !== -1 && newCount > lastOrderCount) {
-                speakText("ออเดอร์ใหม่เข้าจ้า!");
+                speakText("ออเดอร์ใหม่เข้าจ้า");
             }
             lastOrderCount = newCount;
 
-            // Render
             render('new-orders', list.new, 'count-new');
             render('doing-orders', list.doing, 'count-doing');
             render('done-orders', list.done, 'count-done');
@@ -184,13 +204,13 @@
         
         const time = new Date(o.time).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
         
-        const itemsHtml = o.cart.map(i => `
+        const itemsHtml = (o.cart || []).map(i => `
             <div class="item-row">
                 <span><b>${i.name}</b> x${i.qty}</span>
-                <span>${(i.price + (i.bubble||0)) * i.qty}.-</span>
+                <span>${(i.price + (i.bubble || 0)) * i.qty}.-</span>
             </div>
             <div style="font-size:0.8em; color:#94a3b8; margin-bottom:8px;">
-                ${i.sweet||''} ${i.bubble ? '+ไข่มุก' : ''} ${i.note||''}
+                ${i.sweet || ''} ${i.bubble ? '+ไข่มุก' : ''} ${i.note || ''}
             </div>
         `).join('');
 
@@ -199,23 +219,23 @@
         div.innerHTML = `
             <div class="cust-header">
                 <div style="display:flex; justify-content:space-between">
-                    <strong>👤 ${o.name}</strong>
+                    <strong>👤 ${o.name || 'ไม่ระบุชื่อ'}</strong>
                     <small>${time}</small>
                 </div>
-                <a href="tel:${o.phone}" style="color:var(--primary); text-decoration:none; font-size:0.9em;">📞 ${o.phone}</a>
+                <a href="tel:${o.phone}" style="color:var(--primary); text-decoration:none; font-size:0.9em;">📞 ${o.phone || '-'}</a>
             </div>
             <div class="address-box">
-                🏠 ${o.address} <br>
+                🏠 ${o.address || 'ไม่มีข้อมูลที่อยู่'} <br>
                 ${gpsBtn}
             </div>
             <div class="item-list">${itemsHtml}</div>
             <div style="text-align:right; font-weight:bold; color:var(--primary); font-size:1.2em; border-top:1px dashed #334155; padding-top:10px;">
-                รวม ${total}.-
+                รวม ${total.toLocaleString()}.-
             </div>
             <div class="btn-group">
-                ${o.status === 'new' ? `<button onclick="updateStat('${id}','doing')" class="btn-status" style="background:var(--warning); grid-column: span 2;">รับออเดอร์ (เริ่มทำ)</button>` : ''}
-                ${o.status === 'doing' ? `<button onclick="updateStat('${id}','done')" class="btn-status" style="background:var(--success); grid-column: span 2; color:white;">ส่งอาหารสำเร็จ (เสร็จสิ้น)</button>` : ''}
-                ${o.status === 'done' ? `<button onclick="delOrder('${id}')" class="btn-status" style="background:var(--danger); grid-column: span 2; color:white;">ลบประวัติ</button>` : ''}
+                ${o.status === 'new' ? `<button onclick="updateStat('${id}','doing')" class="btn-status" style="background:var(--warning);">รับออเดอร์ (เริ่มทำ)</button>` : ''}
+                ${o.status === 'doing' ? `<button onclick="updateStat('${id}','done')" class="btn-status" style="background:var(--success); color:white;">ส่งอาหารสำเร็จ (เสร็จสิ้น)</button>` : ''}
+                ${o.status === 'done' ? `<button onclick="delOrder('${id}')" class="btn-status" style="background:var(--danger); color:white;">ลบประวัติ</button>` : ''}
             </div>
         `;
         return div;
@@ -224,13 +244,15 @@
     function render(containerId, elements, countId) {
         const c = document.getElementById(containerId);
         c.innerHTML = "";
+        // แสดงออเดอร์ใหม่ล่าสุดไว้ด้านบนสุด
         elements.reverse().forEach(e => c.appendChild(e));
         if(countId) document.getElementById(countId).innerText = elements.length;
     }
 
+    // Functions for Global (onclick)
     window.updateStat = (id, s) => updateDoc(doc(db, "orders", id), { status: s });
-    window.delOrder = (id) => { if(confirm("ลบถาวร?")) deleteDoc(doc(db, "orders", id)); };
-</script>
+    window.delOrder = (id) => { if(confirm("ต้องการลบประวัตินี้ถาวรหรือไม่?")) deleteDoc(doc(db, "orders", id)); };
 
+</script>
 </body>
 </html>
