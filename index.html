@@ -40,18 +40,27 @@
         .price { color: var(--accent); font-weight: bold; font-size: 1.3em; margin: 10px 0; }
         .option-group { background: #fdfaf7; padding: 12px; border-radius: 20px; margin: 12px 0; border: 1px solid #f1e9e2; text-align: left; }
         .option-label { font-size: 0.75em; color: #8d6e63; font-weight: 600; text-transform: uppercase; margin-bottom: 6px; display: block; }
-        select, .btn-add { width: 100%; padding: 12px; border-radius: 15px; font-family: 'Kanit', sans-serif; font-size: 0.9em; outline: none; margin-top: 5px; border: 1px solid #e0e0e0; }
+        select, .btn-add, .btn-back { width: 100%; padding: 12px; border-radius: 15px; font-family: 'Kanit', sans-serif; font-size: 0.9em; outline: none; margin-top: 5px; border: 1px solid #e0e0e0; }
         .btn-add { background: var(--primary); color: white; font-weight: 600; margin-top: auto; border: none; cursor: pointer; padding: 14px; transition: 0.3s; box-shadow: 0 4px 12px rgba(111, 78, 55, 0.2); }
         .btn-add:active { transform: scale(0.95); }
-        .order-form { background: white; padding: 30px; border-radius: 40px; margin-top: 40px; box-shadow: var(--card-shadow); }
-        input[type="text"], input[type="tel"] { width: 100%; padding: 18px; margin: 12px 0; border: 1px solid #edf2f7; border-radius: 20px; box-sizing: border-box; font-size: 1em; background: #f9f9f9; transition: 0.3s; }
-        input[type="text"]:focus { border-color: var(--primary); background: #fff; outline: none; }
+        
+        /* หน้าข้อมูลผู้สั่ง */
+        .page { display: none; animation: fadeIn 0.4s ease; }
+        .page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        .order-form { background: white; padding: 30px; border-radius: 40px; margin-top: 20px; box-shadow: var(--card-shadow); }
+        input[type="text"], input[type="tel"], textarea { width: 100%; padding: 18px; margin: 12px 0; border: 1px solid #edf2f7; border-radius: 20px; box-sizing: border-box; font-size: 1em; background: #f9f9f9; transition: 0.3s; font-family: 'Kanit', sans-serif; }
+        input:focus, textarea:focus { border-color: var(--primary); background: #fff; outline: none; }
+        
         .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 18px 0; border-bottom: 1px solid #f1f5f9; }
         .qty-controls { display: flex; align-items: center; gap: 15px; }
         .qty-controls button { width: 35px; height: 35px; background: #f1f5f9; border-radius: 12px; border: none; cursor: pointer; font-weight: bold; color: var(--primary); font-size: 1.1em; }
+        
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.96); backdrop-filter: blur(15px); padding: 25px 35px; box-shadow: 0 -15px 40px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 1000; border-radius: 35px 35px 0 0; }
         .btn-submit { background: var(--success); color: white; padding: 18px 50px; font-size: 1.2em; font-weight: bold; border-radius: 22px; border: none; cursor: pointer; box-shadow: 0 10px 25px rgba(39, 174, 96, 0.3); transition: 0.3s; }
-        .btn-submit:active { transform: scale(0.97); }
+        .btn-back { background: #f1f5f9; color: #64748b; border: none; font-weight: 600; cursor: pointer; margin-bottom: 15px; }
+        
         .status-card { background: #fff; padding: 25px; border-radius: 25px; margin-top: 30px; text-align: center; border: 2px solid #edf2f7; box-shadow: var(--card-shadow); animation: slideUp 0.5s ease; }
         .badge { font-size: 0.75em; padding: 4px 10px; border-radius: 10px; background: #fff3e0; color: #e65100; margin-left: 6px; font-weight: bold; border: 1px solid #ffe0b2; }
         @keyframes slideUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
@@ -59,37 +68,43 @@
 </head>
 <body>
 
-<header>
+<header id="mainHeader">
     <h1 style="margin:0; font-size: 2em; letter-spacing: 1px;">☕ Hop Cafe & 🍛 ครัวอารมณ์ดี</h1>
     <p style="margin:8px 0 0; opacity: 0.9; font-weight: 300; font-size: 1em;">เปิดรับออเดอร์ความอร่อยแล้ววันนี้</p>
 </header>
 
 <div class="container">
-    <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 ค้นหาเมนูโปรดของคุณ..." oninput="filterMenu()"></div>
-
-    <div class="tabs">
-        <div class="tab-btn active" id="tab-drink" onclick="switchTab('drink')">🥤 เครื่องดื่ม</div>
-        <div class="tab-btn" id="tab-coffee" onclick="switchTab('coffee')">☕ กาแฟสด</div>
-        <div class="tab-btn" id="tab-snack" onclick="switchTab('snack')">🍟 ของทานเล่น</div>
-        <div class="tab-btn" id="tab-food" onclick="switchTab('food')">🍛 อาหารตามสั่ง</div>
+    <div id="page-menu" class="page active">
+        <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 ค้นหาเมนูโปรดของคุณ..." oninput="filterMenu()"></div>
+        <div class="tabs">
+            <div class="tab-btn active" id="tab-drink" onclick="switchTab('drink')">🥤 เครื่องดื่ม</div>
+            <div class="tab-btn" id="tab-coffee" onclick="switchTab('coffee')">☕ กาแฟสด</div>
+            <div class="tab-btn" id="tab-snack" onclick="switchTab('snack')">🍟 ของทานเล่น</div>
+            <div class="tab-btn" id="tab-food" onclick="switchTab('food')">🍛 อาหารตามสั่ง</div>
+        </div>
+        <div id="menu"></div>
     </div>
 
-    <div id="menu"></div>
-
-    <div class="order-form">
-        <h3 style="color: var(--primary); margin-top: 0; display: flex; align-items: center; gap: 8px;">📍 ข้อมูลผู้สั่ง</h3>
-        <input id="name" type="text" placeholder="ระบุชื่อของคุณ">
-        <input id="phone" type="tel" placeholder="เบอร์โทรศัพท์">
-        <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 30px 0;">
-        <h3 style="color: var(--primary); margin-bottom: 20px;">🛒 รายการในตะกร้า</h3>
-        <div id="cart"><p style="color:#94a3b8; text-align:center; padding: 30px;">ยังไม่มีสินค้าในตะกร้า</p></div>
+    <div id="page-checkout" class="page">
+        <button class="btn-back" onclick="togglePage('menu')">← กลับไปเลือกเมนูเพิ่ม</button>
+        <div class="order-form">
+            <h3 style="color: var(--primary); margin-top: 0; display: flex; align-items: center; gap: 8px;">📍 ข้อมูลจัดส่ง</h3>
+            <input id="name" type="text" placeholder="ระบุชื่อของคุณ">
+            <input id="phone" type="tel" placeholder="เบอร์โทรศัพท์">
+            <textarea id="address" rows="3" placeholder="ระบุที่อยู่ที่ต้องการให้จัดส่ง"></textarea>
+            
+            <hr style="border: 0; border-top: 1px solid #f1f5f9; margin: 30px 0;">
+            <h3 style="color: var(--primary); margin-bottom: 20px;">🛒 รายการสรุป</h3>
+            <div id="cartSummary"></div>
+        </div>
     </div>
+
     <div id="statusBox"></div>
 </div>
 
 <div class="bottom-bar">
     <div><small style="color:#94a3b8; font-weight: 600;">ราคารวม</small><div id="total" style="font-size: 1.7em; font-weight: bold; color: var(--primary);">0 บาท</div></div>
-    <button class="btn-submit" onclick="submitOrder()">ยืนยันออเดอร์</button>
+    <button id="mainBtn" class="btn-submit" onclick="handleMainBtn()">สั่งเลย</button>
 </div>
 
 <script type="module">
@@ -147,6 +162,28 @@
             { cat: "ท็อปปิ้งอาหาร", name: "ไข่เจียว", price: 15, type: 'food' },
             { cat: "ท็อปปิ้งอาหาร", name: "ข้าวเปล่า", price: 10, type: 'food' }
         ]
+    };
+
+    window.togglePage = (pageName) => {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.getElementById(`page-${pageName}`).classList.add('active');
+        const btn = document.getElementById('mainBtn');
+        if(pageName === 'checkout') {
+            btn.innerText = "ยืนยันออเดอร์";
+            window.scrollTo(0,0);
+        } else {
+            btn.innerText = "สั่งเลย";
+        }
+    };
+
+    window.handleMainBtn = () => {
+        const isMenuPage = document.getElementById('page-menu').classList.contains('active');
+        if (isMenuPage) {
+            if (cart.length === 0) return alert("กรุณาเลือกสินค้าก่อนนะครับ");
+            togglePage('checkout');
+        } else {
+            submitOrder();
+        }
     };
 
     window.switchTab = (tab) => {
@@ -231,17 +268,17 @@
     };
 
     function renderCart() {
-        const cartDiv = document.getElementById("cart");
+        const summaryDiv = document.getElementById("cartSummary");
         const totalDiv = document.getElementById("total");
         if (cart.length === 0) {
-            cartDiv.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 30px;">ยังไม่มีสินค้าในตะกร้า</p>';
+            summaryDiv.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 20px;">ยังไม่มีสินค้าในตะกร้า</p>';
             totalDiv.innerText = "0 บาท"; return;
         }
-        let total = 0; cartDiv.innerHTML = "";
+        let total = 0; summaryDiv.innerHTML = "";
         cart.forEach((c, idx) => {
             const sum = (c.price + (c.bubble || 0)) * c.qty;
             total += sum;
-            cartDiv.innerHTML += `<div class="cart-item"><div style="flex:1">
+            summaryDiv.innerHTML += `<div class="cart-item"><div style="flex:1">
                 <div style="font-weight:600">${c.name} ${c.bubble ? '<span class="badge">+ไข่มุก</span>' : ''}</div>
                 <div style="font-size:0.85em; color:#64748b">${c.sweet} ${c.note}</div></div>
                 <div class="qty-controls"><button onclick="updateQty(${idx}, -1)">-</button><b>${c.qty}</b><button onclick="updateQty(${idx}, 1)">+</button></div>
@@ -259,19 +296,28 @@
     window.submitOrder = async () => {
         const name = document.getElementById("name").value.trim();
         const phone = document.getElementById("phone").value.trim();
-        if (!name || !phone || cart.length === 0) return alert("กรุณาใส่ชื่อ เบอร์โทร และเลือกสินค้าก่อนนะครับ");
+        const address = document.getElementById("address").value.trim();
+        if (!name || !phone || !address || cart.length === 0) return alert("กรุณากรอกข้อมูลให้ครบถ้วนก่อนนะครับ");
+        
         try {
-            const ref = await addDoc(collection(db, "orders"), { name, phone, cart, status: "new", time: Date.now() });
+            const ref = await addDoc(collection(db, "orders"), { name, phone, address, cart, status: "new", time: Date.now() });
             onSnapshot(doc(db, "orders", ref.id), (snap) => {
                 if(!snap.exists()) return;
                 const s = snap.data().status;
                 const statusBox = document.getElementById("statusBox");
                 let msg = "⌛ รับออเดอร์แล้วน้า...", color = "#666";
                 if(s === "doing") { msg = "👨‍🍳 กำลังปรุงอาหารให้คุณอย่างตั้งใจ..."; color = "#e67e22"; }
-                if(s === "done") { msg = "✅ เสร็จเรียบร้อย! มารับได้เลยจ้า"; color = "#27ae60"; }
+                if(s === "done") { msg = "✅ เสร็จเรียบร้อย! รอรับได้เลยจ้า"; color = "#27ae60"; }
                 statusBox.innerHTML = `<div class="status-card" style="border-left:10px solid ${color}">${msg}</div>`;
+                if(s === "done" || s === "doing") statusBox.scrollIntoView({behavior: "smooth"});
             });
-            alert("ส่งออเดอร์ให้ที่ร้านแล้วครับ!"); cart = []; renderCart();
+            alert("ส่งออเดอร์ให้ที่ร้านแล้วครับ!"); 
+            cart = []; 
+            renderCart();
+            togglePage('menu'); // กลับมาหน้าเมนูเพื่อดูสถานะ
+            document.getElementById("name").value = "";
+            document.getElementById("phone").value = "";
+            document.getElementById("address").value = "";
         } catch (e) { alert("เกิดข้อผิดพลาด: " + e.message); }
     };
 
