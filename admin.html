@@ -44,7 +44,7 @@
         .page { display: none; }
         .page.active { display: block; }
         
-        input { background: #0f172a; border: 1px solid #334155; color: #fff; padding: 12px; border-radius: 10px; width: 100%; box-sizing: border-box; outline: none; }
+        input { background: #0f172a; border: 1px solid #334155; color: #fff; padding: 12px; border-radius: 10px; width: 100%; box-sizing: border-box; outline: none; margin-bottom: 10px;}
         #audio-banner { background: var(--warning); color: #000; padding: 12px; text-align: center; border-radius: 12px; margin-bottom: 15px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
@@ -53,11 +53,11 @@
 <div id="login">
     <h2 style="margin-top:0">🔒 Admin Access</h2>
     <input id="pass" type="password" placeholder="ใส่รหัสผ่าน">
-    <button id="loginBtn" style="width:100%; margin-top:15px; padding:12px; border-radius:10px; background:var(--primary); font-weight:bold;">เข้าสู่ระบบ</button>
+    <button id="loginBtn" style="width:100%; padding:12px; border-radius:10px; background:var(--primary); font-weight:bold; color:#000;">เข้าสู่ระบบ</button>
 </div>
 
 <div id="panel" style="display:none;" class="container">
-    <div id="audio-banner">🔔 แตะที่นี่หนึ่งครั้งเพื่อ "เปิดเสียงพูด" แจ้งเตือนออเดอร์</div>
+    <div id="audio-banner">🔔 แตะที่นี่เพื่อ "เปิดเสียงพูด" แจ้งเตือนออเดอร์</div>
 
     <div class="sales-overview">
         <div class="sales-grid">
@@ -91,155 +91,165 @@
 </div>
 
 <script type="module">
+    // ดึงไฟล์ Firebase มาทำงาน
     import { db, ordersRef, onSnapshot, doc, updateDoc, deleteDoc } from "./firebase.js";
 
-    // --- ประกาศ Function ให้เรียกใช้ได้จากข้างนอก (สำคัญมาก) ---
+    // --- ส่วนที่ 1: ฟังก์ชันหลัก (Export ให้ HTML มองเห็น) ---
     window.updateStat = async (id, s) => {
         try {
             await updateDoc(doc(db, "orders", id), { status: s });
-        } catch (err) { alert("เกิดข้อผิดพลาด: " + err.message); }
+        } catch (err) { alert("Error: " + err.message); }
     };
 
     window.delOrder = async (id) => {
-        if(confirm("ต้องการลบประวัตินี้ถาวรหรือไม่?")) {
+        if(confirm("ยืนยันลบถาวร?")) {
             try {
                 await deleteDoc(doc(db, "orders", id));
-            } catch (err) { alert("ลบไม่ได้: " + err.message); }
+            } catch (err) { alert("Error: " + err.message); }
         }
     };
 
     window.showTab = (tab) => {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        document.getElementById(`page-${tab}`).classList.add('active');
-        document.getElementById(`nav-${tab}`).classList.add('active');
+        const targetPage = document.getElementById(`page-${tab}`);
+        const targetBtn = document.getElementById(`nav-${tab}`);
+        if(targetPage) targetPage.classList.add('active');
+        if(targetBtn) targetBtn.classList.add('active');
     };
 
-    // --- ส่วนงานอื่นๆ ---
-    let lastOrderCount = -1;
-    let isAudioEnabled = false;
-
-    document.getElementById("audio-banner").onclick = () => {
-        isAudioEnabled = true;
-        document.getElementById("audio-banner").style.display = "none";
-        speakText("ระบบเสียงพร้อมแล้วค่ะ");
-    };
-
-    document.getElementById("nav-live").onclick = () => window.showTab('live');
-    document.getElementById("nav-history").onclick = () => window.showTab('history');
-
-    function speakText(text) {
-        if (!isAudioEnabled) return;
-        window.speechSynthesis.cancel();
-        const msg = new SpeechSynthesisUtterance(text);
-        msg.lang = 'th-TH';
-        window.speechSynthesis.speak(msg);
-    }
-
-    // --- Login Logic ---
-    const loginBtn = document.getElementById("loginBtn");
+    // --- ส่วนที่ 2: ระบบ Login (แก้ไขให้ทำงานแน่นอน) ---
     const passInput = document.getElementById("pass");
+    const loginBtn = document.getElementById("loginBtn");
 
-    loginBtn.onclick = () => {
+    const doLogin = () => {
         if(passInput.value === "0000") {
             localStorage.setItem("admin_active", "true");
             document.getElementById("login").style.display = "none";
             document.getElementById("panel").style.display = "block";
-            initDashboard();
+            startDashboard();
         } else {
             alert("รหัสผ่านไม่ถูกต้อง!");
         }
     };
 
+    // ผูกปุ่มล็อกอิน
+    loginBtn.onclick = doLogin;
+    passInput.onkeypress = (e) => { if(e.key === "Enter") doLogin(); };
+
+    // เช็คค้างไว้ว่าเคยล็อกอินหรือยัง
     if(localStorage.getItem("admin_active") === "true") {
         document.getElementById("login").style.display = "none";
         document.getElementById("panel").style.display = "block";
-        initDashboard();
+        startDashboard();
     }
 
-    // --- Dashboard Core ---
-    function initDashboard() {
+    // --- ส่วนที่ 3: ระบบ Dashboard ---
+    let lastCount = -1;
+    let audioOn = false;
+
+    document.getElementById("audio-banner").onclick = () => {
+        audioOn = true;
+        document.getElementById("audio-banner").style.display = "none";
+        speak("พร้อมแจ้งเตือนด้วยเสียงค่ะ");
+    };
+
+    document.getElementById("nav-live").onclick = () => window.showTab('live');
+    document.getElementById("nav-history").onclick = () => window.showTab('history');
+
+    function speak(txt) {
+        if (!audioOn) return;
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(txt);
+        msg.lang = 'th-TH';
+        window.speechSynthesis.speak(msg);
+    }
+
+    function startDashboard() {
+        // ตรวจสอบว่า Firebase โหลดมาสำเร็จไหม
+        if(!ordersRef) {
+            console.error("Firebase Not Loaded");
+            return;
+        }
+
         onSnapshot(ordersRef, (snap) => {
             const list = { new: [], doing: [], done: [] };
-            let dailyTotal = 0, monthTotal = 0;
+            let dSum = 0, mSum = 0;
             const now = new Date();
-            const todayStr = now.toLocaleDateString('th-TH');
-            const thisMonth = now.getMonth();
-            const thisYear = now.getFullYear();
+            const today = now.toLocaleDateString('th-TH');
+            const thisM = now.getMonth();
 
-            let newCount = 0;
+            let currentNew = 0;
 
             snap.forEach(d => {
                 const o = d.data();
                 const id = d.id;
-                let sum = 0;
-                if(o.cart) o.cart.forEach(i => sum += (i.price + (i.bubble || 0)) * i.qty);
+                let total = 0;
+                if(o.cart) o.cart.forEach(i => total += (i.price + (i.bubble||0)) * i.qty);
 
-                const dObj = new Date(o.time);
-                if(dObj.toLocaleDateString('th-TH') === todayStr) dailyTotal += sum;
-                if(dObj.getMonth() === thisMonth && dObj.getFullYear() === thisYear) monthTotal += sum;
+                const oDate = new Date(o.time);
+                if(oDate.toLocaleDateString('th-TH') === today) dSum += total;
+                if(oDate.getMonth() === thisM) mSum += total;
 
-                const card = createOrderCard(id, o, sum);
-                if(o.status === 'new') { list.new.push(card); newCount++; }
+                const card = createCard(id, o, total);
+                if(o.status === 'new') { list.new.push(card); currentNew++; }
                 else if(o.status === 'doing') list.doing.push(card);
                 else list.done.push(card);
             });
 
-            if (lastOrderCount !== -1 && newCount > lastOrderCount) speakText("ออเดอร์ใหม่เข้าจ้า");
-            lastOrderCount = newCount;
+            if(lastCount !== -1 && currentNew > lastCount) speak("มีออเดอร์ใหม่เข้าค่ะ");
+            lastCount = currentNew;
 
             render('new-orders', list.new, 'count-new');
             render('doing-orders', list.doing, 'count-doing');
             render('done-orders', list.done, 'count-done');
 
-            document.getElementById("daily").innerText = dailyTotal.toLocaleString() + " บาท";
-            document.getElementById("monthTotal").innerText = monthTotal.toLocaleString() + " บาท";
+            document.getElementById("daily").innerText = dSum.toLocaleString() + " บาท";
+            document.getElementById("monthTotal").innerText = mSum.toLocaleString() + " บาท";
         });
     }
 
-    function createOrderCard(id, o, total) {
+    function createCard(id, o, total) {
         const div = document.createElement('div');
         div.className = "order-card";
-        const time = new Date(o.time).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
-        const itemsHtml = (o.cart || []).map(i => `
+        const t = new Date(o.time).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+        
+        const items = (o.cart || []).map(i => `
             <div class="item-row">
                 <span><b>${i.name}</b> x${i.qty}</span>
-                <span>${(i.price + (i.bubble || 0)) * i.qty}.-</span>
+                <span>${(i.price + (i.bubble||0)) * i.qty}.-</span>
             </div>
-            <div style="font-size:0.8em; color:#94a3b8; margin-bottom:8px;">
-                ${i.sweet || ''} ${i.bubble ? '+ไข่มุก' : ''} ${i.note || ''}
+            <div style="font-size:0.8em; color:#94a3b8; margin-bottom:5px;">
+                ${i.sweet||''} ${i.bubble?'+ไข่มุก':''} ${i.note||''}
             </div>
         `).join('');
-
-        const gpsBtn = o.gps ? `<a href="${o.gps}" target="_blank" class="btn-gps">📍 นำทางด้วย Google Maps</a>` : '';
 
         div.innerHTML = `
             <div class="cust-header">
                 <div style="display:flex; justify-content:space-between">
                     <strong>👤 ${o.name || 'ลูกค้า'}</strong>
-                    <small>${time}</small>
+                    <small>${t}</small>
                 </div>
                 <a href="tel:${o.phone}" style="color:var(--primary); text-decoration:none;">📞 ${o.phone || '-'}</a>
             </div>
-            <div class="address-box">🏠 ${o.address || 'จัดส่งที่ร้าน'}<br>${gpsBtn}</div>
-            <div class="item-list">${itemsHtml}</div>
-            <div style="text-align:right; font-weight:bold; color:var(--primary); font-size:1.2em; border-top:1px dashed #334155; padding-top:10px;">
-                รวม ${total.toLocaleString()}.-
-            </div>
+            <div class="address-box">🏠 ${o.address || 'รับที่ร้าน'}${o.gps ? `<br><a href="${o.gps}" target="_blank" class="btn-gps">📍 เปิดแผนที่</a>` : ''}</div>
+            <div class="item-list">${items}</div>
+            <div style="text-align:right; font-weight:bold; color:var(--primary); font-size:1.2em; border-top:1px dashed #334155; padding-top:10px;">รวม ${total.toLocaleString()}.-</div>
             <div class="btn-group">
-                ${o.status === 'new' ? `<button onclick="updateStat('${id}','doing')" class="btn-status" style="background:var(--warning);">รับออเดอร์ (เริ่มทำ)</button>` : ''}
-                ${o.status === 'doing' ? `<button onclick="updateStat('${id}','done')" class="btn-status" style="background:var(--success); color:white;">ส่งอาหารสำเร็จ (เสร็จสิ้น)</button>` : ''}
-                ${o.status === 'done' ? `<button onclick="delOrder('${id}')" class="btn-status" style="background:var(--danger); color:white;">ลบประวัติ</button>` : ''}
+                ${o.status === 'new' ? `<button onclick="updateStat('${id}','doing')" class="btn-status" style="background:var(--warning);">รับออเดอร์</button>` : ''}
+                ${o.status === 'doing' ? `<button onclick="updateStat('${id}','done')" class="btn-status" style="background:var(--success); color:#fff;">ส่งสำเร็จ</button>` : ''}
+                ${o.status === 'done' ? `<button onclick="delOrder('${id}')" class="btn-status" style="background:var(--danger); color:#fff;">ลบรายการ</button>` : ''}
             </div>
         `;
         return div;
     }
 
-    function render(containerId, elements, countId) {
-        const c = document.getElementById(containerId);
-        c.innerHTML = "";
-        elements.reverse().forEach(e => c.appendChild(e));
-        if(countId) document.getElementById(countId).innerText = elements.length;
+    function render(id, items, cId) {
+        const target = document.getElementById(id);
+        if(!target) return;
+        target.innerHTML = "";
+        items.reverse().forEach(el => target.appendChild(el));
+        if(cId) document.getElementById(cId).innerText = items.length;
     }
 </script>
 </body>
