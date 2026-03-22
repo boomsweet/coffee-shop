@@ -39,14 +39,12 @@
         
         button { cursor: pointer; border: none; font-family: 'Kanit'; transition: 0.2s; }
         button:active { transform: scale(0.95); }
-        .btn-group { display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 15px; }
-        .btn-status { padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; }
+        .btn-status { padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; margin-top: 10px; }
         
         .page { display: none; }
         .page.active { display: block; }
         
         input { background: #0f172a; border: 1px solid #334155; color: #fff; padding: 12px; border-radius: 10px; width: 100%; box-sizing: border-box; outline: none; }
-        input:focus { border-color: var(--primary); }
         #audio-banner { background: var(--warning); color: #000; padding: 12px; text-align: center; border-radius: 12px; margin-bottom: 15px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
@@ -54,7 +52,7 @@
 
 <div id="login">
     <h2 style="margin-top:0">🔒 Admin Access</h2>
-    <input id="pass" type="password" placeholder="รหัสผ่าน">
+    <input id="pass" type="password" placeholder="ใส่รหัสผ่าน">
     <button id="loginBtn" style="width:100%; margin-top:15px; padding:12px; border-radius:10px; background:var(--primary); font-weight:bold;">เข้าสู่ระบบ</button>
 </div>
 
@@ -75,14 +73,13 @@
     </div>
 
     <div class="admin-nav">
-        <button id="nav-live" class="nav-btn active" onclick="showTab('live')">📝 ออเดอร์ปัจจุบัน</button>
-        <button id="nav-history" class="nav-btn" onclick="showTab('history')">✅ เสร็จสิ้นแล้ว</button>
+        <button id="nav-live" class="nav-btn active">📝 ออเดอร์ปัจจุบัน</button>
+        <button id="nav-history" class="nav-btn">✅ เสร็จสิ้นแล้ว</button>
     </div>
 
     <div id="page-live" class="page active">
         <div class="section-title">🆕 มาใหม่ <span id="count-new" class="badge" style="background:var(--primary); color:#000">0</span></div>
         <div id="new-orders" class="grid-orders"></div>
-
         <div class="section-title" style="margin-top:30px;">👨‍🍳 กำลังทำ <span id="count-doing" class="badge" style="background:var(--warning); color:#000">0</span></div>
         <div id="doing-orders" class="grid-orders"></div>
     </div>
@@ -96,57 +93,69 @@
 <script type="module">
     import { db, ordersRef, onSnapshot, doc, updateDoc, deleteDoc } from "./firebase.js";
 
-    let lastOrderCount = -1;
-    let isAudioEnabled = false;
+    // --- ประกาศ Function ให้เรียกใช้ได้จากข้างนอก (สำคัญมาก) ---
+    window.updateStat = async (id, s) => {
+        try {
+            await updateDoc(doc(db, "orders", id), { status: s });
+        } catch (err) { alert("เกิดข้อผิดพลาด: " + err.message); }
+    };
 
-    // --- Audio System ---
-    const audioBanner = document.getElementById("audio-banner");
-    audioBanner.addEventListener("click", () => {
-        isAudioEnabled = true;
-        audioBanner.style.display = "none";
-        speakText("เปิดระบบเสียงเรียบร้อยค่ะ");
-    });
-
-    function speakText(text) {
-        if (!isAudioEnabled) return;
-        window.speechSynthesis.cancel(); // หยุดเสียงที่ค้างอยู่ก่อนหน้า
-        const msg = new SpeechSynthesisUtterance();
-        msg.text = text;
-        msg.lang = 'th-TH';
-        msg.rate = 1.0;
-        window.speechSynthesis.speak(msg);
-    }
-
-    // --- Authentication ---
-    const loginBtn = document.getElementById("loginBtn");
-    const passInput = document.getElementById("pass");
-
-    const checkLogin = () => {
-        if(passInput.value === "0000") {
-            localStorage.setItem("admin_active", "true");
-            location.reload();
-        } else { 
-            alert("รหัสผ่านไม่ถูกต้อง!"); 
+    window.delOrder = async (id) => {
+        if(confirm("ต้องการลบประวัตินี้ถาวรหรือไม่?")) {
+            try {
+                await deleteDoc(doc(db, "orders", id));
+            } catch (err) { alert("ลบไม่ได้: " + err.message); }
         }
     };
 
-    loginBtn.addEventListener("click", checkLogin);
-    passInput.addEventListener("keypress", (e) => { if(e.key === "Enter") checkLogin(); });
-
-    // Check Login Status on Load
-    if(localStorage.getItem("admin_active") === "true") {
-        document.getElementById("login").style.display = "none";
-        document.getElementById("panel").style.display = "block";
-        initDashboard();
-    }
-
-    // --- Navigation (Global Scope) ---
     window.showTab = (tab) => {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById(`page-${tab}`).classList.add('active');
         document.getElementById(`nav-${tab}`).classList.add('active');
     };
+
+    // --- ส่วนงานอื่นๆ ---
+    let lastOrderCount = -1;
+    let isAudioEnabled = false;
+
+    document.getElementById("audio-banner").onclick = () => {
+        isAudioEnabled = true;
+        document.getElementById("audio-banner").style.display = "none";
+        speakText("ระบบเสียงพร้อมแล้วค่ะ");
+    };
+
+    document.getElementById("nav-live").onclick = () => window.showTab('live');
+    document.getElementById("nav-history").onclick = () => window.showTab('history');
+
+    function speakText(text) {
+        if (!isAudioEnabled) return;
+        window.speechSynthesis.cancel();
+        const msg = new SpeechSynthesisUtterance(text);
+        msg.lang = 'th-TH';
+        window.speechSynthesis.speak(msg);
+    }
+
+    // --- Login Logic ---
+    const loginBtn = document.getElementById("loginBtn");
+    const passInput = document.getElementById("pass");
+
+    loginBtn.onclick = () => {
+        if(passInput.value === "0000") {
+            localStorage.setItem("admin_active", "true");
+            document.getElementById("login").style.display = "none";
+            document.getElementById("panel").style.display = "block";
+            initDashboard();
+        } else {
+            alert("รหัสผ่านไม่ถูกต้อง!");
+        }
+    };
+
+    if(localStorage.getItem("admin_active") === "true") {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("panel").style.display = "block";
+        initDashboard();
+    }
 
     // --- Dashboard Core ---
     function initDashboard() {
@@ -164,29 +173,19 @@
                 const o = d.data();
                 const id = d.id;
                 let sum = 0;
-                if(o.cart) {
-                    o.cart.forEach(i => sum += (i.price + (i.bubble || 0)) * i.qty);
-                }
+                if(o.cart) o.cart.forEach(i => sum += (i.price + (i.bubble || 0)) * i.qty);
 
                 const dObj = new Date(o.time);
                 if(dObj.toLocaleDateString('th-TH') === todayStr) dailyTotal += sum;
                 if(dObj.getMonth() === thisMonth && dObj.getFullYear() === thisYear) monthTotal += sum;
 
                 const card = createOrderCard(id, o, sum);
-                if(o.status === 'new') { 
-                    list.new.push(card); 
-                    newCount++; 
-                } else if(o.status === 'doing') {
-                    list.doing.push(card);
-                } else {
-                    list.done.push(card);
-                }
+                if(o.status === 'new') { list.new.push(card); newCount++; }
+                else if(o.status === 'doing') list.doing.push(card);
+                else list.done.push(card);
             });
 
-            // Voice Alert
-            if (lastOrderCount !== -1 && newCount > lastOrderCount) {
-                speakText("ออเดอร์ใหม่เข้าจ้า");
-            }
+            if (lastOrderCount !== -1 && newCount > lastOrderCount) speakText("ออเดอร์ใหม่เข้าจ้า");
             lastOrderCount = newCount;
 
             render('new-orders', list.new, 'count-new');
@@ -201,9 +200,7 @@
     function createOrderCard(id, o, total) {
         const div = document.createElement('div');
         div.className = "order-card";
-        
         const time = new Date(o.time).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
-        
         const itemsHtml = (o.cart || []).map(i => `
             <div class="item-row">
                 <span><b>${i.name}</b> x${i.qty}</span>
@@ -219,15 +216,12 @@
         div.innerHTML = `
             <div class="cust-header">
                 <div style="display:flex; justify-content:space-between">
-                    <strong>👤 ${o.name || 'ไม่ระบุชื่อ'}</strong>
+                    <strong>👤 ${o.name || 'ลูกค้า'}</strong>
                     <small>${time}</small>
                 </div>
-                <a href="tel:${o.phone}" style="color:var(--primary); text-decoration:none; font-size:0.9em;">📞 ${o.phone || '-'}</a>
+                <a href="tel:${o.phone}" style="color:var(--primary); text-decoration:none;">📞 ${o.phone || '-'}</a>
             </div>
-            <div class="address-box">
-                🏠 ${o.address || 'ไม่มีข้อมูลที่อยู่'} <br>
-                ${gpsBtn}
-            </div>
+            <div class="address-box">🏠 ${o.address || 'จัดส่งที่ร้าน'}<br>${gpsBtn}</div>
             <div class="item-list">${itemsHtml}</div>
             <div style="text-align:right; font-weight:bold; color:var(--primary); font-size:1.2em; border-top:1px dashed #334155; padding-top:10px;">
                 รวม ${total.toLocaleString()}.-
@@ -244,15 +238,9 @@
     function render(containerId, elements, countId) {
         const c = document.getElementById(containerId);
         c.innerHTML = "";
-        // แสดงออเดอร์ใหม่ล่าสุดไว้ด้านบนสุด
         elements.reverse().forEach(e => c.appendChild(e));
         if(countId) document.getElementById(countId).innerText = elements.length;
     }
-
-    // Functions for Global (onclick)
-    window.updateStat = (id, s) => updateDoc(doc(db, "orders", id), { status: s });
-    window.delOrder = (id) => { if(confirm("ต้องการลบประวัตินี้ถาวรหรือไม่?")) deleteDoc(doc(db, "orders", id)); };
-
 </script>
 </body>
 </html>
