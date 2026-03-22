@@ -3,7 +3,6 @@ import {
   getFirestore, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc 
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-// 🔥 FIX: config ครบ
 const firebaseConfig = {
   apiKey: "AIzaSyCW-ztNX8EAio66VN8ODKo6_z9R8-B99mU",
   authDomain: "coffee-shop-2042e.firebaseapp.com",
@@ -17,5 +16,8 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// 🔥 export ให้ครบ (สำคัญ)
-export { db, collection, addDoc, onSnapshot, doc, updateDoc, deleteDoc };
+// ⭐ จุดที่ต้องเพิ่ม: สร้างตัวแปรอ้างอิงไปที่ Collection "orders"
+const ordersRef = collection(db, "orders");
+
+// 🔥 Export ออกไปให้หน้า Admin เรียกใช้ได้
+export { db, ordersRef, onSnapshot, doc, updateDoc, deleteDoc, addDoc };
