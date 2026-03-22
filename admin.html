@@ -91,21 +91,26 @@
 </div>
 
 <script type="module">
-    // ดึงไฟล์ Firebase มาทำงาน
-    import { db, ordersRef, onSnapshot, doc, updateDoc, deleteDoc } from "./firebase.js";
+    // ดึงเฉพาะ db มาจากไฟล์ firebase.js
+    import { db } from "./firebase.js";
+    // นำเข้าคำสั่ง Firestore โดยตรง
+    import { collection, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // --- ส่วนที่ 1: ฟังก์ชันหลัก (Export ให้ HTML มองเห็น) ---
+    // สร้างตัวแปรอ้างอิงข้อมูลตรงนี้เลย (แก้ปัญหาไฟล์ firebase.js โหลดไม่ผ่าน)
+    const ordersRef = collection(db, "orders");
+
+    // --- ฟังก์ชันการทำงาน ---
     window.updateStat = async (id, s) => {
         try {
             await updateDoc(doc(db, "orders", id), { status: s });
-        } catch (err) { alert("Error: " + err.message); }
+        } catch (err) { alert("เกิดข้อผิดพลาด: " + err.message); }
     };
 
     window.delOrder = async (id) => {
         if(confirm("ยืนยันลบถาวร?")) {
             try {
                 await deleteDoc(doc(db, "orders", id));
-            } catch (err) { alert("Error: " + err.message); }
+            } catch (err) { alert("ลบไม่ได้: " + err.message); }
         }
     };
 
@@ -118,7 +123,7 @@
         if(targetBtn) targetBtn.classList.add('active');
     };
 
-    // --- ส่วนที่ 2: ระบบ Login (แก้ไขให้ทำงานแน่นอน) ---
+    // --- ระบบ Login ---
     const passInput = document.getElementById("pass");
     const loginBtn = document.getElementById("loginBtn");
 
@@ -133,25 +138,23 @@
         }
     };
 
-    // ผูกปุ่มล็อกอิน
     loginBtn.onclick = doLogin;
     passInput.onkeypress = (e) => { if(e.key === "Enter") doLogin(); };
 
-    // เช็คค้างไว้ว่าเคยล็อกอินหรือยัง
     if(localStorage.getItem("admin_active") === "true") {
         document.getElementById("login").style.display = "none";
         document.getElementById("panel").style.display = "block";
         startDashboard();
     }
 
-    // --- ส่วนที่ 3: ระบบ Dashboard ---
+    // --- ระบบ Dashboard ---
     let lastCount = -1;
     let audioOn = false;
 
     document.getElementById("audio-banner").onclick = () => {
         audioOn = true;
         document.getElementById("audio-banner").style.display = "none";
-        speak("พร้อมแจ้งเตือนด้วยเสียงค่ะ");
+        speak("ระบบเสียงแจ้งเตือนพร้อมทำงานค่ะ");
     };
 
     document.getElementById("nav-live").onclick = () => window.showTab('live');
@@ -166,12 +169,6 @@
     }
 
     function startDashboard() {
-        // ตรวจสอบว่า Firebase โหลดมาสำเร็จไหม
-        if(!ordersRef) {
-            console.error("Firebase Not Loaded");
-            return;
-        }
-
         onSnapshot(ordersRef, (snap) => {
             const list = { new: [], doing: [], done: [] };
             let dSum = 0, mSum = 0;
@@ -197,7 +194,7 @@
                 else list.done.push(card);
             });
 
-            if(lastCount !== -1 && currentNew > lastCount) speak("มีออเดอร์ใหม่เข้าค่ะ");
+            if(lastCount !== -1 && currentNew > lastCount) speak("มีออเดอร์ใหม่เข้ามาค่ะ");
             lastCount = currentNew;
 
             render('new-orders', list.new, 'count-new');
