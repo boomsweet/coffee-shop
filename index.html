@@ -105,6 +105,7 @@
         <div class="tabs">
             <div class="tab-btn active" id="tab-hop-tea" onclick="window.switchTab('hop-tea')">🥤 ชา Hop</div>
             <div class="tab-btn" id="tab-coffee" onclick="window.switchTab('coffee')">☕ กาแฟสด</div>
+            <div class="tab-btn" id="tab-hop-coffee" onclick="window.switchTab('hop-coffee')">🤎 Hop Coffee</div>
             <div class="tab-btn" id="tab-strawberry" onclick="window.switchTab('strawberry')">🍓 สตรอว์เบอร์รี่</div>
             <div class="tab-btn" id="tab-hop-milk" onclick="window.switchTab('hop-milk')">🥛 นม Hop</div>
             <div class="tab-btn" id="tab-food" onclick="window.switchTab('food')">🍛 อาหารตามสั่ง</div>
@@ -169,6 +170,12 @@
             { cat: "กาแฟสด", name: "อเมริกาโน่", price: 30, type: "coffee" },
             { cat: "กาแฟสด", name: "อเมริกาโน่ส้ม", price: 30, type: "coffee" }
         ],
+        'hop-coffee': [
+            { cat: "Hop Coffee (25.-)", name: "เอสเพรสโซ่ (Hop)", price: 25, type: 'sweet-only' },
+            { cat: "Hop Coffee (25.-)", name: "ลาเต้ (Hop)", price: 25, type: 'sweet-only' },
+            { cat: "Hop Coffee (25.-)", name: "มอคค่า (Hop)", price: 25, type: 'sweet-only' },
+            { cat: "Hop Coffee (25.-)", name: "คาปูชิโน่ (Hop)", price: 25, type: 'sweet-only' }
+        ],
         strawberry: [
             { cat: "🍓 นมสดสตรอว์เบอร์รี่", name: "โกโก้นมสดสตรอว์เบอร์รี่", price: 39 },
             { cat: "🍓 นมสดสตรอว์เบอร์รี่", name: "นมสดสตรอว์เบอร์รี่", price: 39 },
@@ -195,11 +202,13 @@
             { cat: "เพิ่มท็อปปิ้ง", name: "ไข่เจียว", price: 15 }
         ],
         snack: [
-            { cat: "ของทานเล่น", name: "ชุดจัมโบ้ 3 สหาย", price: 79 },
+            { cat: "ของทานเล่น", name: "ชุดจัมโบ้ 3 สหาย", price: 79, note: "(เฟรนช์ฟรายส์, นักเก็ต, ชีสบอล)" },
             { cat: "ของทานเล่น", name: "ชุดคู่สุขใจ (2 อย่าง)", price: 59, type: 'snack-opt' },
             { cat: "ของทานเล่น", name: "เฟรนช์ฟรายส์ธรรมดา", price: 20 },
             { cat: "ของทานเล่น", name: "เฟรนช์ฟรายส์เขย่า", price: 29, type: 'shake' },
-            { cat: "เบอร์เกอร์", name: "เบอร์เกอร์ไก่", price: 35, type: 'burger' }
+            { cat: "เบอร์เกอร์", name: "เบอร์เกอร์ไก่", price: 35, type: 'burger' },
+            { cat: "เบอร์เกอร์", name: "เบอร์เกอร์เนื้อ", price: 40, type: 'burger' },
+            { cat: "เบอร์เกอร์", name: "เบอร์เกอร์กุ้ง", price: 40, type: 'burger' }
         ],
         'hop-other': [
             { cat: "Soda (20.-)", name: "แดงโซดา", price: 20 },
@@ -253,7 +262,7 @@
             }
             
             let options = "";
-            if (currentTab.includes('hop') || currentTab === 'strawberry') {
+            if (currentTab.includes('hop') || currentTab === 'strawberry' || m.type === 'sweet-only') {
                 options = `<div class="option-group">
                     <label>ระดับความหวาน</label>
                     <select id="opt-${index}"><option value="หวานปกติ">หวานปกติ</option><option value="หวานน้อย">หวานน้อย</option></select>
@@ -281,12 +290,32 @@
                     <label><input type="checkbox" id="cheese-${index}"> 🧀 เพิ่มชีส (+15)</label>
                     <label><input type="checkbox" id="egg-${index}"> 🍳 เพิ่มไข่ดาว (+10)</label>
                 </div>`;
+            } else if (m.type === 'snack-opt') {
+                options = `<div class="option-group">
+                    <label>เลือก 2 อย่าง</label>
+                    <select id="snack-${index}">
+                        <option value="ฟรายส์+นักเก็ต">ฟรายส์ + นักเก็ต</option>
+                        <option value="ฟรายส์+ชีสบอล">ฟรายส์ + ชีสบอล</option>
+                        <option value="ชีสบอล+นักเก็ต">ชีสบอล + นักเก็ต</option>
+                    </select>
+                </div>`;
+            } else if (m.type === 'shake') {
+                options = `<div class="option-group">
+                    <label>เลือกผงเขย่า</label>
+                    <select id="shake-${index}">
+                        <option value="ปาปริก้า">ปาปริก้า</option>
+                        <option value="ชีส">ชีส</option>
+                        <option value="BBQ">BBQ</option>
+                    </select>
+                </div>`;
             }
 
             const card = document.createElement('div');
             card.className = "card";
             card.innerHTML = `<div class="card-content">
-                <b style="font-size:1.05em">${m.name}</b><div class="price">${m.price}.-</div>
+                <b style="font-size:1.05em">${m.name}</b>
+                ${m.note ? `<br><small style="color:#64748b">${m.note}</small>` : ''}
+                <div class="price">${m.price}.-</div>
                 ${options}<button class="btn-add" onclick="window.addToCart(${index})">เพิ่มลงตะกร้า</button>
             </div>`;
             menuDiv.appendChild(card);
@@ -297,7 +326,7 @@
         const item = menuData[currentTab][idx];
         let price = item.price, sweet = "", bubble = 0, note = "";
         
-        if (currentTab.includes('hop') || currentTab === 'strawberry') {
+        if (currentTab.includes('hop') || currentTab === 'strawberry' || item.type === 'sweet-only') {
             sweet = document.getElementById(`opt-${idx}`).value;
             bubble = document.getElementById(`mook-${idx}`).checked ? 5 : 0;
         } else if (item.type === 'coffee') {
@@ -311,6 +340,10 @@
         } else if (item.type === 'burger') {
             if(document.getElementById(`cheese-${idx}`).checked) { price += 15; note += "ชีส "; }
             if(document.getElementById(`egg-${idx}`).checked) { price += 10; note += "ไข่ดาว "; }
+        } else if (item.type === 'snack-opt') {
+            note = document.getElementById(`snack-${idx}`).value;
+        } else if (item.type === 'shake') {
+            note = "รส" + document.getElementById(`shake-${idx}`).value;
         }
 
         const cartId = `${item.name}-${sweet}-${bubble}-${note}-${price}`;
