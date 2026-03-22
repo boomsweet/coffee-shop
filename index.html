@@ -24,9 +24,7 @@
             border: none; box-shadow: 0 10px 30px rgba(0,0,0,0.12); border-radius: 25px;
             padding: 20px 28px; width: 100%; box-sizing: border-box; font-size: 1.1em; outline: none; transition: 0.3s;
         }
-        
         .mini-cart { background: white; border-radius: 20px; padding: 15px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; box-shadow: var(--card-shadow); border: 1px solid var(--primary); cursor: pointer; }
-
         .tabs { display: flex; gap: 10px; margin-bottom: 25px; overflow-x: auto; padding: 5px; scrollbar-width: none; }
         .tabs::-webkit-scrollbar { display: none; }
         .tab-btn {
@@ -34,28 +32,21 @@
             font-weight: 600; cursor: pointer; transition: 0.3s; border: 1px solid #eee; color: #7f8c8d;
         }
         .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 8px 20px rgba(111, 78, 55, 0.3); }
-        
         #menu { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
         .card { background: #fff; border-radius: 25px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; overflow: hidden; border: 1px solid #f1f1f1; }
         .card-content { padding: 15px; text-align: center; display: flex; flex-direction: column; flex-grow: 1; }
         .category-title { grid-column: 1 / -1; font-weight: bold; color: var(--primary); margin: 15px 0 5px; font-size: 1.1em; padding-left: 5px; border-left: 4px solid var(--accent); }
         .price { color: var(--accent); font-weight: bold; font-size: 1.2em; margin: 8px 0; }
-        
         .option-group { background: #fdfaf7; padding: 10px; border-radius: 15px; margin-bottom: 10px; text-align: left; border: 1px solid #f1e9e2; }
         select { width: 100%; padding: 8px; border-radius: 10px; border: 1px solid #ddd; font-family: 'Kanit'; font-size: 0.85em; margin-bottom: 5px; }
-        
         .btn-add { background: var(--primary); color: white; border: none; padding: 12px; border-radius: 15px; font-weight: 600; cursor: pointer; width: 100%; margin-top: auto; }
-
         .page { display: none; }
         .page.active { display: block; animation: fadeIn 0.3s; }
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-
         .order-form { background: white; padding: 25px; border-radius: 30px; box-shadow: var(--card-shadow); }
         input, textarea { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #eee; border-radius: 15px; box-sizing: border-box; font-family: 'Kanit'; background: #f9f9f9; }
-        
         .btn-gps { background: #4285F4; color: white; border: none; padding: 12px; border-radius: 15px; width: 100%; font-weight: 600; margin-bottom: 15px; cursor: pointer; }
         .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 10px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.9em; }
-
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: white; padding: 20px 30px; box-shadow: 0 -10px 30px rgba(0,0,0,0.1); display: flex; justify-content: space-between; align-items: center; z-index: 1000; border-radius: 30px 30px 0 0; }
         .btn-submit { background: var(--success); color: white; padding: 15px 35px; font-size: 1.1em; font-weight: bold; border-radius: 18px; border: none; cursor: pointer; }
     </style>
@@ -69,12 +60,10 @@
 <div class="container">
     <div id="page-menu" class="page active">
         <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 ค้นหาเมนู..." oninput="window.filterMenu()"></div>
-        
         <div id="miniCartDisplay" class="mini-cart" style="display: none;" onclick="window.togglePage('checkout')">
             <span>🛒 เลือกแล้ว <b id="cartCount">0</b> อย่าง</span>
             <span style="color: var(--primary); font-weight: bold;">ดูตะกร้า ></span>
         </div>
-
         <div class="tabs">
             <div class="tab-btn active" id="tab-drink" onclick="window.switchTab('drink')">🥤 เครื่องดื่ม</div>
             <div class="tab-btn" id="tab-coffee" onclick="window.switchTab('coffee')">☕ กาแฟสด</div>
@@ -276,4 +265,45 @@
 
     window.getLocation = () => {
         const s = document.getElementById('gpsStatus');
-        if (!navigator
+        if (!navigator.geolocation) return alert("มือถือไม่รองรับ GPS");
+        s.innerText = "กำลังหาพิกัด...";
+        navigator.geolocation.getCurrentPosition(p => {
+            const lat = p.coords.latitude;
+            const lng = p.coords.longitude;
+            const link = `https://www.google.com/maps?q=${lat},${lng}`;
+            document.getElementById('userGps').value = link;
+            s.innerText = "✅ ปักหมุดสำเร็จ";
+        }, () => { s.innerText = "❌ ปักหมุดไม่สำเร็จ"; });
+    };
+
+    async function submitOrder() {
+        const name = document.getElementById("userName").value;
+        const phone = document.getElementById("userPhone").value;
+        const addr = document.getElementById("userAddress").value;
+        const gps = document.getElementById("userGps").value;
+
+        if (!name || !phone || !addr) return alert("กรุณากรอกข้อมูลให้ครบถ้วน");
+
+        try {
+            const ref = await addDoc(collection(db, "orders"), {
+                name, phone, address: addr, gps, cart,
+                status: "new", time: Date.now()
+            });
+            onSnapshot(doc(db, "orders", ref.id), (snap) => {
+                if(!snap.exists()) return;
+                const s = snap.data().status;
+                const box = document.getElementById("statusBox");
+                let m = "⏳ รอรับออเดอร์...", c = "#666";
+                if(s === "doing") { m = "👨‍🍳 กำลังเตรียมอาหาร..."; c = "#e67e22"; }
+                if(s === "done") { m = "✅ จัดส่งเรียบร้อย!"; c = "#27ae60"; }
+                box.innerHTML = `<div style="background:#fff; padding:20px; border-radius:15px; margin-top:20px; text-align:center; border:2px solid ${c}">${m}</div>`;
+            });
+            alert("สั่งเรียบร้อยครับ!");
+            cart = []; updateCartUI(); window.togglePage('menu');
+        } catch (e) { alert("เกิดข้อผิดพลาด: " + e.message); }
+    }
+
+    renderMenu();
+</script>
+</body>
+</html>
