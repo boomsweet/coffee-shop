@@ -14,17 +14,17 @@
         .container { max-width: 1000px; margin: auto; }
         #login { max-width: 350px; margin: 100px auto; text-align: center; background: var(--card); padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         
-        .sales-overview { background: linear-gradient(135deg, #1e293b, #334155); padding: 20px; border-radius: 25px; margin-bottom: 25px; border: 1px solid #475569; }
+        .sales-overview { background: linear-gradient(135deg, #1e293b, #334155); padding: 25px; border-radius: 25px; margin-bottom: 25px; border: 1px solid #475569; }
         .sales-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: center; }
-        .sales-item h4 { margin: 0; font-size: 0.85em; color: var(--primary); opacity: 0.8; }
-        .sales-item p { margin: 5px 0 0; font-size: 1.4em; font-weight: bold; }
+        .sales-item h4 { margin: 0; font-size: 0.9em; color: var(--primary); letter-spacing: 1px; }
+        .sales-item p { margin: 8px 0 0; font-size: 1.8em; font-weight: bold; color: var(--success); }
 
         .admin-nav { display: flex; gap: 10px; margin-bottom: 20px; }
-        .nav-btn { flex: 1; padding: 12px; border-radius: 15px; border: none; background: #334155; color: white; cursor: pointer; font-weight: 600; }
+        .nav-btn { flex: 1; padding: 12px; border-radius: 15px; border: none; background: #334155; color: white; cursor: pointer; font-weight: 600; transition: 0.3s; }
         .nav-btn.active { background: var(--primary); color: #000; }
 
         .section-title { padding: 10px 0; font-size: 1.2em; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.7em; }
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.7em; min-width: 20px; text-align: center; }
         
         .grid-orders { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
         .order-card { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid #334155; position: relative; animation: slideIn 0.3s ease; }
@@ -37,6 +37,10 @@
         .item-list { margin: 15px 0; }
         .item-row { display: flex; justify-content: space-between; font-size: 0.95em; }
         
+        .summary-table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 15px; overflow: hidden; margin-top: 20px; border: 1px solid #334155; }
+        .summary-table th, .summary-table td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
+        .summary-table th { background: #334155; color: var(--primary); font-size: 0.9em; }
+
         button { cursor: pointer; border: none; font-family: 'Kanit'; transition: 0.2s; }
         button:active { transform: scale(0.95); }
         .btn-status { padding: 12px; border-radius: 12px; font-weight: bold; width: 100%; margin-top: 10px; }
@@ -62,11 +66,11 @@
     <div class="sales-overview">
         <div class="sales-grid">
             <div class="sales-item">
-                <h4>💰 ยอดขายวันนี้</h4>
+                <h4>💰 ยอดขายที่สำเร็จวันนี้</h4>
                 <p id="daily">0 บาท</p>
             </div>
             <div class="sales-item">
-                <h4>📅 เดือนนี้</h4>
+                <h4>📅 ยอดขายรวมเดือนนี้</h4>
                 <p id="monthTotal">0 บาท</p>
             </div>
         </div>
@@ -74,7 +78,7 @@
 
     <div class="admin-nav">
         <button id="nav-live" class="nav-btn active">📝 ออเดอร์ปัจจุบัน</button>
-        <button id="nav-history" class="nav-btn">✅ เสร็จสิ้นแล้ว</button>
+        <button id="nav-history" class="nav-btn">✅ สรุปยอด/ประวัติ</button>
     </div>
 
     <div id="page-live" class="page active">
@@ -85,21 +89,30 @@
     </div>
 
     <div id="page-history" class="page">
-        <div class="section-title">✅ รายการที่ส่งแล้ว</div>
+        <div class="section-title">📊 สรุปยอดรายวัน (เดือนนี้)</div>
+        <table class="summary-table">
+            <thead>
+                <tr>
+                    <th>วันที่</th>
+                    <th>จำนวนออเดอร์</th>
+                    <th>ยอดขาย</th>
+                </tr>
+            </thead>
+            <tbody id="summary-body"></tbody>
+        </table>
+
+        <div class="section-title" style="margin-top:30px;">✅ ประวัติออเดอร์ที่ส่งแล้ว</div>
         <div id="done-orders" class="grid-orders"></div>
     </div>
 </div>
 
 <script type="module">
-    // ดึงเฉพาะ db มาจากไฟล์ firebase.js
     import { db } from "./firebase.js";
-    // นำเข้าคำสั่ง Firestore โดยตรง
     import { collection, onSnapshot, doc, updateDoc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    // สร้างตัวแปรอ้างอิงข้อมูลตรงนี้เลย (แก้ปัญหาไฟล์ firebase.js โหลดไม่ผ่าน)
     const ordersRef = collection(db, "orders");
 
-    // --- ฟังก์ชันการทำงาน ---
+    // --- ฟังก์ชันพื้นฐาน ---
     window.updateStat = async (id, s) => {
         try {
             await updateDoc(doc(db, "orders", id), { status: s });
@@ -107,7 +120,7 @@
     };
 
     window.delOrder = async (id) => {
-        if(confirm("ยืนยันลบถาวร?")) {
+        if(confirm("ยืนยันลบถาวร? ข้อมูลยอดขายในหน้านี้จะหายไปด้วย")) {
             try {
                 await deleteDoc(doc(db, "orders", id));
             } catch (err) { alert("ลบไม่ได้: " + err.message); }
@@ -117,10 +130,8 @@
     window.showTab = (tab) => {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-        const targetPage = document.getElementById(`page-${tab}`);
-        const targetBtn = document.getElementById(`nav-${tab}`);
-        if(targetPage) targetPage.classList.add('active');
-        if(targetBtn) targetBtn.classList.add('active');
+        document.getElementById(`page-${tab}`).classList.add('active');
+        document.getElementById(`nav-${tab}`).classList.add('active');
     };
 
     // --- ระบบ Login ---
@@ -133,9 +144,7 @@
             document.getElementById("login").style.display = "none";
             document.getElementById("panel").style.display = "block";
             startDashboard();
-        } else {
-            alert("รหัสผ่านไม่ถูกต้อง!");
-        }
+        } else { alert("รหัสผ่านไม่ถูกต้อง!"); }
     };
 
     loginBtn.onclick = doLogin;
@@ -147,7 +156,7 @@
         startDashboard();
     }
 
-    // --- ระบบ Dashboard ---
+    // --- ระบบ Dashboard & Calculation ---
     let lastCount = -1;
     let audioOn = false;
 
@@ -171,38 +180,84 @@
     function startDashboard() {
         onSnapshot(ordersRef, (snap) => {
             const list = { new: [], doing: [], done: [] };
+            const dailyStats = {}; // เก็บยอดรายวัน { "23/3/2569": { total: 500, count: 2 } }
+            
             let dSum = 0, mSum = 0;
             const now = new Date();
-            const today = now.toLocaleDateString('th-TH');
-            const thisM = now.getMonth();
+            const todayStr = now.toLocaleDateString('th-TH');
+            const currentMonth = now.getMonth();
+            const currentYear = now.getFullYear();
 
             let currentNew = 0;
 
             snap.forEach(d => {
                 const o = d.data();
                 const id = d.id;
-                let total = 0;
-                if(o.cart) o.cart.forEach(i => total += (i.price + (i.bubble||0)) * i.qty);
+                let orderTotal = 0;
+                if(o.cart) o.cart.forEach(i => orderTotal += (i.price + (i.bubble||0)) * i.qty);
 
                 const oDate = new Date(o.time);
-                if(oDate.toLocaleDateString('th-TH') === today) dSum += total;
-                if(oDate.getMonth() === thisM) mSum += total;
+                const oDateStr = oDate.toLocaleDateString('th-TH');
 
-                const card = createCard(id, o, total);
+                // คำนวณยอดเฉพาะที่ status === 'done' (ส่งสำเร็จแล้ว)
+                if(o.status === 'done') {
+                    // รายวัน
+                    if(oDateStr === todayStr) dSum += orderTotal;
+                    // รายเดือน
+                    if(oDate.getMonth() === currentMonth && oDate.getFullYear() === currentYear) {
+                        mSum += orderTotal;
+                        // เก็บสถิติลงตาราง
+                        if(!dailyStats[oDateStr]) dailyStats[oDateStr] = { total: 0, count: 0 };
+                        dailyStats[oDateStr].total += orderTotal;
+                        dailyStats[oDateStr].count += 1;
+                    }
+                }
+
+                const card = createCard(id, o, orderTotal);
                 if(o.status === 'new') { list.new.push(card); currentNew++; }
                 else if(o.status === 'doing') list.doing.push(card);
                 else list.done.push(card);
             });
 
+            // แจ้งเตือนเสียง
             if(lastCount !== -1 && currentNew > lastCount) speak("มีออเดอร์ใหม่เข้ามาค่ะ");
             lastCount = currentNew;
 
+            // Render การ์ด
             render('new-orders', list.new, 'count-new');
             render('doing-orders', list.doing, 'count-doing');
-            render('done-orders', list.done, 'count-done');
+            render('done-orders', list.done, null);
+
+            // Render ตารางสรุปยอด
+            renderSummaryTable(dailyStats);
 
             document.getElementById("daily").innerText = dSum.toLocaleString() + " บาท";
             document.getElementById("monthTotal").innerText = mSum.toLocaleString() + " บาท";
+        });
+    }
+
+    function renderSummaryTable(stats) {
+        const tbody = document.getElementById("summary-body");
+        tbody.innerHTML = "";
+        // เรียงวันที่ล่าสุดขึ้นก่อน
+        const sortedDates = Object.keys(stats).sort((a,b) => {
+            const dateA = a.split('/').reverse().join('');
+            const dateB = b.split('/').reverse().join('');
+            return dateB.localeCompare(dateA);
+        });
+
+        if(sortedDates.length === 0) {
+            tbody.innerHTML = "<tr><td colspan='3' style='text-align:center; color:#94a3b8;'>ยังไม่มีข้อมูลการขายที่สำเร็จในเดือนนี้</td></tr>";
+            return;
+        }
+
+        sortedDates.forEach(date => {
+            const row = `<tr>
+                <td>${date}</td>
+                <td>${stats[date].count} ออเดอร์</td>
+                <td style="color:var(--success); font-weight:bold;">${stats[date].total.toLocaleString()}.-</td>
+            </tr>`;
+            tbody.innerHTML += row;
         });
     }
 
@@ -231,10 +286,10 @@
             </div>
             <div class="address-box">🏠 ${o.address || 'รับที่ร้าน'}${o.gps ? `<br><a href="${o.gps}" target="_blank" class="btn-gps">📍 เปิดแผนที่</a>` : ''}</div>
             <div class="item-list">${items}</div>
-            <div style="text-align:right; font-weight:bold; color:var(--primary); font-size:1.2em; border-top:1px dashed #334155; padding-top:10px;">รวม ${total.toLocaleString()}.-</div>
+            <div style="text-align:right; font-weight:bold; color:var(--primary); font-size:1.2em; border-top:1px dashed #475569; padding-top:10px;">รวม ${total.toLocaleString()}.-</div>
             <div class="btn-group">
                 ${o.status === 'new' ? `<button onclick="updateStat('${id}','doing')" class="btn-status" style="background:var(--warning);">รับออเดอร์</button>` : ''}
-                ${o.status === 'doing' ? `<button onclick="updateStat('${id}','done')" class="btn-status" style="background:var(--success); color:#fff;">ส่งสำเร็จ</button>` : ''}
+                ${o.status === 'doing' ? `<button onclick="updateStat('${id}','done')" class="btn-status" style="background:var(--success); color:#fff;">ทำเสร็จแล้วรอส่ง</button>` : ''}
                 ${o.status === 'done' ? `<button onclick="delOrder('${id}')" class="btn-status" style="background:var(--danger); color:#fff;">ลบรายการ</button>` : ''}
             </div>
         `;
