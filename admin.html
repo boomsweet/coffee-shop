@@ -4,232 +4,233 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hop Cafe | Admin Dashboard</title>
-    <link rel="manifest" href="manifest-admin.json">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg: #0f172a; --card: #1e293b; --primary: #38bdf8;
             --success: #22c55e; --warning: #f59e0b; --danger: #ef4444; --text: #f1f5f9;
         }
-        body { background-color: var(--bg); color: var(--text); font-family: 'Kanit', sans-serif; margin: 0; padding: 20px; }
+        body { background-color: var(--bg); color: var(--text); font-family: 'Kanit', sans-serif; margin: 0; padding: 15px; }
         .container { max-width: 1000px; margin: auto; }
         #login { max-width: 350px; margin: 100px auto; text-align: center; background: var(--card); padding: 40px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
-        h1 { font-weight: 600; color: var(--primary); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-        .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 20px; }
-        .stat-box { background: var(--card); padding: 20px; border-radius: 15px; border-left: 5px solid var(--primary); }
-        .stat-box h3 { margin: 0; font-size: 0.8em; opacity: 0.7; text-transform: uppercase; }
-        .stat-box p { margin: 10px 0 0; font-size: 1.3em; font-weight: bold; }
-        .section-title { background: #334155; padding: 10px 15px; border-radius: 10px; margin: 25px 0 15px; font-size: 1.1em; display: flex; justify-content: space-between; }
-        .grid-orders { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 15px; }
-        .order-card { background: var(--card); border-radius: 15px; padding: 15px; border: 1px solid #334155; position: relative; }
-        .order-header { border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: flex-start; }
-        .customer-info { display: flex; flex-direction: column; gap: 2px; }
-        .phone-link { color: var(--primary); text-decoration: none; font-size: 0.9em; }
-        .item-row { display: flex; justify-content: space-between; font-size: 0.95em; margin-bottom: 5px; }
-        .item-detail { font-size: 0.85em; color: #cbd5e1; margin-bottom: 12px; padding: 4px 8px; background: rgba(255,255,255,0.05); border-radius: 6px; }
-        button { border: none; border-radius: 8px; padding: 10px 15px; cursor: pointer; font-family: 'Kanit', sans-serif; transition: 0.2s; font-weight: 500; }
-        .btn-blue { background: var(--primary); color: #000; }
-        .btn-orange { background: var(--warning); color: #000; }
-        .btn-green { background: var(--success); color: #fff; }
-        .btn-red { background: var(--danger); color: #fff; }
-        .btn-group { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 5px; margin-top: 15px; }
-        input { background: #0f172a; border: 1px solid #334155; color: #fff; padding: 10px; border-radius: 8px; outline: none; }
-        .badge { padding: 2px 8px; border-radius: 5px; font-size: 0.75em; font-weight: bold; }
-        .bg-new { background: var(--primary); color: #000; }
-        .bg-doing { background: var(--warning); color: #000; }
-        .bg-done { background: var(--success); color: #fff; }
-        .history-table { width: 100%; border-collapse: collapse; background: var(--card); border-radius: 15px; overflow: hidden; margin-top: 10px; }
-        .history-table th, .history-table td { padding: 12px; text-align: left; border-bottom: 1px solid #334155; }
-        .history-table th { background: #334155; font-size: 0.9em; }
         
-        /* แจ้งเตือนเรื่องเสียง */
-        #audio-banner { background: var(--warning); color: #000; padding: 10px; text-align: center; font-size: 0.9em; border-radius: 10px; margin-bottom: 15px; cursor: pointer; font-weight: bold; }
+        /* Sales Summary Box */
+        .sales-overview { background: linear-gradient(135deg, #1e293b, #334155); padding: 20px; border-radius: 25px; margin-bottom: 25px; border: 1px solid #475569; }
+        .sales-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; text-align: center; }
+        .sales-item h4 { margin: 0; font-size: 0.85em; color: var(--primary); opacity: 0.8; }
+        .sales-item p { margin: 5px 0 0; font-size: 1.4em; font-weight: bold; }
+
+        /* Navigation Tabs */
+        .admin-nav { display: flex; gap: 10px; margin-bottom: 20px; }
+        .nav-btn { flex: 1; padding: 12px; border-radius: 15px; border: none; background: #334155; color: white; cursor: pointer; font-weight: 600; }
+        .nav-btn.active { background: var(--primary); color: #000; }
+
+        .section-title { padding: 10px 0; font-size: 1.2em; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 0.7em; }
+        
+        .grid-orders { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 15px; }
+        .order-card { background: var(--card); border-radius: 20px; padding: 20px; border: 1px solid #334155; position: relative; animation: slideIn 0.3s ease; }
+        @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .cust-header { border-bottom: 1px solid #334155; padding-bottom: 10px; margin-bottom: 12px; }
+        .address-box { background: rgba(0,0,0,0.2); padding: 10px; border-radius: 10px; font-size: 0.9em; margin: 10px 0; color: #cbd5e1; border-left: 3px solid var(--warning); }
+        
+        .btn-gps { background: #4285F4; color: white; display: inline-block; padding: 5px 12px; border-radius: 8px; text-decoration: none; font-size: 0.8em; margin-top: 5px; }
+        .item-list { margin: 15px 0; }
+        .item-row { display: flex; justify-content: space-between; font-size: 0.95em; }
+        
+        button { cursor: pointer; border: none; font-family: 'Kanit'; }
+        .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 15px; }
+        .btn-status { padding: 12px; border-radius: 12px; font-weight: bold; }
+        
+        .page { display: none; }
+        .page.active { display: block; }
+        
+        input { background: #0f172a; border: 1px solid #334155; color: #fff; padding: 12px; border-radius: 10px; width: 100%; box-sizing: border-box; }
+        #audio-banner { background: var(--warning); color: #000; padding: 12px; text-align: center; border-radius: 12px; margin-bottom: 15px; cursor: pointer; font-weight: bold; }
     </style>
 </head>
 <body>
 
 <div id="login">
     <h2 style="margin-top:0">🔒 Admin Access</h2>
-    <input id="pass" type="password" placeholder="ใส่รหัสผ่านเพื่อเข้าถึง" style="width:100%; box-sizing:border-box; text-align:center;">
-    <button id="btnLogin" class="btn-blue" style="width:100%; margin-top:15px; font-size:1.1em;">เข้าสู่ระบบ</button>
+    <input id="pass" type="password" placeholder="รหัสผ่าน">
+    <button onclick="checkLogin()" style="width:100%; margin-top:15px; padding:12px; border-radius:10px; background:var(--primary); font-weight:bold;">เข้าสู่ระบบ</button>
 </div>
 
 <div id="panel" style="display:none;" class="container">
-    <div id="audio-banner" onclick="enableAudio()">🔔 แตะที่นี่หนึ่งครั้งเพื่อเปิดเสียงแจ้งเตือนออเดอร์ใหม่</div>
-    
-    <h1>
-        📊 Dashboard 
-        <button id="installBtn" class="btn-blue" style="display:none; font-size:0.5em;">📲 ติดตั้งแอป</button>
-    </h1>
-    
-    <div class="stats-grid">
-        <div class="stat-box"><h3>💰 ยอดขายเดือนนี้</h3><p id="monthTotal">0 บาท</p></div>
-        <div class="stat-box" style="border-left-color: var(--success);"><h3>📅 ยอดวันนี้ (<span id="todayLabel">-</span>)</h3><p id="daily">0 บาท</p></div>
+    <div id="audio-banner" onclick="enableAudio()">🔔 แตะที่นี่หนึ่งครั้งเพื่อ "เปิดเสียงพูด" แจ้งเตือนออเดอร์</div>
+
+    <div class="sales-overview">
+        <div class="sales-grid">
+            <div class="sales-item">
+                <h4>💰 ยอดขายวันนี้</h4>
+                <p id="daily">0 บาท</p>
+            </div>
+            <div class="sales-item">
+                <h4>📅 เดือนนี้</h4>
+                <p id="monthTotal">0 บาท</p>
+            </div>
+        </div>
     </div>
 
-    <div class="section-title">🆕 ออเดอร์มาใหม่ <span id="count-new" class="badge bg-new">0</span></div>
-    <div id="new" class="grid-orders"></div>
+    <div class="admin-nav">
+        <button id="nav-live" class="nav-btn active" onclick="showTab('live')">📝 ออเดอร์ปัจจุบัน</button>
+        <button id="nav-history" class="nav-btn" onclick="showTab('history')">✅ เสร็จสิ้นแล้ว</button>
+    </div>
 
-    <div class="section-title">👨‍🍳 กำลังเตรียม <span id="count-doing" class="badge bg-doing">0</span></div>
-    <div id="doing" class="grid-orders"></div>
+    <div id="page-live" class="page active">
+        <div class="section-title">🆕 มาใหม่ <span id="count-new" class="badge" style="background:var(--primary); color:#000">0</span></div>
+        <div id="new-orders" class="grid-orders"></div>
 
-    <div class="section-title">✅ เสร็จสิ้น (ลบไม่ได้) <span id="count-done" class="badge bg-done">0</span></div>
-    <div id="done" class="grid-orders"></div>
+        <div class="section-title" style="margin-top:30px;">👨‍🍳 กำลังทำ <span id="count-doing" class="badge" style="background:var(--warning); color:#000">0</span></div>
+        <div id="doing-orders" class="grid-orders"></div>
+    </div>
 
-    <div class="section-title">📈 สรุปยอดขายย้อนหลัง</div>
-    <table class="history-table">
-        <thead><tr><th>วันที่</th><th>ยอดขายรวม</th></tr></thead>
-        <tbody id="historyBody"></tbody>
-    </table>
+    <div id="page-history" class="page">
+        <div class="section-title">✅ รายการที่ส่งแล้ว</div>
+        <div id="done-orders" class="grid-orders"></div>
+    </div>
 </div>
 
 <script type="module">
-import { db, collection, onSnapshot, doc, updateDoc } from "./firebase.js";
-import { deleteDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { db, ordersRef, onSnapshot, doc, updateDoc, deleteDoc } from "./firebase.js";
 
-const loginDiv = document.getElementById("login");
-const panelDiv = document.getElementById("panel");
-const passInput = document.getElementById("pass");
-const btnLogin = document.getElementById("btnLogin");
-const todayLabel = document.getElementById("todayLabel");
-const audioBanner = document.getElementById("audio-banner");
+    let lastOrderCount = -1;
+    let isAudioEnabled = false;
 
-// แก้ไขเรื่องเสียง: เปลี่ยนลิงก์เสียงที่ดังชัดเจน และตั้งค่า Volume สูงสุด
-const notificationSound = new Audio('https://notificationsounds.com/storage/sounds/file-sounds-1150-pristine.mp3');
-notificationSound.volume = 1.0; 
-let lastOrderCount = -1;
+    // --- Audio System (Speech) ---
+    window.enableAudio = () => {
+        isAudioEnabled = true;
+        document.getElementById("audio-banner").style.display = "none";
+        speakText("เปิดระบบเสียงเรียบร้อยค่ะ");
+    };
 
-// ฟังก์ชันเปิดสิทธิ์เล่นเสียง (ต้องทำ 1 ครั้งหลังเปิดเว็บ)
-window.enableAudio = () => {
-    notificationSound.play().then(() => {
-        audioBanner.style.display = "none"; // ถ้าเล่นได้แล้วให้ซ่อนแถบเหลือง
-        console.log("Audio Enabled");
-    }).catch(e => console.log("Audio blocked", e));
-};
+    function speakText(text) {
+        if (!isAudioEnabled) return;
+        const msg = new SpeechSynthesisUtterance();
+        msg.text = text;
+        msg.lang = 'th-TH';
+        msg.rate = 1.0;
+        window.speechSynthesis.speak(msg);
+    }
 
-const thaiLocale = 'th-TH';
-const thaiOptions = { timeZone: 'Asia/Bangkok' };
+    // --- Auth ---
+    window.checkLogin = () => {
+        if(document.getElementById("pass").value === "0000") {
+            localStorage.setItem("admin_active", "true");
+            location.reload();
+        } else { alert("รหัสผิด!"); }
+    };
 
-if(localStorage.getItem("admin_login")) showPanel();
-btnLogin.onclick = () => {
-    if(passInput.value === "0000"){
-        localStorage.setItem("admin_login","1");
-        showPanel();
-    } else { alert("รหัสผ่านไม่ถูกต้อง"); }
-};
+    if(localStorage.getItem("admin_active")) {
+        document.getElementById("login").style.display = "none";
+        document.getElementById("panel").style.display = "block";
+        initDashboard();
+    }
 
-function showPanel(){
-    loginDiv.style.display="none";
-    panelDiv.style.display="block";
-    todayLabel.innerText = new Date().toLocaleDateString(thaiLocale, thaiOptions);
-    loadOrders();
-}
+    // --- Navigation ---
+    window.showTab = (tab) => {
+        document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`page-${tab}`).classList.add('active');
+        document.getElementById(`nav-${tab}`).classList.add('active');
+    };
 
-function loadOrders(){
-    onSnapshot(collection(db,"orders"), snap => {
-        const containers = { new: [], doing: [], done: [] };
-        let dailyTotal = 0, monthTotal = 0;
-        const dailySummary = {};
-        const todayStr = new Date().toLocaleDateString(thaiLocale, thaiOptions);
-        const thisMonth = new Date().getMonth();
-        const thisYear = new Date().getFullYear();
+    function initDashboard() {
+        onSnapshot(ordersRef, (snap) => {
+            const list = { new: [], doing: [], done: [] };
+            let dailyTotal = 0, monthTotal = 0;
+            const todayStr = new Date().toLocaleDateString('th-TH');
+            const thisMonth = new Date().getMonth();
 
-        let currentNewOrders = 0;
+            let newCount = 0;
 
-        snap.forEach(d => {
-            const o = d.data();
-            const id = d.id;
-            let orderSum = 0;
-            (o.cart || []).forEach(item => { orderSum += (item.price + (item.bubble || 0)) * item.qty; });
+            snap.forEach(d => {
+                const o = d.data();
+                const id = d.id;
+                let sum = 0;
+                o.cart.forEach(i => sum += (i.price + (i.bubble||0)) * i.qty);
 
-            const dObj = new Date(o.time);
-            const dStr = dObj.toLocaleDateString(thaiLocale, thaiOptions);
-            
-            dailySummary[dStr] = (dailySummary[dStr] || 0) + orderSum;
-            if(dStr === todayStr) dailyTotal += orderSum;
-            if(dObj.getMonth() === thisMonth && dObj.getFullYear() === thisYear) monthTotal += orderSum;
+                const dObj = new Date(o.time);
+                if(dObj.toLocaleDateString('th-TH') === todayStr) dailyTotal += sum;
+                if(dObj.getMonth() === thisMonth) monthTotal += sum;
 
-            if(o.status === 'new') currentNewOrders++;
-
-            const card = document.createElement("div");
-            card.className = "order-card";
-            const orderTime = dObj.toLocaleTimeString(thaiLocale, { ...thaiOptions, hour: '2-digit', minute: '2-digit' });
-
-            const isDone = o.status === 'done';
-            const actionButtons = isDone ? '' : `
-                <div class="btn-group">
-                    <button onclick="updateStatus('${id}','new')" class="btn-blue" style="font-size:0.75em">รอ</button>
-                    <button onclick="updateStatus('${id}','doing')" class="btn-orange" style="font-size:0.75em">ทำ</button>
-                    <button onclick="updateStatus('${id}','done')" class="btn-green" style="font-size:0.75em">เสร็จ</button>
-                </div>
-            `;
-            
-            const deleteBtn = isDone ? '' : `<button onclick="deleteOrder('${id}')" style="position:absolute; top:-10px; right:-10px; padding:5px; border-radius:50%; width:26px; height:26px; display:flex; align-items:center; justify-content:center; border:2px solid var(--bg); font-weight:bold;" class="btn-red">×</button>`;
-
-            card.innerHTML = `
-                <div class="order-header">
-                    <div class="customer-info">
-                        <strong>👤 ${o.name || 'ลูกค้า'}</strong>
-                        ${o.phone ? `<a href="tel:${o.phone}" class="phone-link">📞 ${o.phone}</a>` : ''}
-                    </div>
-                    <span style="font-size:0.85em; opacity:0.7">${orderTime}</span>
-                </div>
-                <div>
-                    ${(o.cart || []).map(item => `
-                        <div class="item-row"><span><b>${item.name}</b> x ${item.qty}</span><span>${(item.price + (item.bubble || 0)) * item.qty}.-</span></div>
-                        <div class="item-detail">${item.sweet || 'ปกติ'}${item.bubble ? ' | ไข่มุก' : ''}${item.note ? ` | ${item.note}` : ''}</div>
-                    `).join('')}
-                </div>
-                <div style="text-align:right; font-size:1.1em; font-weight:bold; color:var(--primary); border-top: 1px dashed #334155; padding-top:10px;">รวม ${orderSum.toLocaleString()}.-</div>
-                ${actionButtons}${deleteBtn}
-            `;
-
-            if(o.status === "doing") containers.doing.push(card);
-            else if(o.status === "done") containers.done.push(card);
-            else containers.new.push(card);
-        });
-
-        // ระบบเสียงแจ้งเตือนออเดอร์ใหม่
-        if (lastOrderCount !== -1 && currentNewOrders > lastOrderCount) {
-            notificationSound.play().catch(e => {
-                console.log("Autoplay blocked. User must interact first.");
-                audioBanner.style.display = "block"; // แสดงแถบเตือนถ้าเสียงโดนบล็อก
+                const card = createOrderCard(id, o, sum);
+                if(o.status === 'new') { list.new.push(card); newCount++; }
+                else if(o.status === 'doing') list.doing.push(card);
+                else list.done.push(card);
             });
-        }
-        lastOrderCount = currentNewOrders;
 
-        renderSection("new", containers.new);
-        renderSection("doing", containers.doing);
-        renderSection("done", containers.done);
-        
-        document.getElementById("daily").innerText = dailyTotal.toLocaleString() + " บาท";
-        document.getElementById("monthTotal").innerText = monthTotal.toLocaleString() + " บาท";
+            // แจ้งเตือนเสียงพูด
+            if (lastOrderCount !== -1 && newCount > lastOrderCount) {
+                speakText("ออเดอร์ใหม่เข้าจ้า!");
+            }
+            lastOrderCount = newCount;
 
-        const historyBody = document.getElementById("historyBody");
-        historyBody.innerHTML = "";
-        Object.keys(dailySummary).sort((a,b) => b.split('/').reverse().join('') < a.split('/').reverse().join('') ? -1 : 1).slice(0, 10).forEach(date => {
-            historyBody.innerHTML += `<tr><td>${date}</td><td>${dailySummary[date].toLocaleString()}.-</td></tr>`;
+            // Render
+            render('new-orders', list.new, 'count-new');
+            render('doing-orders', list.doing, 'count-doing');
+            render('done-orders', list.done, 'count-done');
+
+            document.getElementById("daily").innerText = dailyTotal.toLocaleString() + " บาท";
+            document.getElementById("monthTotal").innerText = monthTotal.toLocaleString() + " บาท";
         });
-    });
-}
+    }
 
-function renderSection(id, elements) {
-    const el = document.getElementById(id);
-    el.innerHTML = "";
-    elements.reverse().forEach(card => el.appendChild(card));
-    document.getElementById(`count-${id}`).innerText = elements.length;
-}
+    function createOrderCard(id, o, total) {
+        const div = document.createElement('div');
+        div.className = "order-card";
+        
+        const time = new Date(o.time).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
+        
+        const itemsHtml = o.cart.map(i => `
+            <div class="item-row">
+                <span><b>${i.name}</b> x${i.qty}</span>
+                <span>${(i.price + (i.bubble||0)) * i.qty}.-</span>
+            </div>
+            <div style="font-size:0.8em; color:#94a3b8; margin-bottom:8px;">
+                ${i.sweet||''} ${i.bubble ? '+ไข่มุก' : ''} ${i.note||''}
+            </div>
+        `).join('');
 
-window.updateStatus = (id, status) => { updateDoc(doc(db, "orders", id), { status }); };
-window.deleteOrder = async (id) => { if(confirm("ลบออเดอร์นี้?")) await deleteDoc(doc(db, "orders", id)); };
+        const gpsBtn = o.gps ? `<a href="${o.gps}" target="_blank" class="btn-gps">📍 นำทางด้วย Google Maps</a>` : '';
 
-let deferredPrompt;
-window.addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); deferredPrompt = e; document.getElementById("installBtn").style.display = "inline-block"; });
-document.getElementById("installBtn").onclick = () => { if(deferredPrompt) { deferredPrompt.prompt(); deferredPrompt = null; } };
+        div.innerHTML = `
+            <div class="cust-header">
+                <div style="display:flex; justify-content:space-between">
+                    <strong>👤 ${o.name}</strong>
+                    <small>${time}</small>
+                </div>
+                <a href="tel:${o.phone}" style="color:var(--primary); text-decoration:none; font-size:0.9em;">📞 ${o.phone}</a>
+            </div>
+            <div class="address-box">
+                🏠 ${o.address} <br>
+                ${gpsBtn}
+            </div>
+            <div class="item-list">${itemsHtml}</div>
+            <div style="text-align:right; font-weight:bold; color:var(--primary); font-size:1.2em; border-top:1px dashed #334155; padding-top:10px;">
+                รวม ${total}.-
+            </div>
+            <div class="btn-group">
+                ${o.status === 'new' ? `<button onclick="updateStat('${id}','doing')" class="btn-status" style="background:var(--warning); grid-column: span 2;">รับออเดอร์ (เริ่มทำ)</button>` : ''}
+                ${o.status === 'doing' ? `<button onclick="updateStat('${id}','done')" class="btn-status" style="background:var(--success); grid-column: span 2; color:white;">ส่งอาหารสำเร็จ (เสร็จสิ้น)</button>` : ''}
+                ${o.status === 'done' ? `<button onclick="delOrder('${id}')" class="btn-status" style="background:var(--danger); grid-column: span 2; color:white;">ลบประวัติ</button>` : ''}
+            </div>
+        `;
+        return div;
+    }
+
+    function render(containerId, elements, countId) {
+        const c = document.getElementById(containerId);
+        c.innerHTML = "";
+        elements.reverse().forEach(e => c.appendChild(e));
+        if(countId) document.getElementById(countId).innerText = elements.length;
+    }
+
+    window.updateStat = (id, s) => updateDoc(doc(db, "orders", id), { status: s });
+    window.delOrder = (id) => { if(confirm("ลบถาวร?")) deleteDoc(doc(db, "orders", id)); };
 </script>
 
-<script>
-  if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('sw.js'); }); }
-</script>
 </body>
 </html>
