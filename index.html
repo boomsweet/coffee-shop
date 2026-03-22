@@ -4,225 +4,89 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hop Cafe & R'romdee Kitchen</title>
-    
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#6f4e37">
-    
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
-    
     <style>
         :root {
-            --primary: #6f4e37;
-            --secondary: #ecf0f1;
-            --accent: #e67e22;
-            --success: #27ae60;
-            --bg: #f8f9fa;
+            --primary: #6f4e37; --secondary: #fdfaf7; --accent: #e67e22;
+            --success: #27ae60; --bg: #f8f9fa; --card-shadow: 0 10px 20px rgba(0,0,0,0.05);
         }
-
-        body {
-            font-family: 'Kanit', sans-serif;
-            background: var(--bg);
-            margin: 0;
-            padding-bottom: 120px;
-            color: #333;
+        body { font-family: 'Kanit', sans-serif; background: var(--bg); margin: 0; padding-bottom: 140px; color: #333; }
+        header { 
+            background: linear-gradient(135deg, var(--primary), #8d6e63); 
+            color: white; padding: 35px 20px; text-align: center; 
+            border-radius: 0 0 40px 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.15);
         }
-
-        header {
-            background: var(--primary);
-            color: white;
-            padding: 25px 20px;
-            text-align: center;
-            border-radius: 0 0 30px 30px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-        }
-
         .container { max-width: 600px; margin: auto; padding: 15px; }
-
-        .search-box {
-            margin: -20px 0 20px;
-            position: sticky;
-            top: 10px;
-            z-index: 100;
-        }
+        .search-box { margin: -25px 15px 20px; position: sticky; top: 15px; z-index: 100; }
         .search-box input {
-            border: none;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.1);
-            border-radius: 15px;
-            padding: 15px 20px;
-            width: 100%;
-            box-sizing: border-box;
-            font-size: 1em;
-            outline: none;
+            border: none; box-shadow: 0 10px 25px rgba(0,0,0,0.1); border-radius: 20px;
+            padding: 18px 25px; width: 100%; box-sizing: border-box; font-size: 1.1em; outline: none; border: 2px solid transparent; transition: 0.3s;
         }
-
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
+        .search-box input:focus { border-color: var(--primary); }
+        .tabs { display: flex; gap: 8px; margin-bottom: 20px; overflow-x: auto; padding: 5px; scrollbar-width: none; }
+        .tabs::-webkit-scrollbar { display: none; }
         .tab-btn {
-            flex: 1;
-            padding: 12px;
-            background: #e2e8f0;
-            border-radius: 12px;
-            font-weight: bold;
-            text-align: center;
-            cursor: pointer;
-            transition: 0.3s;
+            flex: 0 0 auto; padding: 10px 20px; background: white; border-radius: 30px;
+            font-weight: 600; cursor: pointer; transition: 0.3s; border: 1px solid #eee; color: #666;
         }
-        .tab-btn.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 4px 10px rgba(111, 78, 55, 0.3);
-        }
-
-        .category-title {
-            font-weight: 600;
-            color: var(--primary);
-            margin: 25px 0 12px;
-            padding-left: 10px;
-            border-left: 5px solid var(--accent);
-            font-size: 1.1em;
-        }
-
-        #menu {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-
-        .card {
-            background: #fff;
-            border-radius: 15px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-            display: flex;
-            flex-direction: column;
-            border: 1px solid #eee;
-            transition: 0.3s;
-        }
-
-        .card-content { padding: 15px; text-align: center; flex-grow: 1; }
-        .price { color: var(--accent); font-weight: bold; font-size: 1.1em; margin-bottom: 5px; }
-
-        .option-group {
-            background: #f8fafc;
-            padding: 8px;
-            border-radius: 10px;
-            margin: 8px 0;
-            border: 1px solid #edf2f7;
-            text-align: left;
-        }
-
-        .option-label { font-size: 0.75em; color: #718096; font-weight: 600; }
-
-        select, .btn-add {
-            width: 100%;
-            padding: 8px;
-            border-radius: 8px;
-            font-family: 'Kanit', sans-serif;
-            font-size: 0.85em;
-            outline: none;
-            margin-top: 5px;
-            border: 1px solid #cbd5e0;
-        }
-
-        .btn-add { background: var(--primary); color: white; font-weight: 600; margin-top: 10px; border: none; cursor: pointer; }
-        .btn-add:active { transform: scale(0.95); }
-
-        .order-form {
-            background: white;
-            padding: 20px;
-            border-radius: 20px;
-            margin-top: 30px;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.05);
-        }
-
-        input[type="text"], input[type="tel"] {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0;
-            border: 1px solid #e2e8f0;
-            border-radius: 10px;
-            box-sizing: border-box;
-            font-size: 1em;
-        }
-
-        .cart-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 12px 0;
-            border-bottom: 1px dashed #e2e8f0;
-        }
-
-        .qty-controls { display: flex; align-items: center; gap: 10px; }
-        .qty-controls button {
-            width: 28px; height: 28px;
-            background: #edf2f7; border-radius: 8px; border: none;
-            cursor: pointer; font-weight: bold;
-        }
-
-        .bottom-bar {
-            position: fixed;
-            bottom: 0; left: 0; right: 0;
-            background: white; padding: 15px 25px;
-            box-shadow: 0 -10px 25px rgba(0,0,0,0.1);
-            display: flex; justify-content: space-between; align-items: center;
-            z-index: 1000;
-        }
-
-        .btn-submit {
-            background: var(--success); color: white;
-            padding: 12px 35px; font-size: 1.1em; font-weight: bold;
-            border-radius: 15px; border: none; cursor: pointer;
-        }
-
-        .status-card {
-            background: #fff; padding: 15px; border-radius: 15px;
-            margin-top: 20px; text-align: center; border: 2px solid #edf2f7;
-        }
-
-        .badge { font-size: 0.7em; padding: 2px 6px; border-radius: 5px; background: #fef3c7; color: #92400e; margin-left: 5px; }
+        .tab-btn.active { background: var(--primary); color: white; border-color: var(--primary); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(111, 78, 55, 0.3); }
+        .category-title { font-weight: 600; color: var(--primary); margin: 30px 0 15px; padding-left: 12px; border-left: 6px solid var(--accent); font-size: 1.2em; }
+        #menu { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .card { background: #fff; border-radius: 25px; box-shadow: var(--card-shadow); display: flex; flex-direction: column; border: 1px solid rgba(0,0,0,0.03); transition: 0.3s; overflow: hidden; }
+        .card:hover { transform: translateY(-5px); }
+        .card-content { padding: 18px; text-align: center; flex-grow: 1; display: flex; flex-direction: column; }
+        .price { color: var(--accent); font-weight: bold; font-size: 1.2em; margin: 8px 0; }
+        .option-group { background: #fdfaf7; padding: 10px; border-radius: 15px; margin: 10px 0; border: 1px solid #f1e9e2; text-align: left; }
+        .option-label { font-size: 0.75em; color: #8d6e63; font-weight: 600; text-transform: uppercase; margin-bottom: 5px; display: block; }
+        select, .btn-add { width: 100%; padding: 10px; border-radius: 12px; font-family: 'Kanit', sans-serif; font-size: 0.9em; outline: none; margin-top: 5px; border: 1px solid #dcdde1; }
+        .btn-add { background: var(--primary); color: white; font-weight: 600; margin-top: auto; border: none; cursor: pointer; padding: 12px; transition: 0.2s; }
+        .btn-add:hover { background: #5a3f2d; }
+        .order-form { background: white; padding: 25px; border-radius: 30px; margin-top: 35px; box-shadow: var(--card-shadow); border: 1px solid #eee; }
+        input[type="text"], input[type="tel"] { width: 100%; padding: 15px; margin: 10px 0; border: 1px solid #edf2f7; border-radius: 15px; box-sizing: border-box; font-size: 1em; background: #f8fafc; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 15px 0; border-bottom: 1px solid #f1f5f9; }
+        .qty-controls { display: flex; align-items: center; gap: 12px; }
+        .qty-controls button { width: 32px; height: 32px; background: #f1f5f9; border-radius: 10px; border: none; cursor: pointer; font-weight: bold; color: var(--primary); }
+        .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 20px 30px; box-shadow: 0 -15px 35px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; z-index: 1000; }
+        .btn-submit { background: var(--success); color: white; padding: 15px 45px; font-size: 1.1em; font-weight: bold; border-radius: 20px; border: none; cursor: pointer; box-shadow: 0 8px 20px rgba(39, 174, 96, 0.3); }
+        .status-card { background: #fff; padding: 20px; border-radius: 20px; margin-top: 25px; text-align: center; border: 2px solid #edf2f7; box-shadow: var(--card-shadow); }
+        .badge { font-size: 0.7em; padding: 3px 8px; border-radius: 8px; background: #fff3e0; color: #e65100; margin-left: 5px; font-weight: bold; border: 1px solid #ffe0b2; }
     </style>
 </head>
-
 <body>
 
 <header>
-    <h1 style="margin:0">☕ Hop Cafe & 🍛 ครัวอารมณ์ดี</h1>
-    <small>รายการใหม่ ครบถ้วน พร้อมเสิร์ฟ</small>
+    <h1 style="margin:0; font-size: 1.8em;">☕ Hop Cafe & 🍛 ครัวอารมณ์ดี</h1>
+    <p style="margin:5px 0 0; opacity: 0.9; font-weight: 300;">อร่อย สดใส ใส่ใจทุกเมนู</p>
 </header>
 
 <div class="container">
-    <div class="search-box">
-        <input type="text" id="searchInput" placeholder="🔍 ค้นหาเมนู..." oninput="filterMenu()">
-    </div>
+    <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 ค้นหาเมนูโปรดของคุณ..." oninput="filterMenu()"></div>
 
     <div class="tabs">
         <div class="tab-btn active" id="tab-drink" onclick="switchTab('drink')">🥤 เครื่องดื่ม</div>
+        <div class="tab-btn" id="tab-coffee" onclick="switchTab('coffee')">☕ กาแฟสด</div>
+        <div class="tab-btn" id="tab-snack" onclick="switchTab('snack')">🍟 ของทานเล่น</div>
         <div class="tab-btn" id="tab-food" onclick="switchTab('food')">🍛 อาหารตามสั่ง</div>
     </div>
 
     <div id="menu"></div>
 
     <div class="order-form">
-        <h3>📍 ข้อมูลผู้สั่ง</h3>
-        <input id="name" type="text" placeholder="ชื่อของคุณ">
-        <input id="phone" type="tel" placeholder="เบอร์โทรศัพท์">
-        <hr style="border: 0; border-top: 1px solid #eee; margin: 20px 0;">
-        <h3>🛒 ตะกร้าสินค้า</h3>
-        <div id="cart"><p style="color:#999; text-align:center">ยังไม่มีสินค้าในตะกร้า</p></div>
+        <h3 style="color: var(--primary); margin-top: 0;">📍 ข้อมูลจัดส่ง/รับที่ร้าน</h3>
+        <input id="name" type="text" placeholder="ระบุชื่อของคุณ">
+        <input id="phone" type="tel" placeholder="เบอร์โทรศัพท์ที่ติดต่อได้">
+        <hr style="border: 0; border-top: 1px solid #eee; margin: 25px 0;">
+        <h3 style="color: var(--primary);">🛒 ตะกร้าของฉัน</h3>
+        <div id="cart"><p style="color:#94a3b8; text-align:center; padding: 20px;">ตะกร้ายังว่างอยู่เลย... เลือกเมนูที่ชอบด้านบนได้นะ</p></div>
     </div>
-
     <div id="statusBox"></div>
 </div>
 
 <div class="bottom-bar">
-    <div>
-        <small style="color:#718096">ยอดรวม</small>
-        <div id="total" style="font-size: 1.4em; font-weight: bold; color: var(--primary);">0 บาท</div>
-    </div>
-    <button class="btn-submit" onclick="submitOrder()">ยืนยันสั่งซื้อ</button>
+    <div><small style="color:#94a3b8">ราคาสุทธิ</small><div id="total" style="font-size: 1.6em; font-weight: bold; color: var(--primary);">0 บาท</div></div>
+    <button class="btn-submit" onclick="submitOrder()">สั่งซื้อเลย</button>
 </div>
 
 <script type="module">
@@ -234,77 +98,48 @@
 
     const menuData = {
         drink: [
-            // Hop Tea
             { cat: "Hop Tea (ชา)", name: "ชาเขียวนม", price: 25 },
             { cat: "Hop Tea (ชา)", name: "โกโก้ชา", price: 25 },
             { cat: "Hop Tea (ชา)", name: "ชาไทย", price: 20 },
-            { cat: "Hop Tea (ชา)", name: "ชานมไต้หวัน", price: 20 },
-            { cat: "Hop Tea (ชา)", name: "เนสที", price: 20 },
-            { cat: "Hop Tea (ชา)", name: "ชามะนาว", price: 20 },
-            { cat: "Hop Tea (ชา)", name: "ชาดำ", price: 20 },
-            { cat: "Hop Tea (ชา)", name: "ชาเขียวใส", price: 20 },
-            { cat: "Hop Tea (ชา)", name: "ชาเขียวมะนาว", price: 20 },
-            { cat: "Hop Tea (ชา)", name: "ชาเขียวน้ำผึ้งมะนาว", price: 20 },
-            // Hop Jasmine Tea
-            { cat: "Hop Jasmine Tea (ชามะลิ)", name: "ชามะลิ", price: 20 },
-            { cat: "Hop Jasmine Tea (ชามะลิ)", name: "มะลิลิ้นจี่", price: 20 },
-            { cat: "Hop Jasmine Tea (ชามะลิ)", name: "มะลิแอปเปิ้ล", price: 20 },
-            { cat: "Hop Jasmine Tea (ชามะลิ)", name: "มะลิสตรอว์เบอร์รี", price: 20 },
-            { cat: "Hop Jasmine Tea (ชามะลิ)", name: "มะลิน้ำผึ้ง", price: 20 },
-            { cat: "Hop Jasmine Tea (ชามะลิ)", name: "มะลินม", price: 20 },
-            // Hop Berry Tea
-            { cat: "Hop Berry Tea (ชาตระกูลเบอร์รี)", name: "โกโก้เบอร์รี", price: 25 },
-            { cat: "Hop Berry Tea (ชาตระกูลเบอร์รี)", name: "ชาเบอร์รี", price: 20 },
-            { cat: "Hop Berry Tea (ชาตระกูลเบอร์รี)", name: "เบอร์รีมะนาว", price: 20 },
-            { cat: "Hop Berry Tea (ชาตระกูลเบอร์รี)", name: "เบอร์รีน้ำผึ้ง", price: 20 },
-            // Hop Milk
+            { cat: "🍓 นมสดสตรอว์เบอร์รี่ (Cold 39.-)", name: "โกโก้นมสดสตรอว์เบอร์รี่", price: 39 },
+            { cat: "🍓 นมสดสตรอว์เบอร์รี่ (Cold 39.-)", name: "กาแฟนมสดสตรอว์เบอร์รี่", price: 39 },
+            { cat: "🍓 นมสดสตรอว์เบอร์รี่ (Cold 39.-)", name: "นมสดสตรอว์เบอร์รี่", price: 39 },
+            { cat: "🍓 นมสดสตรอว์เบอร์รี่ (Cold 39.-)", name: "ชาไทยนมสดสตรอว์เบอร์รี่", price: 39 },
+            { cat: "🍓 นมสดสตรอว์เบอร์รี่ (Cold 39.-)", name: "ชาเขียวนมสดสตรอว์เบอร์รี่", price: 39 },
             { cat: "Hop Milk (เมนูนม)", name: "โกโก้", price: 25 },
             { cat: "Hop Milk (เมนูนม)", name: "นมสด", price: 20 },
-            { cat: "Hop Milk (เมนูนม)", name: "นมชมพู", price: 20 },
-            { cat: "Hop Milk (เมนูนม)", name: "โอวัลติน", price: 20 },
-            { cat: "Hop Milk (เมนูนม)", name: "นมเผือก", price: 20 },
-            { cat: "Hop Milk (เมนูนม)", name: "นมแคนตาลูป", price: 20 },
-            { cat: "Hop Milk (เมนูนม)", name: "นมสตรอว์เบอร์รี", price: 20 },
-            // Hop Coffee
-            { cat: "Hop Coffee (กาแฟ)", name: "เอสเพรสโซ่", price: 25 },
-            { cat: "Hop Coffee (กาแฟ)", name: "ลาเต้", price: 25 },
-            { cat: "Hop Coffee (กาแฟ)", name: "มอคค่า", price: 25 },
-            { cat: "Hop Coffee (กาแฟ)", name: "คาปูชิโน่", price: 25 }
+            { cat: "Hop Milk (เมนูนม)", name: "นมชมพู", price: 20 }
+        ],
+        coffee: [
+            { cat: "เมนูกาแฟสด (Coffee)", name: "เอสเพรสโซ่", price: 30, type: "coffee_var" },
+            { cat: "เมนูกาแฟสด (Coffee)", name: "มอคค่า", price: 30, type: "coffee_var" },
+            { cat: "เมนูกาแฟสด (Coffee)", name: "ลาเต้", price: 30, type: "coffee_var" },
+            { cat: "เมนูกาแฟสด (Coffee)", name: "คาปูชิโน่", price: 30, type: "coffee_var" },
+            { cat: "เมนูกาแฟสด (Coffee)", name: "อเมริกาโน่", price: 30, type: "coffee_var" },
+            { cat: "เมนูกาแฟสด (Coffee)", name: "มัคคิอาโต", price: 30, type: "coffee_var" },
+            { cat: "เมนูกาแฟสด (Coffee)", name: "อเมริกาโน่ส้ม", price: 30, type: "coffee_var" }
+        ],
+        snack: [
+            { cat: "ของทานเล่น (Snacks)", name: "ชุดจัมโบ้ 3 สหาย", price: 79, note: "เฟรนช์ฟรายส์, นักเก็ต, ชีสบอล" },
+            { cat: "ของทานเล่น (Snacks)", name: "ชุดคู่สุขใจ (เลือกได้ 2)", price: 59, type: "combo" },
+            { cat: "ของทานเล่น (Snacks)", name: "เฟรนช์ฟรายส์ธรรมดา", price: 20 },
+            { cat: "ของทานเล่น (Snacks)", name: "เฟรนช์ฟรายส์เขย่า", price: 29, type: "shaker" },
+            { cat: "เบอร์เกอร์ (Burger)", name: "เบอร์เกอร์ไก่", price: 35, type: "burger" },
+            { cat: "เบอร์เกอร์ (Burger)", name: "เบอร์เกอร์เนื้อ", price: 40, type: "burger" },
+            { cat: "เบอร์เกอร์ (Burger)", name: "เบอร์เกอร์กุ้ง", price: 40, type: "burger" }
         ],
         food: [
             { cat: "กะเพรา (Stir-fried Basil)", name: "กะเพราไก่", price: 40, type: 'food_with_topping' },
             { cat: "กะเพรา (Stir-fried Basil)", name: "กะเพราทะเล", price: 50, type: 'food_with_topping' },
-            { cat: "กะเพรา (Stir-fried Basil)", name: "กะเพราเนื้อ", price: 60, type: 'food_with_topping' },
-            { cat: "กะเพรา (Stir-fried Basil)", name: "กะเพรารวม", price: 60, type: 'food_with_topping' },
-            { cat: "ต้มยำ-ผัดไทย", name: "ต้มยำกุ้ง", price: 70, type: 'food' },
-            { cat: "ต้มยำ-ผัดไทย", name: "มาม่าต้มยำกุ้ง", price: 50, type: 'food' },
             { cat: "ต้มยำ-ผัดไทย", name: "ผัดไทย", price: 50, type: 'food' },
-            { cat: "ผัดพริก (Stir-fried Chili)", name: "ผัดพริกไก่", price: 40, type: 'food_with_topping' },
-            { cat: "ผัดพริก (Stir-fried Chili)", name: "ผัดพริกทะเล", price: 50, type: 'food_with_topping' },
-            { cat: "เครื่องแกง (Curry Stir-fry)", name: "เครื่องแกงไก่", price: 40, type: 'food_with_topping' },
-            { cat: "เครื่องแกง (Curry Stir-fry)", name: "เครื่องแกงทะเล", price: 50, type: 'food_with_topping' },
-            { cat: "ข้าวผัด (Fried Rice)", name: "ข้าวผัดไก่", price: 50, type: 'food_with_topping' },
-            { cat: "ข้าวผัด (Fried Rice)", name: "ข้าวผัดทะเล", price: 50, type: 'food_with_topping' },
-            { cat: "ข้าวผัด (Fried Rice)", name: "ข้าวผัดต้มยำ", price: 50, type: 'food_with_topping' },
-            { cat: "ผัดน้ำมันหอย", name: "ผัดน้ำมันหอยไก่", price: 40, type: 'food_with_topping' },
-            { cat: "ผัดน้ำมันหอย", name: "ผัดน้ำมันหอยทะเล", price: 50, type: 'food_with_topping' },
-            { cat: "สลัดผัก", name: "สลัดผัก", price: 50, type: 'food' },
-            { cat: "สลัดผัก", name: "สลัดผักทูน่า", price: 60, type: 'food' },
-            { cat: "สลัดผัก", name: "สลัดผักอกไก่", price: 60, type: 'food' },
-            { cat: "ข้าวกระเทียม", name: "ข้าวไก่กระเทียม", price: 40, type: 'food_with_topping' },
-            { cat: "ข้าวกระเทียม", name: "ข้าวเนื้อกระเทียม", price: 60, type: 'food_with_topping' },
-            { cat: "ข้าวกระเทียม", name: "ข้าวทะเลกระเทียม", price: 50, type: 'food_with_topping' },
-            { cat: "เพิ่มท็อปปิ้ง (Add-ons)", name: "ไข่ดาว", price: 10, type: 'addon' },
-            { cat: "เพิ่มท็อปปิ้ง (Add-ons)", name: "ไข่เจียว", price: 15, type: 'addon' },
-            { cat: "เพิ่มท็อปปิ้ง (Add-ons)", name: "ไข่เจียวไก่/กุ้ง", price: 25, type: 'addon' },
-            { cat: "เพิ่มท็อปปิ้ง (Add-ons)", name: "ข้าวเปล่า", price: 10, type: 'addon' }
+            { cat: "ข้าวผัด (Fried Rice)", name: "ข้าวผัดไก่", price: 50, type: 'food_with_topping' }
         ]
     };
 
     window.switchTab = (tab) => {
         currentTab = tab;
-        document.getElementById('tab-drink').classList.toggle('active', tab === 'drink');
-        document.getElementById('tab-food').classList.toggle('active', tab === 'food');
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(`tab-${tab}`).classList.add('active');
         renderMenu();
     };
 
@@ -317,7 +152,6 @@
         const menuDiv = document.getElementById("menu");
         menuDiv.innerHTML = "";
         let lastCat = "";
-
         const items = menuData[currentTab].filter(i => i.name.toLowerCase().includes(searchQuery));
 
         items.forEach((m, i) => {
@@ -331,65 +165,58 @@
                 optionsHtml = `
                     <div class="option-group">
                         <span class="option-label">ความหวาน</span>
-                        <select id="opt-${currentTab}-${i}">
-                            <option value="หวานปกติ">หวานปกติ</option>
-                            <option value="ไม่หวาน (0%)">ไม่หวาน (0%)</option>
-                            <option value="หวานน้อย (50%)">หวานน้อย (50%)</option>
-                            <option value="หวานพิเศษ (125%)">หวานพิเศษ (125%)</option>
-                        </select>
-                        <label style="font-size: 0.8em; display:flex; align-items:center; gap:5px; margin-top:8px">
-                            <input type="checkbox" id="bubble-${currentTab}-${i}"> เพิ่มไข่มุก (+5)
-                        </label>
+                        <select id="opt-${currentTab}-${i}"><option value="หวานปกติ">หวานปกติ</option><option value="ไม่หวาน (0%)">ไม่หวาน (0%)</option><option value="หวานน้อย (50%)">หวานน้อย (50%)</option></select>
+                        <label style="font-size: 0.8em; display:flex; align-items:center; gap:5px; margin-top:8px"><input type="checkbox" id="bubble-${currentTab}-${i}"> เพิ่มไข่มุก (+5)</label>
                     </div>`;
-            } else if (m.type === 'food_with_topping') {
-                optionsHtml = `
-                    <div class="option-group">
-                        <span class="option-label">หมายเหตุ (ความเผ็ด)</span>
-                        <select id="opt-${currentTab}-${i}">
-                            <option value="เผ็ดปกติ">เผ็ดปกติ</option>
-                            <option value="ไม่เผ็ด">ไม่เผ็ด</option>
-                            <option value="เผ็ดน้อย">เผ็ดน้อย</option>
-                            <option value="เผ็ดมาก">เผ็ดมาก</option>
-                        </select>
-                    </div>`;
+            } else if (m.type === 'coffee_var') {
+                optionsHtml = `<div class="option-group"><span class="option-label">รูปแบบ/ความหวาน</span>
+                    <select id="opt-${currentTab}-${i}"><option value="ร้อน (30.-)">ร้อน (30.-)</option><option value="เย็น (40.-)">เย็น (40.-)</option><option value="ปั่น (50.-)">ปั่น (50.-)</option></select>
+                    <select id="sweet-${currentTab}-${i}" style="margin-top:5px"><option value="หวานปกติ">หวานปกติ</option><option value="หวานน้อย">หวานน้อย</option></select></div>`;
+            } else if (m.type === 'shaker') {
+                optionsHtml = `<div class="option-group"><span class="option-label">รสชาติผงเขย่า</span>
+                    <select id="opt-${currentTab}-${i}"><option value="ปาปริก้า">ปาปริก้า</option><option value="ชีส">ชีส</option><option value="BBQ">BBQ</option></select></div>`;
+            } else if (m.type === 'combo') {
+                optionsHtml = `<div class="option-group"><span class="option-label">เลือก 2 อย่าง</span>
+                    <select id="opt-${currentTab}-${i}"><option value="เฟรนช์ฟรายส์+นักเก็ต">เฟรนช์ฟรายส์ + นักเก็ต</option><option value="เฟรนช์ฟรายส์+ชีสบอล">เฟรนช์ฟรายส์ + ชีสบอล</option><option value="ชีสบอล+นักเก็ต">ชีสบอล + นักเก็ต</option></select></div>`;
+            } else if (m.type === 'burger' || m.type === 'food_with_topping') {
+                const label = m.type === 'burger' ? 'ท็อปปิ้ง' : 'ความเผ็ด';
+                const opts = m.type === 'burger' ? 
+                    `<option value="ปกติ">ปกติ</option><option value="เพิ่มชีส (+15)">เพิ่มชีส (+15)</option><option value="เพิ่มไข่ดาว (+10)">เพิ่มไข่ดาว (+10)</option>` :
+                    `<option value="เผ็ดปกติ">เผ็ดปกติ</option><option value="ไม่เผ็ด">ไม่เผ็ด</option><option value="เผ็ดมาก">เผ็ดมาก</option>`;
+                optionsHtml = `<div class="option-group"><span class="option-label">${label}</span><select id="opt-${currentTab}-${i}">${opts}</select></div>`;
             }
 
-            menuDiv.innerHTML += `
-            <div class="card">
-                <div class="card-content">
-                    <div style="font-weight:600; font-size:0.95em">${m.name}</div>
-                    <div class="price">${m.price}.-</div>
-                    ${optionsHtml}
-                    <button class="btn-add" onclick="addToCart('${currentTab}', ${i})">เพิ่มลงรถเข็น</button>
-                </div>
-            </div>`;
+            menuDiv.innerHTML += `<div class="card"><div class="card-content">
+                <div style="font-weight:600; font-size:1em">${m.name}</div>
+                <div class="price">${m.price}.-</div>
+                ${optionsHtml}<button class="btn-add" onclick="addToCart('${currentTab}', ${i})">เพิ่มลงรถเข็น</button>
+            </div></div>`;
         });
     }
 
     window.addToCart = (tab, i) => {
         const item = menuData[tab][i];
-        let sweet = "ปกติ";
-        let bubble = 0;
-        let note = "";
-
+        let price = item.price, sweet = "", bubble = 0, note = "";
         const optEl = document.getElementById(`opt-${tab}-${i}`);
-        const bubbleEl = document.getElementById(`bubble-${tab}-${i}`);
-
+        
         if (tab === 'drink') {
             sweet = optEl.value;
-            bubble = bubbleEl && bubbleEl.checked ? 5 : 0;
-        } else if (item.type === 'food_with_topping') {
+            bubble = document.getElementById(`bubble-${tab}-${i}`).checked ? 5 : 0;
+        } else if (item.type === 'coffee_var') {
+            const val = optEl.value;
+            price = val.includes('ร้อน') ? 30 : val.includes('เย็น') ? 40 : 50;
+            note = val.split(' ')[0] + " / " + document.getElementById(`sweet-${tab}-${i}`).value;
+        } else if (item.type === 'burger') {
+            note = optEl.value;
+            if(note.includes('15')) price += 15;
+            if(note.includes('10')) price += 10;
+        } else if (optEl) {
             note = optEl.value;
         }
 
-        const cartId = `${item.name}-${sweet}-${bubble}-${note}`;
+        const cartId = `${item.name}-${sweet}-${bubble}-${note}-${price}`;
         const existing = cart.find(x => x.cartId === cartId);
-
-        if (existing) {
-            existing.qty++;
-        } else {
-            cart.push({ ...item, sweet, bubble, note, qty: 1, cartId });
-        }
+        if (existing) existing.qty++; else cart.push({ ...item, price, sweet, bubble, note, qty: 1, cartId });
         renderCart();
     };
 
@@ -397,31 +224,18 @@
         const cartDiv = document.getElementById("cart");
         const totalDiv = document.getElementById("total");
         if (cart.length === 0) {
-            cartDiv.innerHTML = '<p style="color:#999; text-align:center; padding: 20px;">ยังไม่มีสินค้าในตะกร้า</p>';
-            totalDiv.innerText = "0 บาท";
-            return;
+            cartDiv.innerHTML = '<p style="color:#94a3b8; text-align:center; padding: 20px;">ตะกร้ายังว่างอยู่เลย...</p>';
+            totalDiv.innerText = "0 บาท"; return;
         }
-
-        let total = 0;
-        cartDiv.innerHTML = "";
+        let total = 0; cartDiv.innerHTML = "";
         cart.forEach((c, idx) => {
             const sum = (c.price + (c.bubble || 0)) * c.qty;
             total += sum;
-            cartDiv.innerHTML += `
-            <div class="cart-item">
-                <div style="flex:1">
-                    <div style="font-weight:600">${c.name} ${c.bubble ? '<span class="badge">+ไข่มุก</span>' : ''}</div>
-                    <div style="font-size:0.8em; color:#718096">
-                        ${c.sweet !== 'ปกติ' && c.cat.includes('Hop') ? 'ระดับ: '+c.sweet : ''} ${c.note || ''}
-                    </div>
-                </div>
-                <div class="qty-controls">
-                    <button onclick="updateQty(${idx}, -1)">-</button>
-                    <b>${c.qty}</b>
-                    <button onclick="updateQty(${idx}, 1)">+</button>
-                </div>
-                <div style="min-width:60px; text-align:right; font-weight:600">${sum}.-</div>
-            </div>`;
+            cartDiv.innerHTML += `<div class="cart-item"><div style="flex:1">
+                <div style="font-weight:600">${c.name} ${c.bubble ? '<span class="badge">+ไข่มุก</span>' : ''}</div>
+                <div style="font-size:0.85em; color:#64748b">${c.sweet} ${c.note}</div></div>
+                <div class="qty-controls"><button onclick="updateQty(${idx}, -1)">-</button><b>${c.qty}</b><button onclick="updateQty(${idx}, 1)">+</button></div>
+                <div style="min-width:70px; text-align:right; font-weight:600">${sum}.-</div></div>`;
         });
         totalDiv.innerText = total.toLocaleString() + " บาท";
     }
@@ -435,40 +249,22 @@
     window.submitOrder = async () => {
         const name = document.getElementById("name").value.trim();
         const phone = document.getElementById("phone").value.trim();
-        if (!name || !phone || cart.length === 0) return alert("กรุณากรอกชื่อ เบอร์โทร และเลือกเมนูด้วยนะครับ");
-
+        if (!name || !phone || cart.length === 0) return alert("กรุณากรอกข้อมูลให้ครบถ้วนนะครับ");
         try {
-            const ref = await addDoc(collection(db, "orders"), {
-                name, phone, cart, status: "new", time: Date.now()
-            });
-
+            const ref = await addDoc(collection(db, "orders"), { name, phone, cart, status: "new", time: Date.now() });
             onSnapshot(doc(db, "orders", ref.id), (snap) => {
                 const s = snap.data().status;
                 const statusBox = document.getElementById("statusBox");
                 let msg = "⌛ รับออเดอร์แล้ว", color = "#666";
                 if(s === "doing") { msg = "👨‍🍳 กำลังเตรียมเมนูของคุณ..."; color = "#e67e22"; }
-                if(s === "done") { msg = "✅ เสร็จเรียบร้อย! เชิญมารับได้เลยครับ"; color = "#27ae60"; }
+                if(s === "done") { msg = "✅ เสร็จเรียบร้อย! มารับได้เลยครับ"; color = "#27ae60"; }
                 statusBox.innerHTML = `<div class="status-card" style="border-left:8px solid ${color}">${msg}</div>`;
             });
-
-            alert("ส่งคำสั่งซื้อเรียบร้อย!");
-            cart = [];
-            renderCart();
+            alert("สั่งซื้อสำเร็จ!"); cart = []; renderCart();
         } catch (e) { alert("เกิดข้อผิดพลาด: " + e.message); }
     };
 
     renderMenu();
 </script>
-
-<script>
-  if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js')
-        .then(reg => console.log('Service Worker Registered!', reg))
-        .catch(err => console.error('Service Worker Registration Fail!', err));
-    });
-  }
-</script>
-
 </body>
 </html>
