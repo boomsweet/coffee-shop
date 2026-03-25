@@ -112,6 +112,18 @@
 
     const ordersRef = collection(db, "orders");
 
+    // --- ส่วนที่เพิ่มใหม่: ลงทะเบียน Service Worker และระบบแจ้งเตือน ---
+    if ('serviceWorker' in navigator) {
+        window.addEventListener('load', () => {
+            navigator.serviceWorker.register('sw.js').then((reg) => {
+                console.log('Service Worker Registered!');
+                if (Notification.permission !== 'granted') {
+                    Notification.requestPermission();
+                }
+            });
+        });
+    }
+
     // --- ฟังก์ชันพื้นฐาน ---
     window.updateStat = async (id, s) => {
         try {
@@ -189,6 +201,7 @@
             const currentYear = now.getFullYear();
 
             let currentNew = 0;
+            let latestCustomer = ""; // เก็บชื่อลูกค้าคนล่าสุดสำหรับแจ้งเตือน
 
             snap.forEach(d => {
                 const o = d.data();
@@ -201,12 +214,9 @@
 
                 // คำนวณยอดเฉพาะที่ status === 'done' (ส่งสำเร็จแล้ว)
                 if(o.status === 'done') {
-                    // รายวัน
                     if(oDateStr === todayStr) dSum += orderTotal;
-                    // รายเดือน
                     if(oDate.getMonth() === currentMonth && oDate.getFullYear() === currentYear) {
                         mSum += orderTotal;
-                        // เก็บสถิติลงตาราง
                         if(!dailyStats[oDateStr]) dailyStats[oDateStr] = { total: 0, count: 0 };
                         dailyStats[oDateStr].total += orderTotal;
                         dailyStats[oDateStr].count += 1;
@@ -214,13 +224,27 @@
                 }
 
                 const card = createCard(id, o, orderTotal);
-                if(o.status === 'new') { list.new.push(card); currentNew++; }
+                if(o.status === 'new') { 
+                    list.new.push(card); 
+                    currentNew++; 
+                    latestCustomer = o.name || "ลูกค้า"; // บันทึกชื่อคนสั่งใหม่
+                }
                 else if(o.status === 'doing') list.doing.push(card);
                 else list.done.push(card);
             });
 
-            // แจ้งเตือนเสียง
-            if(lastCount !== -1 && currentNew > lastCount) speak("มีออเดอร์ใหม่เข้ามาค่ะ");
+            // แจ้งเตือนเสียงและ Push Notification
+            if(lastCount !== -1 && currentNew > lastCount) {
+                speak("มีออเดอร์ใหม่เข้ามาค่ะ");
+                
+                // ส่งสัญญาณไปที่ Service Worker เพื่อแสดงแถบแจ้งเตือนด้านบนมือถือ
+                if (Notification.permission === 'granted' && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({
+                        type: "NEW_ORDER",
+                        name: latestCustomer
+                    });
+                }
+            }
             lastCount = currentNew;
 
             // Render การ์ด
@@ -239,7 +263,6 @@
     function renderSummaryTable(stats) {
         const tbody = document.getElementById("summary-body");
         tbody.innerHTML = "";
-        // เรียงวันที่ล่าสุดขึ้นก่อน
         const sortedDates = Object.keys(stats).sort((a,b) => {
             const dateA = a.split('/').reverse().join('');
             const dateB = b.split('/').reverse().join('');
