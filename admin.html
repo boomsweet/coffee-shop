@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Hop Cafe | Admin Dashboard</title>
+    <link rel="manifest" href="manifest-admin.json">
     <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -61,7 +62,7 @@
 </div>
 
 <div id="panel" style="display:none;" class="container">
-    <div id="audio-banner">🔔 แตะที่นี่เพื่อ "เปิดเสียงพูด" แจ้งเตือนออเดอร์</div>
+    <div id="audio-banner">🔔 แตะที่นี่เพื่อ "เปิดเสียงพูด" และรับการแจ้งเตือน</div>
 
     <div class="sales-overview">
         <div class="sales-grid">
@@ -100,7 +101,6 @@
             </thead>
             <tbody id="summary-body"></tbody>
         </table>
-
         <div class="section-title" style="margin-top:30px;">✅ ประวัติออเดอร์ที่ส่งแล้ว</div>
         <div id="done-orders" class="grid-orders"></div>
     </div>
@@ -112,30 +112,25 @@
 
     const ordersRef = collection(db, "orders");
 
-    // --- ส่วนที่เพิ่มใหม่: ลงทะเบียน Service Worker และระบบแจ้งเตือน ---
+    // --- แจ้งเตือน และ Service Worker ---
     if ('serviceWorker' in navigator) {
-        window.addEventListener('load', () => {
-            navigator.serviceWorker.register('sw.js').then((reg) => {
-                console.log('Service Worker Registered!');
-                if (Notification.permission !== 'granted') {
-                    Notification.requestPermission();
-                }
-            });
+        navigator.serviceWorker.register('sw.js').then((reg) => {
+            console.log('Admin SW Active');
+            if (Notification.permission !== 'granted') {
+                Notification.requestPermission();
+            }
         });
     }
 
-    // --- ฟังก์ชันพื้นฐาน ---
     window.updateStat = async (id, s) => {
-        try {
-            await updateDoc(doc(db, "orders", id), { status: s });
-        } catch (err) { alert("เกิดข้อผิดพลาด: " + err.message); }
+        try { await updateDoc(doc(db, "orders", id), { status: s }); } 
+        catch (err) { alert("Error: " + err.message); }
     };
 
     window.delOrder = async (id) => {
-        if(confirm("ยืนยันลบถาวร? ข้อมูลยอดขายในหน้านี้จะหายไปด้วย")) {
-            try {
-                await deleteDoc(doc(db, "orders", id));
-            } catch (err) { alert("ลบไม่ได้: " + err.message); }
+        if(confirm("ยืนยันลบถาวร?")) {
+            try { await deleteDoc(doc(db, "orders", id)); } 
+            catch (err) { alert("ลบไม่ได้: " + err.message); }
         }
     };
 
@@ -146,7 +141,6 @@
         document.getElementById(`nav-${tab}`).classList.add('active');
     };
 
-    // --- ระบบ Login ---
     const passInput = document.getElementById("pass");
     const loginBtn = document.getElementById("loginBtn");
 
@@ -168,14 +162,14 @@
         startDashboard();
     }
 
-    // --- ระบบ Dashboard & Calculation ---
     let lastCount = -1;
     let audioOn = false;
 
     document.getElementById("audio-banner").onclick = () => {
         audioOn = true;
         document.getElementById("audio-banner").style.display = "none";
-        speak("ระบบเสียงแจ้งเตือนพร้อมทำงานค่ะ");
+        if (Notification.permission !== 'granted') Notification.requestPermission();
+        speak("ระบบแจ้งเตือนพร้อมทำงานค่ะ");
     };
 
     document.getElementById("nav-live").onclick = () => window.showTab('live');
@@ -192,16 +186,15 @@
     function startDashboard() {
         onSnapshot(ordersRef, (snap) => {
             const list = { new: [], doing: [], done: [] };
-            const dailyStats = {}; // เก็บยอดรายวัน { "23/3/2569": { total: 500, count: 2 } }
-            
+            const dailyStats = {};
             let dSum = 0, mSum = 0;
             const now = new Date();
             const todayStr = now.toLocaleDateString('th-TH');
             const currentMonth = now.getMonth();
             const currentYear = now.getFullYear();
 
-            let currentNew = 0;
-            let latestCustomer = ""; // เก็บชื่อลูกค้าคนล่าสุดสำหรับแจ้งเตือน
+            let currentNewCount = 0;
+            let latestCustomer = "";
 
             snap.forEach(d => {
                 const o = d.data();
@@ -212,7 +205,6 @@
                 const oDate = new Date(o.time);
                 const oDateStr = oDate.toLocaleDateString('th-TH');
 
-                // คำนวณยอดเฉพาะที่ status === 'done' (ส่งสำเร็จแล้ว)
                 if(o.status === 'done') {
                     if(oDateStr === todayStr) dSum += orderTotal;
                     if(oDate.getMonth() === currentMonth && oDate.getFullYear() === currentYear) {
@@ -226,18 +218,16 @@
                 const card = createCard(id, o, orderTotal);
                 if(o.status === 'new') { 
                     list.new.push(card); 
-                    currentNew++; 
-                    latestCustomer = o.name || "ลูกค้า"; // บันทึกชื่อคนสั่งใหม่
+                    currentNewCount++; 
+                    latestCustomer = o.name || "ลูกค้า";
                 }
                 else if(o.status === 'doing') list.doing.push(card);
                 else list.done.push(card);
             });
 
-            // แจ้งเตือนเสียงและ Push Notification
-            if(lastCount !== -1 && currentNew > lastCount) {
+            // แจ้งเตือนเมื่อมีออเดอร์ใหม่
+            if(lastCount !== -1 && currentNewCount > lastCount) {
                 speak("มีออเดอร์ใหม่เข้ามาค่ะ");
-                
-                // ส่งสัญญาณไปที่ Service Worker เพื่อแสดงแถบแจ้งเตือนด้านบนมือถือ
                 if (Notification.permission === 'granted' && navigator.serviceWorker.controller) {
                     navigator.serviceWorker.controller.postMessage({
                         type: "NEW_ORDER",
@@ -245,14 +235,11 @@
                     });
                 }
             }
-            lastCount = currentNew;
+            lastCount = currentNewCount;
 
-            // Render การ์ด
             render('new-orders', list.new, 'count-new');
             render('doing-orders', list.doing, 'count-doing');
             render('done-orders', list.done, null);
-
-            // Render ตารางสรุปยอด
             renderSummaryTable(dailyStats);
 
             document.getElementById("daily").innerText = dSum.toLocaleString() + " บาท";
@@ -263,24 +250,9 @@
     function renderSummaryTable(stats) {
         const tbody = document.getElementById("summary-body");
         tbody.innerHTML = "";
-        const sortedDates = Object.keys(stats).sort((a,b) => {
-            const dateA = a.split('/').reverse().join('');
-            const dateB = b.split('/').reverse().join('');
-            return dateB.localeCompare(dateA);
-        });
-
-        if(sortedDates.length === 0) {
-            tbody.innerHTML = "<tr><td colspan='3' style='text-align:center; color:#94a3b8;'>ยังไม่มีข้อมูลการขายที่สำเร็จในเดือนนี้</td></tr>";
-            return;
-        }
-
+        const sortedDates = Object.keys(stats).sort((a,b) => b.localeCompare(a));
         sortedDates.forEach(date => {
-            const row = `<tr>
-                <td>${date}</td>
-                <td>${stats[date].count} ออเดอร์</td>
-                <td style="color:var(--success); font-weight:bold;">${stats[date].total.toLocaleString()}.-</td>
-            </tr>`;
-            tbody.innerHTML += row;
+            tbody.innerHTML += `<tr><td>${date}</td><td>${stats[date].count} ออเดอร์</td><td style="color:var(--success); font-weight:bold;">${stats[date].total.toLocaleString()}.-</td></tr>`;
         });
     }
 
@@ -288,32 +260,21 @@
         const div = document.createElement('div');
         div.className = "order-card";
         const t = new Date(o.time).toLocaleTimeString('th-TH', {hour:'2-digit', minute:'2-digit'});
-        
         const items = (o.cart || []).map(i => `
-            <div class="item-row">
-                <span><b>${i.name}</b> x${i.qty}</span>
-                <span>${(i.price + (i.bubble||0)) * i.qty}.-</span>
-            </div>
-            <div style="font-size:0.8em; color:#94a3b8; margin-bottom:5px;">
-                ${i.sweet||''} ${i.bubble?'+ไข่มุก':''} ${i.note||''}
-            </div>
+            <div class="item-row"><span><b>${i.name}</b> x${i.qty}</span><span>${(i.price + (i.bubble||0)) * i.qty}.-</span></div>
+            <div style="font-size:0.85em; color:#94a3b8; margin-bottom:5px;">${i.sweet||''} ${i.note||''}</div>
         `).join('');
 
         div.innerHTML = `
-            <div class="cust-header">
-                <div style="display:flex; justify-content:space-between">
-                    <strong>👤 ${o.name || 'ลูกค้า'}</strong>
-                    <small>${t}</small>
-                </div>
-                <a href="tel:${o.phone}" style="color:var(--primary); text-decoration:none;">📞 ${o.phone || '-'}</a>
-            </div>
-            <div class="address-box">🏠 ${o.address || 'รับที่ร้าน'}${o.gps ? `<br><a href="${o.gps}" target="_blank" class="btn-gps">📍 เปิดแผนที่</a>` : ''}</div>
+            <div class="cust-header"><div style="display:flex; justify-content:space-between"><strong>👤 ${o.name || 'ลูกค้า'}</strong><small>${t}</small></div>
+            <a href="tel:${o.phone}" style="color:var(--primary); text-decoration:none;">📞 ${o.phone || '-'}</a></div>
+            <div class="address-box">🏠 ${o.address || 'รับที่ร้าน'}${o.gps ? `<br><a href="${o.gps}" target="_blank" class="btn-gps">📍 แผนที่</a>` : ''}</div>
             <div class="item-list">${items}</div>
-            <div style="text-align:right; font-weight:bold; color:var(--primary); font-size:1.2em; border-top:1px dashed #475569; padding-top:10px;">รวม ${total.toLocaleString()}.-</div>
+            <div style="text-align:right; font-weight:bold; color:var(--primary); font-size:1.1em; border-top:1px dashed #475569; padding-top:10px;">รวม ${total.toLocaleString()}.-</div>
             <div class="btn-group">
                 ${o.status === 'new' ? `<button onclick="updateStat('${id}','doing')" class="btn-status" style="background:var(--warning);">รับออเดอร์</button>` : ''}
-                ${o.status === 'doing' ? `<button onclick="updateStat('${id}','done')" class="btn-status" style="background:var(--success); color:#fff;">ทำเสร็จแล้วรอส่ง</button>` : ''}
-                ${o.status === 'done' ? `<button onclick="delOrder('${id}')" class="btn-status" style="background:var(--danger); color:#fff;">ลบรายการ</button>` : ''}
+                ${o.status === 'doing' ? `<button onclick="updateStat('${id}','done')" class="btn-status" style="background:var(--success); color:#fff;">ส่งแล้ว</button>` : ''}
+                ${o.status === 'done' ? `<button onclick="delOrder('${id}')" class="btn-status" style="background:var(--danger); color:#fff;">ลบ</button>` : ''}
             </div>
         `;
         return div;
