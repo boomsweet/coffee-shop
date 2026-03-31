@@ -72,6 +72,8 @@
         .bottom-bar { position: fixed; bottom: 0; left: 0; right: 0; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); padding: 25px 30px; box-shadow: 0 -10px 40px rgba(0,0,0,0.08); display: flex; justify-content: space-between; align-items: center; z-index: 1000; border-radius: 40px 40px 0 0; }
         .btn-submit { background: var(--success); color: white; padding: 16px 45px; font-size: 1.15em; font-weight: 700; border-radius: 22px; border: none; cursor: pointer; box-shadow: 0 8px 15px rgba(39, 174, 96, 0.2); }
         
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #f1f5f9; font-size: 0.95em; }
+        
         #statusDisplay { position: fixed; top: 25px; left: 50%; transform: translateX(-50%); z-index: 2000; width: 92%; max-width: 450px; display: none; }
         .status-card { background: white; padding: 18px; border-radius: 25px; box-shadow: 0 15px 40px rgba(0,0,0,0.15); border-left: 10px solid var(--accent); display: flex; align-items: center; gap: 18px; border: 1px solid #f1f5f9; }
     </style>
@@ -95,9 +97,9 @@
 <div class="container">
     <div id="page-menu" class="page active">
         <div class="sticky-tools">
-            <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 ค้นหาเมนูที่คุณชอบ..." oninput="window.filterMenu()"></div>
+            <div class="search-box"><input type="text" id="searchInput" placeholder="🔍 ค้นหาเมนู..." oninput="window.filterMenu()"></div>
             <div id="miniCartDisplay" class="mini-cart" style="display: none;" onclick="window.togglePage('checkout')">
-                <span>🛒 <b><span id="cartCount">0</span></b> รายการในตะกร้า</span>
+                <span>🛒 <b><span id="cartCount">0</span></b> รายการ</span>
                 <span style="font-weight: 700;">ดูตะกร้า ></span>
             </div>
         </div>
@@ -122,11 +124,11 @@
             <input id="userName" type="text" placeholder="ชื่อลูกค้า">
             <input id="userPhone" type="tel" placeholder="เบอร์โทรศัพท์">
             <button class="btn-gps" onclick="window.getLocation()">📍 กดเพื่อปักหมุดที่อยู่ปัจจุบัน</button>
-            <textarea id="userAddress" rows="3" placeholder="ระบุบ้านเลขที่/ซอย/จุดสังเกต"></textarea>
+            <textarea id="userAddress" rows="3" placeholder="ระบุที่อยู่ / บ้านเลขที่"></textarea>
             <input id="userGps" type="hidden">
             <div id="gpsStatus" style="font-size:0.9em; color:var(--success); text-align:center; margin-bottom:10px; font-weight:600;"></div>
             <hr style="border:0; border-top:1px solid #edf2f7; margin:20px 0;">
-            <h3 style="color:var(--primary);">🛒 สรุปรายการสั่งซื้อ</h3>
+            <h3 style="color:var(--primary);">🛒 สรุปรายการ</h3>
             <div id="cartSummary"></div>
         </div>
     </div>
@@ -134,7 +136,7 @@
 
 <div class="bottom-bar">
     <div>
-        <small style="color:#64748b; font-weight:600;">ราคารวมทั้งหมด</small>
+        <small style="color:#64748b; font-weight:600;">รวมทั้งสิ้น</small>
         <div id="totalDisplay" style="font-size: 1.6em; font-weight: 800; color: var(--primary);">0 บาท</div>
     </div>
     <button id="mainBtn" class="btn-submit" onclick="window.handleMainBtn()">สั่งเลย</button>
@@ -202,7 +204,7 @@
             { cat: "เพิ่มท็อปปิ้ง", name: "ไข่เจียว", price: 15 }
         ],
         snack: [
-            { cat: "ของทานเล่น", name: "ชุดจัมโบ้ 3 สหาย", price: 79, note: "(เฟรนช์ฟรายส์, นักเก็ต, ชีสบอล)" },
+            { cat: "ของทานเล่น", name: "ชุดจัมโบ้ 3 สหาย", price: 79, note: "(ฟรายส์, นักเก็ต, ชีสบอล)" },
             { cat: "ของทานเล่น", name: "ชุดคู่สุขใจ (2 อย่าง)", price: 59, type: 'snack-opt' },
             { cat: "ของทานเล่น", name: "เฟรนช์ฟรายส์ธรรมดา", price: 20 },
             { cat: "ของทานเล่น", name: "เฟรนช์ฟรายส์เขย่า", price: 29, type: 'shake' },
@@ -227,7 +229,7 @@
 
     window.handleMainBtn = () => {
         if (document.getElementById('page-menu').classList.contains('active')) {
-            if (cart.length === 0) return alert("เลือกเมนูก่อนนะครับ Bird!");
+            if (cart.length === 0) return alert("เลือกเมนูก่อนนะครับ");
             window.togglePage('checkout');
         } else {
             submitOrder();
@@ -266,7 +268,13 @@
                 options = `<div class="option-group">
                     <label>ระดับความหวาน</label>
                     <select id="opt-${index}"><option value="หวานปกติ">หวานปกติ</option><option value="หวานน้อย">หวานน้อย</option></select>
-                    <label style="font-size:0.85em; display:flex; align-items:center; gap:5px;"><input type="checkbox" id="mook-${index}"> 🧋 เพิ่มไข่มุก (+5)</label>
+                    <label style="font-size:0.85em; display:block; margin-bottom:5px;">🧋 เพิ่มไข่มุก</label>
+                    <select id="mook-count-${index}">
+                        <option value="0">ไม่รับไข่มุก</option>
+                        <option value="1">รับไข่มุก (ตักแรกฟรี! ✨)</option>
+                        <option value="2">เพิ่มไข่มุก 2 ตัก (+5.-)</option>
+                        <option value="3">เพิ่มไข่มุก 3 ตัก (+10.-)</option>
+                    </select>
                 </div>`;
             } else if (m.type === 'coffee') {
                 options = `<div class="option-group">
@@ -324,11 +332,18 @@
 
     window.addToCart = (idx) => {
         const item = menuData[currentTab][idx];
-        let price = item.price, sweet = "", bubble = 0, note = "";
+        let price = item.price, sweet = "", bubblePrice = 0, note = "";
         
         if (currentTab.includes('hop') || currentTab === 'strawberry' || item.type === 'sweet-only') {
             sweet = document.getElementById(`opt-${idx}`).value;
-            bubble = document.getElementById(`mook-${idx}`).checked ? 5 : 0;
+            const mookLevel = parseInt(document.getElementById(`mook-count-${idx}`).value);
+            if (mookLevel === 1) {
+                note = "ไข่มุก (ฟรี)";
+                bubblePrice = 0;
+            } else if (mookLevel > 1) {
+                bubblePrice = (mookLevel - 1) * 5;
+                note = `ไข่มุก ${mookLevel} ตัก (+${bubblePrice})`;
+            }
         } else if (item.type === 'coffee') {
             const val = document.getElementById(`opt-${idx}`).value;
             price = val.includes('ร้อน') ? 30 : val.includes('เย็น') ? 40 : 50;
@@ -346,9 +361,10 @@
             note = "รส" + document.getElementById(`shake-${idx}`).value;
         }
 
-        const cartId = `${item.name}-${sweet}-${bubble}-${note}-${price}`;
+        const cartId = `${item.name}-${sweet}-${bubblePrice}-${note}-${price}`;
         const found = cart.find(x => x.cartId === cartId);
-        if (found) found.qty++; else cart.push({ ...item, price, sweet, bubble, note, qty: 1, cartId });
+        if (found) found.qty++; 
+        else cart.push({ ...item, price, sweet, bubble: bubblePrice, note, qty: 1, cartId });
         updateCartUI();
     };
 
@@ -360,9 +376,7 @@
 
         if (cart.length === 0) {
             summary.innerHTML = "<p style='text-align:center; color:#94a3b8; padding:20px;'>ไม่มีรายการในตะกร้า</p>";
-            totalDisp.innerText = "0 บาท";
-            mini.style.display = "none";
-            return;
+            totalDisp.innerText = "0 บาท"; mini.style.display = "none"; return;
         }
 
         mini.style.display = "flex";
@@ -394,7 +408,7 @@
     window.getLocation = () => {
         const s = document.getElementById('gpsStatus');
         if (!navigator.geolocation) return alert("มือถือไม่รองรับ GPS");
-        s.innerText = "กำลังค้นหาพิกัด... 📍";
+        s.innerText = "กำลังปักหมุด... 📍";
         navigator.geolocation.getCurrentPosition(p => {
             const lat = p.coords.latitude, lng = p.coords.longitude;
             document.getElementById('userGps').value = `https://www.google.com/maps?q=${lat},${lng}`;
@@ -416,9 +430,9 @@
                 status: "new", time: Date.now()
             });
             trackStatus(ref.id);
-            alert("สั่งเรียบร้อยแล้วครับ Bird!");
+            alert("สั่งเรียบร้อยแล้วครับ!");
             cart = []; updateCartUI(); window.togglePage('menu');
-        } catch (e) { alert("เกิดข้อผิดพลาด: " + e.message); }
+        } catch (e) { alert("Error: " + e.message); }
     }
 
     function trackStatus(orderId) {
@@ -434,14 +448,11 @@
             display.style.display = "block";
 
             if(s === "new") {
-                card.style.borderLeftColor = "#f59e0b";
-                icon.innerText = "⏳"; title.innerText = "รอรับออเดอร์"; desc.innerText = "ร้านค้าได้รับรายการของคุณแล้ว";
+                card.style.borderLeftColor = "#f59e0b"; icon.innerText = "⏳"; title.innerText = "รอรับออเดอร์"; desc.innerText = "ร้านค้าได้รับรายการของคุณแล้ว";
             } else if(s === "doing") {
-                card.style.borderLeftColor = "#3b82f6";
-                icon.innerText = "👨‍🍳"; title.innerText = "กำลังทำเมนูของคุณอยู่"; desc.innerText = "ออเดอร์ของคุณกำลังเตรียมความอร่อย!";
+                card.style.borderLeftColor = "#3b82f6"; icon.innerText = "👨‍🍳"; title.innerText = "กำลังทำเมนูของคุณ"; desc.innerText = "ออเดอร์ของคุณกำลังจัดเตรียมครับ";
             } else if(s === "done") {
-                card.style.borderLeftColor = "#22c55e";
-                icon.innerText = "✅"; title.innerText = "ออเดอร์เสร็จแล้วพร้อมส่ง"; desc.innerText = "ขอบคุณที่ใช้บริการครับ!";
+                card.style.borderLeftColor = "#22c55e"; icon.innerText = "✅"; title.innerText = "ออเดอร์เสร็จแล้ว!"; desc.innerText = "ขอบคุณที่ใช้บริการครับ";
                 setTimeout(() => { display.style.display = "none"; }, 15000);
             }
         });
